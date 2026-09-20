@@ -1,0 +1,25 @@
+{
+  "source": "Terms explicitly present in moduleDevisAI/benchmark/data/audio_cases.csv manual transcriptions.",
+  "method": "For each configured term occurring in the normalized reference, count the same normalized term in the prediction, capped at its reference occurrences. This is an occurrence-presence measure, not a semantic assessment.",
+  "terms": [
+    "toiture",
+    "tuile",
+    "linteau",
+    "contre-linteau",
+    "écran de sous-toiture",
+    "fêtage",
+    "rive",
+    "échafaudage",
+    "isolation EPS",
+    "crépis",
+    "isolation des combles",
+    "pompe à chaleur",
+    "photovoltaïque",
+    "panneaux",
+    "onduleur",
+    "batterie lithium",
+    "raccordement hydraulique",
+    "raccordement électrique",
+    "laine de verre"
+  ]
+}
