@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import argparse
 import json
 import mimetypes
 import os
@@ -23,6 +22,8 @@ from toolregistry import AudioInput, ToolRegistry, ToolRegistryConfig, Transcrip
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+DEFAULT_CONFIG_PATH = SCRIPT_DIR / "benchmark_config.json"
+DEFAULT_PRICING_PATH = SCRIPT_DIR / "pricing.json"
 DATASET = SCRIPT_DIR / "data" / "audio_cases.csv"
 AUDIO_DIR = SCRIPT_DIR / "data" / "audio"
 OUTPUT_DIR = SCRIPT_DIR / "results"
@@ -51,6 +52,20 @@ def load_env_file(path: Path) -> None:
             continue
         name, value = line.split("=", 1)
         os.environ.setdefault(name.strip(), value.strip().strip("\"'"))
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        raise FileNotFoundError(f"Configuration file not found: {path}")
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"Configuration must be a JSON object: {path}")
+    return value
+
+
+def resolve_config_path(config_path: Path, value: str) -> Path:
+    path = Path(value)
+    return path if path.is_absolute() else config_path.parent / path
 
 
 def read_dataset(path: Path) -> pd.DataFrame:
@@ -119,10 +134,34 @@ def normalize_text(value: str) -> str:
     return " ".join(normalized.split())
 
 
-def load_btp_terms() -> list[str]:
+def load_btp_terms(config: dict[str, Any] | None = None, config_path: Path | None = None) -> list[str]:
+    if isinstance(config, dict):
+        if isinstance(config.get("btp_terms"), list):
+            payload = config["btp_terms"]
+            return [term for term in payload if isinstance(term, str) and term.strip()]
+        btp_terms_path = config.get("btp_terms_path")
+        if isinstance(btp_terms_path, str):
+            resolved = resolve_config_path(config_path or SCRIPT_DIR, btp_terms_path)
+            payload = json.loads(resolved.read_text(encoding="utf-8"))
+            if isinstance(payload, dict):
+                terms = payload.get("terms", [])
+            elif isinstance(payload, list):
+                terms = payload
+            else:
+                terms = []
+            return [term for term in terms if isinstance(term, str) and term.strip()]
+
     terms_path = SCRIPT_DIR / "btp_terms.json"
+    if not terms_path.is_file():
+        return []
     payload = json.loads(terms_path.read_text(encoding="utf-8"))
-    return [term for term in payload["terms"] if isinstance(term, str) and term.strip()]
+    if isinstance(payload, dict):
+        terms = payload.get("terms", [])
+    elif isinstance(payload, list):
+        terms = payload
+    else:
+        terms = []
+    return [term for term in terms if isinstance(term, str) and term.strip()]
 
 
 def phrase_count(text: str, phrase: str) -> int:
@@ -166,8 +205,42 @@ def write_csv(path: Path, rows: list[dict[str, Any]] | pd.DataFrame) -> None:
 
 
 def main() -> int:
-    dataset_path = DATASET.resolve()
-    audio_dir = AUDIO_DIR.resolve()
+    parser = argparse.ArgumentParser(description="Run the vocal benchmark against the configured audio dataset.")
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Path to benchmark JSON configuration.")
+    args = parser.parse_args()
+
+    config_path = args.config.resolve()
+    config = load_json(config_path)
+    vocal_config = config.get("vocal", config) if isinstance(config, dict) else config
+    dataset_path = resolve_config_path(config_path, str(vocal_config.get("dataset_path", config.get("dataset_path", str(DATASET.relative_to(SCRIPT_DIR)))))).resolve()
+    audio_dir = resolve_config_path(config_path, str(vocal_config.get("audio_directory", config.get("audio_directory", str(AUDIO_DIR.relative_to(SCRIPT_DIR)))))).resolve()
+    output_dir = resolve_config_path(config_path, str(vocal_config.get("output_directory", config.get("output_directory", "results")))).resolve()
+    pricing_path = resolve_config_path(config_path, str(vocal_config.get("pricing_path", config.get("pricing_path", "pricing.json")))).resolve()
+    prompt_path = resolve_config_path(config_path, str(vocal_config.get("prompt_path", config.get("prompt_path", "")))).resolve()
+    if prompt_path.is_file():
+        prompt = prompt_path.read_text(encoding="utf-8").strip()
+        if not prompt:
+            raise ValueError(f"Vocal prompt is empty: {prompt_path}")
+    else:
+        prompt = str(vocal_config.get("prompt", config.get("prompt", PROMPT)))
+    models = tuple(vocal_config.get("models", config.get("models", MODELS)))
+    minimum_billable_seconds = float(vocal_config.get("minimum_billable_seconds", config.get("minimum_billable_seconds", MINIMUM_BILLABLE_SECONDS)))
+
+    pricing_config = load_json(pricing_path)
+    pricing_section = pricing_config.get("vocal", pricing_config)
+    prices: dict[str, float] = {}
+    for model_name, model_config in pricing_section.get("models", pricing_config.get("models", {})).items():
+        if isinstance(model_config, dict):
+            if "usd_per_hour" in model_config:
+                value = model_config["usd_per_hour"]
+            elif "price_usd_per_hour" in model_config:
+                value = model_config["price_usd_per_hour"]
+            else:
+                continue
+        else:
+            value = model_config
+        prices[str(model_name)] = float(value)
+
     valid_cases, validation_errors, audio_column, reference_column = validate_dataset(dataset_path, audio_dir)
 
     print("Dataset validation")
@@ -192,17 +265,18 @@ def main() -> int:
         return 2
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    run_dir = OUTPUT_DIR.resolve()
+    run_dir = output_dir
     if run_dir.exists():
         print(f"Refusing to overwrite existing run directory: {run_dir}", file=sys.stderr)
         return 2
     run_dir.mkdir(parents=True)
 
-    prices = PRICES_USD_PER_HOUR
-    terms = load_btp_terms()
+    terms = load_btp_terms(vocal_config, config_path)
     rows: list[dict[str, Any]] = []
 
-    for model in MODELS:
+    for model in models:
+        if model not in prices:
+            raise KeyError(f"No price found for model {model!r} in {pricing_path}")
         # Optional OpenAI benchmark setup :
         # registry = ToolRegistry(
         #     ToolRegistryConfig(
@@ -249,8 +323,8 @@ def main() -> int:
             }
             transcription_request = TranscriptionRequest(
                         audio=AudioInput(data=audio_data, filename=audio_path.name, media_type=mime_type),
-                        language="fr",
-                        prompt=PROMPT,
+                        language=str(vocal_config.get("language", config.get("language", "fr"))),
+                        prompt=prompt,
                     )
             started = time.perf_counter()
             try:
@@ -266,7 +340,7 @@ def main() -> int:
                     {
                         "transcription": transcription,
                         "audio_duration_seconds": duration,
-                        "estimated_cost_usd": (max(duration, MINIMUM_BILLABLE_SECONDS) / 3600 * prices[model]) if duration is not None else None,
+                        "estimated_cost_usd": (max(duration, minimum_billable_seconds) / 3600 * prices[model]) if duration is not None else None,
                         "wer": wer(normalize_text(reference), normalized_prediction),
                         "btp_terms_reference_count": btp_reference_count,
                         "btp_terms_correct_count": btp_correct_count,

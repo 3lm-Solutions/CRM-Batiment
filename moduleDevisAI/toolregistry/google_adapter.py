@@ -64,6 +64,17 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
                     "data": base64.b64encode(request.image.data or b"").decode("ascii"),
                 }
             }
+        generation_config: dict[str, Any] = {
+            "max_output_tokens": request.max_output_tokens
+            or self._config.max_output_tokens,
+        }
+        if request.temperature is not None:
+            generation_config["temperature"] = request.temperature
+        if request.response_mime_type is not None:
+            generation_config["response_mime_type"] = request.response_mime_type
+        if request.response_json_schema is not None:
+            generation_config["response_json_schema"] = dict(request.response_json_schema)
+
         response = self._call(
             "analyze_photo",
             model,
@@ -73,10 +84,7 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
                     image_content,
                     {"text": self._input_with_system_prompt(request.system_prompt, request.prompt)},
                 ],
-                config={
-                    "max_output_tokens": request.max_output_tokens
-                    or self._config.max_output_tokens,
-                },
+                config=generation_config,
             ),
         )
         return self._generated_content(response, model, "analyze_photo")
@@ -149,9 +157,27 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
                 operation=operation,
                 request_id=getattr(response, "_request_id", None),
             )
+        usage_metadata = getattr(response, "usage_metadata", None)
+        usage_payload: dict[str, Any] | None = None
+        if usage_metadata is not None:
+            if hasattr(usage_metadata, "model_dump"):
+                usage_payload = usage_metadata.model_dump(mode="json", exclude_none=True)
+            elif hasattr(usage_metadata, "to_json_dict"):
+                usage_payload = usage_metadata.to_json_dict()
+            elif isinstance(usage_metadata, dict):
+                usage_payload = usage_metadata
+
+        metadata: dict[str, Any] = {}
+        if usage_payload is not None:
+            metadata["usage_metadata"] = usage_payload
+        model_version = getattr(response, "model_version", None)
+        if isinstance(model_version, str) and model_version:
+            metadata["model_version"] = model_version
+
         return GeneratedContent(
             content=content,
             provider="google",
             model=model,
             request_id=getattr(response, "_request_id", None),
+            metadata=metadata,
         )

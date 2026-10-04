@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, Mapping
 
 ProviderName = Literal["openai", "anthropic", "google", "groq"]
 
@@ -36,6 +36,9 @@ class VisionAnalysisRequest:
     prompt: str
     system_prompt: str | None = None
     max_output_tokens: int | None = None
+    temperature: float | None = None
+    response_mime_type: str | None = None
+    response_json_schema: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)

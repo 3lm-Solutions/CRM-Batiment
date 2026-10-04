@@ -1,0 +1,53 @@
+{
+  "vision": {
+    "models": [
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash"
+    ],
+    "temperature": 0.0,
+    "max_output_tokens": 3072,
+    "timeout_seconds": 120.0,
+    "max_retries": 3,
+    "prompt_path": "prompts/vision_analysis_prompt.txt",
+    "dataset_path": "data/image_cases.csv",
+    "image_directory": "data/image",
+    "output_directory": "results",
+    "pricing_path": "pricing.json"
+  },
+  "vocal": {
+    "models": [
+      "whisper-large-v3",
+      "whisper-large-v3-turbo"
+    ],
+    "language": "fr",
+    "prompt_path": "prompts/vocal_transcription_prompt.txt",
+    "dataset_path": "data/audio_cases.csv",
+    "audio_directory": "data/audio",
+    "output_directory": "results",
+    "pricing_path": "pricing.json",
+    "minimum_billable_seconds": 10.0,
+    "btp_terms": [
+      "toiture",
+      "tuile",
+      "linteau",
+      "contre-linteau",
+      "écran de sous-toiture",
+      "fêtage",
+      "rive",
+      "échafaudage",
+      "isolation EPS",
+      "crépis",
+      "isolation des combles",
+      "pompe à chaleur",
+      "photovoltaïque",
+      "panneaux",
+      "onduleur",
+      "batterie lithium",
+      "raccordement hydraulique",
+      "raccordement électrique",
+      "laine de verre"
+    ]
+  }
+}

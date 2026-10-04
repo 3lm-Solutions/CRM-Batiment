@@ -1,0 +1,38 @@
+{
+  "vision": {
+    "pricing_source": "https://ai.google.dev/gemini-api/docs/pricing",
+    "pricing_checked_utc": "2026-09-01",
+    "billing_mode": "standard_paid_tier_per_1m_tokens",
+    "models": {
+      "gemini-3.5-flash": {
+        "input_usd_per_million_tokens": 1.5,
+        "output_usd_per_million_tokens": 9.0
+      },
+      "gemini-3.6-flash": {
+        "input_usd_per_million_tokens": 0.75,
+        "output_usd_per_million_tokens": 3.75
+      },
+      "gemini-3.7-flash": {
+        "input_usd_per_million_tokens": 0.75,
+        "output_usd_per_million_tokens": 3.75
+      },
+      "gemini-3.8-flash": {
+        "input_usd_per_million_tokens": 0.75,
+        "output_usd_per_million_tokens": 3.75
+      }
+    }
+  },
+  "vocal": {
+    "pricing_source": "https://groq.com/pricing/",
+    "pricing_checked_utc": "2026-09-01",
+    "billing_mode": "standard_paid_tier_per_hour",
+    "models": {
+      "whisper-large-v3": {
+        "usd_per_hour": 0.111
+      },
+      "whisper-large-v3-turbo": {
+        "usd_per_hour": 0.04
+      }
+    }
+  }
+}
