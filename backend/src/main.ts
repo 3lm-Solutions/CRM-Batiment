@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
@@ -8,6 +9,17 @@ async function bootstrap() {
 
   // Préfixe global pour toutes les routes : /api
   app.setGlobalPrefix('api');
+
+  // Log de chaque requête HTTP (méthode, URL, statut, durée)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      console.log(
+        `${req.method} ${req.originalUrl} → ${res.statusCode} (${Date.now() - start} ms)`,
+      );
+    });
+    next();
+  });
 
   // Validation globale des DTOs
   app.useGlobalPipes(
