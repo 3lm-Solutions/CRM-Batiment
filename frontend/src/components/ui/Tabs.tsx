@@ -1,86 +1,25 @@
-import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { cn } from '@/lib/cn';
 
-interface Tab {
-  id: string;
-  label: string;
-  icon?: ReactNode;
-  content: ReactNode;
-  disabled?: boolean;
-}
-
-interface TabsProps {
-  tabs: Tab[];
-  defaultTab?: string;
-  variant?: 'default' | 'pills' | 'underline';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-}
-
-const variantStyles = {
-  default: {
-    container: 'border-b border-slate-200',
-    tab: 'border-b-2 border-transparent',
-    activeTab: 'border-blue-600 text-blue-600',
-    inactiveTab: 'text-slate-600 hover:text-slate-900 hover:border-slate-300',
-  },
-  pills: {
-    container: 'bg-slate-100 p-1 rounded-xl',
-    tab: 'rounded-lg',
-    activeTab: 'bg-white text-slate-900 shadow-sm',
-    inactiveTab: 'text-slate-600 hover:text-slate-900',
-  },
-  underline: {
-    container: 'border-b border-slate-200',
-    tab: 'border-b-2 border-transparent',
-    activeTab: 'border-blue-600 text-blue-600',
-    inactiveTab: 'text-slate-600 hover:text-slate-900 hover:border-slate-300',
-  },
-};
-
-const sizeStyles = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-5 py-2.5 text-base',
-};
-
-export default function Tabs({ tabs, defaultTab, variant = 'default', size = 'md', className = '' }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
-
-  const styles = variantStyles[variant];
-  const sizeClass = sizeStyles[size];
-
-  if (!tabs.length) return null;
-
+export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className={className}>
-      {/* Tab Headers */}
-      <div className={`${styles.container} flex gap-2 overflow-x-auto`}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => !tab.disabled && setActiveTab(tab.id)}
-            disabled={tab.disabled}
-            className={`inline-flex items-center gap-2 font-medium transition-all whitespace-nowrap ${sizeClass} ${styles.tab} ${
-              activeTab === tab.id
-                ? styles.activeTab
-                : styles.inactiveTab
-            } ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {tab.icon && <span>{tab.icon}</span>}
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div className="mt-4">
-        {tabs.map((tab) => (
-          <div key={tab.id} className={activeTab === tab.id ? 'block' : 'hidden'}>
-            {tab.content}
-          </div>
-        ))}
-      </div>
+    <div role="tablist" className="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {tabs.map((t) => (
+        <button
+          key={t.value}
+          role="tab"
+          type="button"
+          aria-selected={value === t.value}
+          onClick={() => onChange(t.value)}
+          className={cn(
+            'whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition',
+            value === t.value
+              ? 'brand-gradient text-white shadow-sm'
+              : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800',
+          )}
+        >
+          {t.label}
+        </button>
+      ))}
     </div>
   );
 }

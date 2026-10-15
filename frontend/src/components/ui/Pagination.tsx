@@ -1,130 +1,47 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import type { PaginationMeta } from '@/shared';
+import { cn } from '@/lib/cn';
 
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  totalItems?: number;
-  itemsPerPage?: number;
-  className?: string;
+/** Pages to show: first, last, current ±1, with "…" for the gaps. */
+function pageList(page: number, total: number): (number | '…')[] {
+  const set = new Set([1, total, page - 1, page, page + 1].filter((p) => p >= 1 && p <= total));
+  const sorted = [...set].sort((a, b) => a - b);
+  const out: (number | '…')[] = [];
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - sorted[i - 1] > 1) out.push('…');
+    out.push(p);
+  });
+  return out;
 }
 
-export default function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  totalItems,
-  itemsPerPage,
-  className = ''
-}: PaginationProps) {
-  const pages = [];
-  const showPages = 5; // Number of page buttons to show
+const BTN = 'rounded-lg border border-slate-200 bg-white px-3 py-1.5 dark:bg-slate-900 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent dark:border-slate-700 dark:hover:bg-slate-800';
 
-  let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-  let endPage = Math.min(totalPages, startPage + showPages - 1);
-
-  if (endPage - startPage + 1 < showPages) {
-    startPage = Math.max(1, endPage - showPages + 1);
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
-  }
-
-  if (totalPages <= 1) return null;
-
+/** "Affichage 1-20 sur 47" + numbered pages (mockup). Hidden when everything fits on one page. */
+export function Pagination({ meta, onPage }: { meta?: PaginationMeta; onPage: (page: number) => void }) {
+  if (!meta || meta.totalPages <= 1) return null;
+  const from = (meta.page - 1) * meta.limit + 1;
+  const to = Math.min(meta.page * meta.limit, meta.total);
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
-      <div className="text-sm text-gray-500 dark:text-gray-400">
-        {totalItems && itemsPerPage && (
-          <span>
-            Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
-            {Math.min(currentPage * itemsPerPage, totalItems)} sur {totalItems} éléments
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-1 sm:gap-2">
-        <button
-          onClick={() => onPageChange(1)}
-          disabled={currentPage === 1}
-          className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label="Première page"
-        >
-          <ChevronsLeft className="h-4 w-4" />
-        </button>
-
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label="Page précédente"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center gap-1">
-          {startPage > 1 && (
-            <>
-              <button
-                onClick={() => onPageChange(1)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
-              >
-                1
-              </button>
-              {startPage > 2 && (
-                <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
-              )}
-            </>
-          )}
-
-          {pages.map((page) => (
+    <nav className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/80 px-6 py-4 dark:border-slate-800" aria-label="Pagination">
+      <p className="text-sm text-gray-500">Affichage {from}-{to} sur {meta.total}</p>
+      <div className="flex items-center gap-1">
+        <button type="button" className={BTN} disabled={meta.page <= 1} onClick={() => onPage(meta.page - 1)}>← Préc.</button>
+        {pageList(meta.page, meta.totalPages).map((p, i) =>
+          p === '…' ? (
+            <span key={`gap-${i}`} className="px-2 text-gray-400">…</span>
+          ) : (
             <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={`px-3 py-2 rounded-lg border transition-colors text-sm ${
-                currentPage === page
-                  ? 'bg-teal-500 border-teal-500 text-white'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              }`}
+              key={p}
+              type="button"
+              aria-current={p === meta.page ? 'page' : undefined}
+              onClick={() => onPage(p)}
+              className={cn(p === meta.page ? 'rounded-lg bg-brand-700 px-3 py-1.5 text-sm font-semibold text-white' : BTN)}
             >
-              {page}
+              {p}
             </button>
-          ))}
-
-          {endPage < totalPages && (
-            <>
-              {endPage < totalPages - 1 && (
-                <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
-              )}
-              <button
-                onClick={() => onPageChange(totalPages)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
-              >
-                {totalPages}
-              </button>
-            </>
-          )}
-        </div>
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label="Page suivante"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-
-        <button
-          onClick={() => onPageChange(totalPages)}
-          disabled={currentPage === totalPages}
-          className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          aria-label="Dernière page"
-        >
-          <ChevronsRight className="h-4 w-4" />
-        </button>
+          ),
+        )}
+        <button type="button" className={BTN} disabled={meta.page >= meta.totalPages} onClick={() => onPage(meta.page + 1)}>Suiv. →</button>
       </div>
-    </div>
+    </nav>
   );
 }

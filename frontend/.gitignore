@@ -1,24 +1,28 @@
-# Logs
-logs
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+coverage/
+*.tsbuildinfo
+generated/
+
+# Environment (never commit real secrets)
+.env
+.env.*
+!.env.example
+
+# User uploads / runtime files (never in git)
+uploads/
+storage/
+
+# Logs & OS
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.DS_Store
+Thumbs.db
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editors
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.idea/

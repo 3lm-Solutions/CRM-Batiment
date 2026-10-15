@@ -1,0 +1,17 @@
+import { Module } from '@nestjs/common';
+import { DevisModule } from '../../commercial/devis/devis.module';
+import { CatalogueModule } from '../../referentiel/catalogue/catalogue.module';
+import { AssistantModule } from '../assistant/assistant.module';
+import { DevisIaController } from './devis-ia.controller';
+import { DevisIaService } from './devis-ia.service';
+
+/**
+ * Step 15 — quote assistant: proposes catalogue lines and quantities from a job description.
+ * Uses the same language model as the chatbot (AssistantModule); keyword matching without a key.
+ */
+@Module({
+  imports: [AssistantModule, DevisModule, CatalogueModule],
+  controllers: [DevisIaController],
+  providers: [DevisIaService],
+})
+export class DevisIaModule {}

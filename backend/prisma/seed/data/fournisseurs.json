@@ -1,0 +1,82 @@
+[
+  {
+    "nom": "Point P",
+    "contact": "Jean Dupont",
+    "email": "pro@pointp.fr",
+    "telephone": "01 40 55 66 77",
+    "adresse": "12 Rue du Commerce, 75015 Paris",
+    "typesMateriaux": "Gros œuvre, Carrelage, Outillage",
+    "delaiLivraison": 3,
+    "conditions": "Franco 500€ HT — Paiement 30 jours fin de mois"
+  },
+  {
+    "nom": "Céramique France",
+    "contact": "Marie Laurent",
+    "email": "commandes@ceramique-france.fr",
+    "telephone": "04 72 33 44 55",
+    "adresse": "45 Avenue de la Faïencerie, 69003 Lyon",
+    "typesMateriaux": "Carrelage, Faïence, Mosaïque",
+    "delaiLivraison": 5,
+    "conditions": "Franco 300€ HT — Paiement à réception de facture"
+  },
+  {
+    "nom": "BigMat",
+    "contact": "Pierre Martin",
+    "email": "commandes@bigmat.fr",
+    "telephone": "03 88 22 33 44",
+    "adresse": "8 Zone Industrielle Nord, 67000 Strasbourg",
+    "typesMateriaux": "Gros œuvre, Isolation, Menuiserie",
+    "delaiLivraison": 2,
+    "conditions": "Franco 400€ HT — Paiement 45 jours"
+  },
+  {
+    "nom": "Rexel",
+    "contact": "Philippe Bernard",
+    "email": "pro@rexel.fr",
+    "telephone": "01 49 88 77 66",
+    "adresse": "25 Rue des Électriciens, 92100 Boulogne-Billancourt",
+    "typesMateriaux": "Électricité, Domotique",
+    "delaiLivraison": 1,
+    "conditions": "Franco 200€ HT — Paiement 30 jours"
+  },
+  {
+    "nom": "Cedeo",
+    "contact": "Sophie Moreau",
+    "email": "contact@cedeo.fr",
+    "telephone": "02 41 55 66 77",
+    "adresse": "18 Boulevard de la Plomberie, 49000 Angers",
+    "typesMateriaux": "Plomberie, Sanitaire, Chauffage",
+    "delaiLivraison": 3,
+    "conditions": "Franco 350€ HT — Paiement 30 jours fin de mois"
+  },
+  {
+    "nom": "Parexlanko",
+    "contact": "Alain Giraud",
+    "email": "commercial@parexlanko.fr",
+    "telephone": "04 78 90 11 22",
+    "adresse": "110 Rue de la Chimie, 69100 Villeurbanne",
+    "typesMateriaux": "Peinture, Enduits, Colles",
+    "delaiLivraison": 4,
+    "conditions": "Franco 250€ HT — Paiement 60 jours"
+  },
+  {
+    "nom": "Dispano",
+    "contact": "Claire Petit",
+    "email": "pro@dispano.fr",
+    "telephone": "05 56 44 33 22",
+    "adresse": "7 Rue du Bois, 33000 Bordeaux",
+    "typesMateriaux": "Menuiserie, Bois, Revêtement sol",
+    "delaiLivraison": 5,
+    "conditions": "Franco 500€ HT — Paiement 45 jours"
+  },
+  {
+    "nom": "Isover / Saint-Gobain",
+    "contact": "Marc Leblanc",
+    "email": "isolation@isover.fr",
+    "telephone": "01 34 55 66 77",
+    "adresse": "100 Avenue de la Défense, 92400 Courbevoie",
+    "typesMateriaux": "Isolation, Plâtrerie, Cloisons",
+    "delaiLivraison": 3,
+    "conditions": "Franco 600€ HT — Paiement 30 jours"
+  }
+]

@@ -1,39 +1,70 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// CRM Bâtiment — schema v2
+//
+// Conventions
+//  • Money        : Decimal(12,2)   — never Float (no 0.1 + 0.2 = 0.30000000000000004)
+//  • Quantities   : Decimal(12,3)
+//  • Rates / %    : Decimal(5,2)
+//  • Statuses     : always a Prisma enum — never a free String
+//  • Multi-tenant : every top-level business entity carries companyId
+//  • Catalogue items used in quotes: onDelete Restrict (soft-delete with `actif`)
+// ─────────────────────────────────────────────────────────────────────────────
+
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// CORE — company & users
+// ═════════════════════════════════════════════════════════════════════════════
+
 model Company {
-  id                         Int                         @id @default(autoincrement())
-  nom                        String
-  siret                      String?                     @unique
-  adresse                    String?
-  telephone                  String?
-  email                      String?
-  logo                       String?
-  tvaDefaut                  Float                       @default(20.0)
-  devise                     String                      @default("EUR")
-  createdAt                  DateTime                    @default(now())
-  updatedAt                  DateTime                    @updatedAt
+  id        Int      @id @default(autoincrement())
+  nom       String
+  siret     String?  @unique
+  adresse   String?
+  telephone String?
+  email     String?
+  logo      String?
+  tvaDefaut Decimal  @default(20) @db.Decimal(5, 2)
+  /// Default deposit (acompte) rate applied when a quote is signed (P0.3)
+  acomptePercentDefault Decimal @default(35) @db.Decimal(5, 2)
+  // ── Pricing settings (v2: real columns; the old code stored them as AuditLog rows) ──
+  margeCiblePourcent       Decimal @default(30) @db.Decimal(5, 2)
+  /// Quotes below this margin get a warning (spec: alerte marge < 15 %)
+  seuilAlerteMargePourcent Decimal @default(15) @db.Decimal(5, 2)
+  fraisFixeDeplacement     Decimal @default(0) @db.Decimal(12, 2)
+  /// Suggested prices are rounded to this step (0.01 = to the cent, 0.5, 1, 5…)
+  pasArrondiPrix           Decimal @default(0.01) @db.Decimal(8, 2)
+  devise    String   @default("EUR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  utilisateurs               User[]
   auditLogs                  AuditLog[]
-  categoriesPrestations      CategoriePrestation[]
-  chantiers                  Chantier[]
-  chatSessions               ChatSession[]
+  notifications              Notification[]
+  referenceCounters          ReferenceCounter[]
+  typesProjet                TypeProjet[]
   clients                    Client[]
   demandesDevis              DemandeDevis[]
-  devis                      Devis[]
-  equipes                    Equipe[]
-  fournisseurs               Fournisseur[]
-  materiaux                  Materiau[]
+  categoriesPrestations      CategoriePrestation[]
+  sousCategories             SousCategorie[]
   prestations                Prestation[]
-  ragDocuments               RagDocument[]
+  materiaux                  Materiau[]
   servicesMainOeuvre         ServiceMainOeuvre[]
-  typesProjet                TypeProjet[]
-  utilisateurs               User[]
+  fournisseurs               Fournisseur[]
+  devis                      Devis[]
+  factures                   Facture[]
+  commandesFournisseur       CommandeFournisseur[]
+  chantiers                  Chantier[]
+  equipes                    Equipe[]
+  mouvementsStock            MouvementStock[]
   sousTraitants              SousTraitant[]
   contratsSousTraitant       ContratSousTraitant[]
   assurancesSousTraitant     AssuranceSousTraitant[]
@@ -42,70 +73,150 @@ model Company {
   notationsSousTraitant      NotationSousTraitant[]
   savTickets                 SavTicket[]
   demoRequests               DemoRequest[]
-  mouvementsStock            MouvementStock[]
+  chatSessions               ChatSession[]
+  ragDocuments               RagDocument[]
+  assistantFeedbacks         AssistantFeedback[]
+  assistantErreurs           AssistantErreur[]
+  fichiers                   Fichier[]
+  rapportsChantier           RapportChantier[]
+  espaceLiens                ClientEspaceLien[]
 
   @@map("companies")
 }
 
 model User {
-  id                   Int                    @id @default(autoincrement())
-  companyId            Int
-  nom                  String
-  prenom               String
-  email                String                 @unique
-  password             String
-  role                 Role
-  telephone            String?
-  actif                Boolean                @default(true)
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  mustChangePassword   Boolean                @default(true)
-  signatureBase64      String?
-  signatureUpdatedAt   DateTime?
-  affectationsTaches   AffectationTache[]
-  auditLogs            AuditLog[]
-  chantiersChef        Chantier[]             @relation("ChefChantier")
+  id                 Int       @id @default(autoincrement())
+  companyId          Int
+  nom                String
+  prenom             String
+  email              String    @unique
+  password           String
+  role               Role
+  telephone          String?
+  actif              Boolean   @default(true)
+  mustChangePassword Boolean   @default(true)
+  signatureBase64    String?
+  signatureUpdatedAt DateTime?
+  /// Incremented on password change / reset / admin reset: invalidates every existing token
+  tokenVersion       Int       @default(0)
+  resetCodeHash      String?
+  resetCodeExpiresAt DateTime?
+  /// Wrong reset-code attempts; the code is burned after 5
+  resetCodeAttempts  Int       @default(0)
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  // Portal accounts (a user is at most one sous-traitant OR one fournisseur)
+  profilSousTraitant SousTraitant? @relation("CompteSousTraitant")
+  profilFournisseur  Fournisseur?  @relation("CompteFournisseur")
+
   demandesCreees       DemandeDevis[]         @relation("DemandeCreateur")
   devisCrees           Devis[]                @relation("DevisCreateur")
-  messagesChat         MessageChat[]
-  company              Company                @relation(fields: [companyId], references: [id])
   versionsDevis        VersionDevis[]         @relation("VersionAuteur")
-  resetCodeHash        String?
-  resetCodeExpiresAt   DateTime?
+  chantiersChef        Chantier[]             @relation("ChefChantier")
   chantiersVisibles    ChantierSousTraitant[]
-  savTicketsCreees     SavTicket[]            @relation("SavTicketCreateur")
+  affectationsTaches   AffectationTache[]
+  mouvementsStock      MouvementStock[]
+  receptions           Reception[]
+  savTicketsCrees      SavTicket[]            @relation("SavTicketCreateur")
   savTicketsAssignes   SavTicket[]            @relation("SavTicketAssigne")
-  demoRequestsAssignes DemoRequest[]          @relation("DemoRequestAssigne")
-  profilSousTraitant   SousTraitant?          @relation("CompteSousTraitant")
-  mouvementStocks      MouvementStock[]
   savTicketNotes       SavTicketNote[]
+  demoRequestsAssignes DemoRequest[]          @relation("DemoRequestAssigne")
+  messagesChat         MessageChat[]
+  auditLogs            AuditLog[]
+  notifications        Notification[]
+  fichiersUploades     Fichier[]              @relation("FichierAuteur")
+  rapportsEcrits       RapportChantier[]      @relation("RapportAuteur")
+  rapportsValides      RapportChantier[]      @relation("RapportValidateur")
+  espaceLiensCrees     ClientEspaceLien[]     @relation("EspaceLienCreateur")
+  prospectsTraites     ChatSession[]          @relation("ProspectTraitePar")
 
   @@index([companyId])
-  @@index([email])
   @@index([role])
   @@map("users")
 }
 
+/// One notification per RECIPIENT (v2: the old ones were AuditLog rows, with no read status).
+model Notification {
+  id        Int                @id @default(autoincrement())
+  companyId Int
+  userId    Int
+  type      String
+  niveau    NiveauNotification @default(INFO)
+  titre     String
+  message   String
+  /// Frontend route to open, e.g. /devis/42
+  lien      String?
+  lueAt     DateTime?
+  createdAt DateTime           @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lueAt, createdAt])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id             Int      @id @default(autoincrement())
+  companyId      Int
+  userId         Int?
+  action         String
+  entite         String
+  entiteId       Int
+  ancienneValeur Json?
+  nouvelleValeur Json?
+  createdAt      DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([entite, entiteId])
+  @@map("audit_logs")
+}
+
+/// Atomic per-company, per-year counters for document references (DEV-2026-0001…).
+/// Incremented inside the creating transaction: a rollback releases the number,
+/// so invoice numbers stay continuous with no gaps (French legal requirement).
+model ReferenceCounter {
+  companyId Int
+  prefix    String
+  year      Int
+  value     Int    @default(0)
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@id([companyId, prefix, year])
+  @@map("reference_counters")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// RÉFÉRENTIEL — clients, project types, catalogue, suppliers
+// ═════════════════════════════════════════════════════════════════════════════
+
 model TypeProjet {
-  id          Int                   @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   companyId   Int
   nom         String
   description String?
-  actif       Boolean               @default(true)
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  clients     Client[]              @relation("PrimaryClientTypeProjet")
-  clientLinks ClientTypeProjet[]
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   company     Company               @relation(fields: [companyId], references: [id])
+  clientLinks ClientTypeProjet[]
   categories  TypeProjetCategorie[]
 
   @@unique([companyId, nom])
-  @@index([companyId])
   @@map("types_projet")
 }
 
 model Client {
-  id              Int                @id @default(autoincrement())
+  id              Int        @id @default(autoincrement())
   companyId       Int
   nom             String
   prenom          String?
@@ -113,74 +224,56 @@ model Client {
   email           String?
   adresseClient   String?
   adresseChantier String?
-  source          LeadSource         @default(AUTRE)
-  notes           String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  source          LeadSource @default(AUTRE)
   besoin          String?
-  typeProjetId    Int?
-  chantiers       Chantier[]
-  savTickets      SavTicket[]
+  notes           String?
+  /// v2: archiving replaces the old cascade delete (which erased quotes and paid invoices)
+  archivedAt      DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
   company         Company            @relation(fields: [companyId], references: [id])
-  typeProjet      TypeProjet?        @relation("PrimaryClientTypeProjet", fields: [typeProjetId], references: [id])
+  /// v2: single source of truth for project types (the old extra `typeProjetId` duplicated it)
   typeProjetLinks ClientTypeProjet[]
   demandesDevis   DemandeDevis[]
   devis           Devis[]
+  chantiers       Chantier[]
+  savTickets      SavTicket[]
+  espaceLiens     ClientEspaceLien[]
+  chatSessions    ChatSession[]
 
-  @@index([companyId])
-  @@index([nom])
-  @@index([email])
-  @@index([typeProjetId])
+  @@index([companyId, archivedAt])
+  @@index([companyId, nom])
+  @@index([companyId, email])
+  @@index([companyId, telephone])
   @@map("clients")
 }
 
 model ClientTypeProjet {
   clientId     Int
   typeProjetId Int
-  createdAt    DateTime   @default(now())
-  client       Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  typeProjet   TypeProjet @relation(fields: [typeProjetId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  client     Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  typeProjet TypeProjet @relation(fields: [typeProjetId], references: [id], onDelete: Cascade)
 
   @@id([clientId, typeProjetId])
   @@index([typeProjetId])
   @@map("clients_types_projet")
 }
 
-model DemandeDevis {
-  reference       String        @unique @default("")
-  id              Int           @id @default(autoincrement())
-  companyId       Int
-  clientId        Int
-  createurId      Int?
-  date            DateTime      @default(now())
-  source          LeadSource    @default(AUTRE)
-  description     String
-  besoinStructure Json?
-  statut          DemandeStatut @default(NOUVEAU)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  client          Client        @relation(fields: [clientId], references: [id])
-  company         Company       @relation(fields: [companyId], references: [id])
-  createur        User?         @relation("DemandeCreateur", fields: [createurId], references: [id])
-  devis           Devis[]
-
-  @@index([companyId])
-  @@index([clientId])
-  @@index([statut])
-  @@map("demandes_devis")
-}
-
 model CategoriePrestation {
-  id             Int                   @id @default(autoincrement())
-  companyId      Int
-  nom            String
-  description    String?
-  actif          Boolean               @default(true)
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  nom         String
+  description String?
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   company        Company               @relation(fields: [companyId], references: [id])
-  prestations    Prestation[]
   sousCategories SousCategorie[]
+  prestations    Prestation[]
   typesProjet    TypeProjetCategorie[]
 
   @@unique([companyId, nom])
@@ -190,10 +283,11 @@ model CategoriePrestation {
 model TypeProjetCategorie {
   typeProjetId Int
   categorieId  Int
-  ordre        Int                 @default(0)
-  createdAt    DateTime            @default(now())
-  categorie    CategoriePrestation @relation(fields: [categorieId], references: [id], onDelete: Cascade)
-  typeProjet   TypeProjet          @relation(fields: [typeProjetId], references: [id], onDelete: Cascade)
+  ordre        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  typeProjet TypeProjet          @relation(fields: [typeProjetId], references: [id], onDelete: Cascade)
+  categorie  CategoriePrestation @relation(fields: [categorieId], references: [id], onDelete: Cascade)
 
   @@id([typeProjetId, categorieId])
   @@index([categorieId])
@@ -201,230 +295,314 @@ model TypeProjetCategorie {
 }
 
 model SousCategorie {
-  id          Int                 @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   companyId   Int
   categorieId Int
   nom         String
   description String?
-  actif       Boolean             @default(true)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  prestations Prestation[]
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company             @relation(fields: [companyId], references: [id])
   categorie   CategoriePrestation @relation(fields: [categorieId], references: [id])
+  prestations Prestation[]
 
   @@unique([categorieId, nom])
   @@index([companyId])
-  @@index([categorieId])
   @@map("sous_categories")
 }
 
 model Prestation {
-  id              Int                     @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   companyId       Int
   categorieId     Int
-  nom             String
-  unite           Unite                   @default(M2)
-  prixVenteMin    Float
-  prixVenteMax    Float
-  description     String?
-  actif           Boolean                 @default(true)
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
   sousCategorieId Int?
-  lignesDevis     LigneDevis[]
-  options         OptionPrestation[]
-  categorie       CategoriePrestation     @relation(fields: [categorieId], references: [id])
-  company         Company                 @relation(fields: [companyId], references: [id])
-  sousCategorie   SousCategorie?          @relation(fields: [sousCategorieId], references: [id])
-  compositions    PrestationComposition[]
+  nom             String
+  description     String?
+  unite           Unite    @default(M2)
+  prixVenteMin    Decimal  @db.Decimal(12, 2)
+  prixVenteMax    Decimal  @db.Decimal(12, 2)
+  actif           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  @@index([companyId])
+  company       Company                 @relation(fields: [companyId], references: [id])
+  categorie     CategoriePrestation     @relation(fields: [categorieId], references: [id])
+  sousCategorie SousCategorie?          @relation(fields: [sousCategorieId], references: [id], onDelete: SetNull)
+  options       OptionPrestation[]
+  compositions  PrestationComposition[]
+  lignesDevis   LigneDevis[]
+
+  @@index([companyId, actif])
   @@index([categorieId])
   @@index([sousCategorieId])
   @@map("prestations")
 }
 
 model OptionPrestation {
-  id           Int           @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   prestationId Int
   nom          String
   description  String?
-  obligatoire  Boolean       @default(false)
-  ordre        Int           @default(0)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  choix        ChoixOption[]
-  prestation   Prestation    @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  obligatoire  Boolean  @default(false)
+  ordre        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  prestation Prestation    @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  choix      ChoixOption[]
 
   @@unique([prestationId, nom])
-  @@index([prestationId])
   @@map("options_prestations")
 }
 
 model ChoixOption {
-  id           Int                      @id @default(autoincrement())
-  optionId     Int
-  nom          String
-  description  String?
-  impactPrix   Float                    @default(0)
-  actif        Boolean                  @default(true)
-  ordre        Int                      @default(0)
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
+  id          Int      @id @default(autoincrement())
+  optionId    Int
+  nom         String
+  description String?
+  impactPrix  Decimal  @default(0) @db.Decimal(12, 2)
+  actif       Boolean  @default(true)
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   option       OptionPrestation         @relation(fields: [optionId], references: [id], onDelete: Cascade)
   compositions ChoixOptionComposition[]
 
   @@unique([optionId, nom])
-  @@index([optionId])
   @@map("choix_options")
 }
 
+/// Bill of materials: what one unit of a prestation consumes (materials + labour)
 model PrestationComposition {
-  id                  Int                @id @default(autoincrement())
+  id                  Int     @id @default(autoincrement())
   prestationId        Int
   materiauId          Int?
   serviceMainOeuvreId Int?
-  quantiteParUnite    Float              @default(1)
-  materiau            Materiau?          @relation(fields: [materiauId], references: [id])
-  prestation          Prestation         @relation(fields: [prestationId], references: [id], onDelete: Cascade)
-  serviceMainOeuvre   ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id])
+  quantiteParUnite    Decimal @default(1) @db.Decimal(12, 4)
+
+  prestation        Prestation         @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  materiau          Materiau?          @relation(fields: [materiauId], references: [id], onDelete: Restrict)
+  serviceMainOeuvre ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id], onDelete: Restrict)
 
   @@index([prestationId])
+  @@index([materiauId])
+  @@index([serviceMainOeuvreId])
   @@map("prestations_compositions")
 }
 
 model ChoixOptionComposition {
-  id                  Int                @id @default(autoincrement())
+  id                  Int     @id @default(autoincrement())
   choixOptionId       Int
   materiauId          Int?
   serviceMainOeuvreId Int?
-  quantiteParUnite    Float              @default(1)
-  choixOption         ChoixOption        @relation(fields: [choixOptionId], references: [id], onDelete: Cascade)
-  materiau            Materiau?          @relation(fields: [materiauId], references: [id])
-  serviceMainOeuvre   ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id])
+  quantiteParUnite    Decimal @default(1) @db.Decimal(12, 4)
+
+  choixOption       ChoixOption        @relation(fields: [choixOptionId], references: [id], onDelete: Cascade)
+  materiau          Materiau?          @relation(fields: [materiauId], references: [id], onDelete: Restrict)
+  serviceMainOeuvre ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id], onDelete: Restrict)
 
   @@index([choixOptionId])
   @@map("choix_options_compositions")
 }
 
 model Materiau {
-  id                Int                      @id @default(autoincrement())
-  companyId         Int
-  nom               String
-  couleur           String?
-  finition          String?
-  unite             Unite                    @default(PIECE)
-  prixAchatFixe     Float
-  fournisseurId     Int?
-  dateMaj           DateTime                 @default(now())
-  actif             Boolean                  @default(true)
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  id            Int      @id @default(autoincrement())
+  companyId     Int
+  fournisseurId Int?
+  nom           String
+  couleur       String?
+  finition      String?
+  unite         Unite    @default(PIECE)
+  prixAchatFixe Decimal  @db.Decimal(12, 2)
+  stockActuel   Decimal  @default(0) @db.Decimal(12, 3)
+  stockMinimum  Decimal  @default(0) @db.Decimal(12, 3)
+  dateMaj       DateTime @default(now())
+  actif         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company           Company                  @relation(fields: [companyId], references: [id])
+  fournisseur       Fournisseur?             @relation(fields: [fournisseurId], references: [id], onDelete: SetNull)
+  compositions      PrestationComposition[]
   choixCompositions ChoixOptionComposition[]
   lignesDevis       LigneDevis[]
-  company           Company                  @relation(fields: [companyId], references: [id])
-  fournisseur       Fournisseur?             @relation(fields: [fournisseurId], references: [id])
-  stockActuel       Float                    @default(0)
-  stockMinimum      Float                    @default(0)
+  lignesCommande    LigneCommandeFournisseur[]
   mouvementsStock   MouvementStock[]
-  compositions      PrestationComposition[]
 
-  @@index([companyId])
+  @@index([companyId, actif])
   @@index([fournisseurId])
   @@map("materiaux")
 }
 
 model ServiceMainOeuvre {
-  id                Int                      @id @default(autoincrement())
-  companyId         Int
-  nom               String
-  unite             Unite                    @default(M2)
-  prixUnitaire      Float
-  productiviteJour  Float?
-  coutJournalier    Float?
-  actif             Boolean                  @default(true)
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  id               Int      @id @default(autoincrement())
+  companyId        Int
+  nom              String
+  unite            Unite    @default(M2)
+  prixUnitaire     Decimal  @db.Decimal(12, 2)
+  productiviteJour Decimal? @db.Decimal(10, 2)
+  coutJournalier   Decimal? @db.Decimal(12, 2)
+  actif            Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company           Company                  @relation(fields: [companyId], references: [id])
+  compositions      PrestationComposition[]
   choixCompositions ChoixOptionComposition[]
   lignesDevis       LigneDevis[]
-  compositions      PrestationComposition[]
-  company           Company                  @relation(fields: [companyId], references: [id])
 
-  @@index([companyId])
+  @@index([companyId, actif])
   @@map("services_main_oeuvre")
 }
 
+model Fournisseur {
+  id             Int      @id @default(autoincrement())
+  companyId      Int
+  /// Portal login (replaces the old "match a SOUS_TRAITANT account by email" hack)
+  userId         Int?     @unique
+  nom            String
+  contact        String?
+  email          String?
+  telephone      String?
+  adresse        String?
+  typesMateriaux String?
+  delaiLivraison Int?
+  conditions     String?
+  actif          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  company              Company               @relation(fields: [companyId], references: [id])
+  utilisateur          User?                 @relation("CompteFournisseur", fields: [userId], references: [id], onDelete: SetNull)
+  materiaux            Materiau[]
+  commandesFournisseur CommandeFournisseur[]
+
+  @@index([companyId])
+  @@map("fournisseurs")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COMMERCIAL — quote requests, quotes, signatures
+// ═════════════════════════════════════════════════════════════════════════════
+
+model DemandeDevis {
+  id              Int           @id @default(autoincrement())
+  companyId       Int
+  clientId        Int
+  createurId      Int?
+  /// Generated by the service (e.g. DEM-2026-0001). No default: "" + @unique broke the 2nd insert.
+  reference       String        @unique
+  date            DateTime      @default(now())
+  source          LeadSource    @default(AUTRE)
+  description     String
+  besoinStructure Json?
+  statut          DemandeStatut @default(NOUVEAU)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  company  Company @relation(fields: [companyId], references: [id])
+  client   Client  @relation(fields: [clientId], references: [id])
+  createur User?   @relation("DemandeCreateur", fields: [createurId], references: [id], onDelete: SetNull)
+  devis    Devis[]
+  /// Chatbot conversation this request came from (Step 14)
+  chatSession ChatSession?
+
+  @@index([companyId, statut])
+  @@index([clientId])
+  @@map("demandes_devis")
+}
+
 model Devis {
-  savTickets                SavTicket[]
-  id                        Int                           @id @default(autoincrement())
+  id                        Int             @id @default(autoincrement())
   companyId                 Int
   clientId                  Int
-  chantierId                Int?
   demandeDevisId            Int?
+  chantierId                Int?
   createurId                Int?
-  reference                 String                        @unique
-  dateCreation              DateTime                      @default(now())
-  versionCourante           Int                           @default(1)
-  statut                    DevisStatut                   @default(BROUILLON)
-  totalHT                   Float                         @default(0)
-  totalTVA                  Float                         @default(0)
-  totalTTC                  Float                         @default(0)
-  coutTotal                 Float                         @default(0)
-  profit                    Float                         @default(0)
-  margePourcent             Float                         @default(0)
-  tauxTVA                   Float                         @default(20.0)
+  reference                 String          @unique
+  dateCreation              DateTime        @default(now())
+  versionCourante           Int             @default(1)
+  statut                    DevisStatut     @default(BROUILLON)
+  tauxTVA                   Decimal         @default(20) @db.Decimal(5, 2)
+  totalHT                   Decimal         @default(0) @db.Decimal(12, 2)
+  totalTVA                  Decimal         @default(0) @db.Decimal(12, 2)
+  totalTTC                  Decimal         @default(0) @db.Decimal(12, 2)
+  coutTotal                 Decimal         @default(0) @db.Decimal(12, 2)
+  profit                    Decimal         @default(0) @db.Decimal(12, 2)
+  margePourcent             Decimal         @default(0) @db.Decimal(7, 2)
   dateEnvoi                 DateTime?
   dateValidation            DateTime?
   modeValidation            ModeValidation?
   notes                     String?
-  createdAt                 DateTime                      @default(now())
-  updatedAt                 DateTime                      @updatedAt
+  /// Reason given by the client when refusing through the link
+  motifRefus                String?
   signatureClientBase64     String?
   signatureClientDate       DateTime?
   signatureConseillerBase64 String?
   signatureConseillerDate   DateTime?
-  bonCommande               BonCommande?
-  commandesFournisseur      CommandeFournisseur[]
-  chantier                  Chantier?                     @relation(fields: [chantierId], references: [id])
-  client                    Client                        @relation(fields: [clientId], references: [id])
-  company                   Company                       @relation(fields: [companyId], references: [id])
-  createur                  User?                         @relation("DevisCreateur", fields: [createurId], references: [id])
-  demandeDevis              DemandeDevis?                 @relation(fields: [demandeDevisId], references: [id])
-  signatureRequests         DevisClientSignatureRequest[]
-  factures                  Facture[]
-  lignes                    LigneDevis[]
-  versions                  VersionDevis[]
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
 
-  @@index([companyId])
+  company              Company                       @relation(fields: [companyId], references: [id])
+  client               Client                        @relation(fields: [clientId], references: [id])
+  demandeDevis         DemandeDevis?                 @relation(fields: [demandeDevisId], references: [id], onDelete: SetNull)
+  chantier             Chantier?                     @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  createur             User?                         @relation("DevisCreateur", fields: [createurId], references: [id], onDelete: SetNull)
+  lignes               LigneDevis[]
+  versions             VersionDevis[]
+  liensClient          DevisLienClient[]
+  factures             Facture[]
+  bonCommande          BonCommande?
+  commandesFournisseur CommandeFournisseur[]
+  savTickets           SavTicket[]
+
+  @@index([companyId, statut])
   @@index([clientId])
   @@index([chantierId])
-  @@index([statut])
-  @@index([reference])
+  @@index([demandeDevisId])
   @@map("devis")
 }
 
-model DevisClientSignatureRequest {
-  id              Int                        @id @default(autoincrement())
-  devisId         Int
-  token           String                     @unique
-  telephoneClient String
-  statut          DevisClientSignatureStatut @default(EN_ATTENTE)
-  expiresAt       DateTime
-  otpCodeHash     String?
-  otpExpiresAt    DateTime?
-  otpAttempts     Int                        @default(0)
-  otpSentAt       DateTime?
-  otpVerifiedAt   DateTime?
-  blockedAt       DateTime?
-  clientSignedAt  DateTime?
-  createdAt       DateTime                   @default(now())
-  updatedAt       DateTime                   @updatedAt
-  devis           Devis                      @relation(fields: [devisId], references: [id], onDelete: Cascade)
+model LigneDevis {
+  id                  Int      @id @default(autoincrement())
+  devisId             Int
+  prestationId        Int?
+  materiauId          Int?
+  serviceMainOeuvreId Int?
+  description         String?
+  quantite            Decimal  @db.Decimal(12, 3)
+  unite               Unite    @default(M2)
+  dimension           String?
+  couleur             String?
+  finition            String?
+  /// Snapshot of the options chosen for a catalogue prestation:
+  /// [{ optionId, optionNom, choixId, choixNom, impactPrix }]
+  /// v2: replaces "(Type: Choix, …)" encoded in the description and re-parsed with split()
+  optionsChoisies     Json?
+  prixUnitaireVente   Decimal  @db.Decimal(12, 2)
+  prixAchat           Decimal  @default(0) @db.Decimal(12, 2)
+  mainOeuvre          Decimal  @default(0) @db.Decimal(12, 2)
+  totalHT             Decimal  @default(0) @db.Decimal(12, 2)
+  coutTotal           Decimal  @default(0) @db.Decimal(12, 2)
+  ordre               Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  devis             Devis              @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  // Restrict: deleting a catalogue item used in a quote must FAIL (old default was SetNull,
+  // which silently wiped references from signed quotes — P0.6). Use `actif = false` instead.
+  prestation        Prestation?        @relation(fields: [prestationId], references: [id], onDelete: Restrict)
+  materiau          Materiau?          @relation(fields: [materiauId], references: [id], onDelete: Restrict)
+  serviceMainOeuvre ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id], onDelete: Restrict)
 
   @@index([devisId])
-  @@index([statut])
-  @@index([expiresAt])
-  @@map("devis_client_signature_requests")
+  @@index([prestationId])
+  @@index([materiauId])
+  @@index([serviceMainOeuvreId])
+  @@map("lignes_devis")
 }
 
 model VersionDevis {
@@ -434,65 +612,97 @@ model VersionDevis {
   numeroVersion  Int
   justification  String?
   snapshotLignes Json?
-  totalHT        Float    @default(0)
-  totalTTC       Float    @default(0)
-  profit         Float    @default(0)
-  margePourcent  Float    @default(0)
+  totalHT        Decimal  @default(0) @db.Decimal(12, 2)
+  totalTTC       Decimal  @default(0) @db.Decimal(12, 2)
+  profit         Decimal  @default(0) @db.Decimal(12, 2)
+  margePourcent  Decimal  @default(0) @db.Decimal(7, 2)
   createdAt      DateTime @default(now())
-  auteur         User?    @relation("VersionAuteur", fields: [auteurId], references: [id])
-  devis          Devis    @relation(fields: [devisId], references: [id], onDelete: Cascade)
 
-  @@index([devisId])
+  devis  Devis @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  auteur User? @relation("VersionAuteur", fields: [auteurId], references: [id], onDelete: SetNull)
+
+  @@unique([devisId, numeroVersion])
   @@map("versions_devis")
 }
 
-model LigneDevis {
-  id                  Int                @id @default(autoincrement())
-  devisId             Int
-  prestationId        Int?
-  materiauId          Int?
-  serviceMainOeuvreId Int?
-  description         String?
-  quantite            Float
-  unite               Unite              @default(M2)
-  dimension           String?
-  couleur             String?
-  finition            String?
-  prixUnitaireVente   Float
-  prixAchat           Float              @default(0)
-  mainOeuvre          Float              @default(0)
-  totalHT             Float              @default(0)
-  coutTotal           Float              @default(0)
-  ordre               Int                @default(0)
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  devis               Devis              @relation(fields: [devisId], references: [id], onDelete: Cascade)
-  materiau            Materiau?          @relation(fields: [materiauId], references: [id])
-  prestation          Prestation?        @relation(fields: [prestationId], references: [id])
-  serviceMainOeuvre   ServiceMainOeuvre? @relation(fields: [serviceMainOeuvreId], references: [id])
+/// Secure link emailed to the client (v2: replaces DevisClientSignatureRequest and the
+/// stateless 30-day JWT used for validation, which could not be revoked).
+///  - VALIDATION: the client reads the quote and accepts / refuses it
+///  - SIGNATURE : the client confirms with a one-time code, then signs
+/// Only a SHA-256 hash of the token is stored. A link is tied to the quote version it was
+/// sent for: revising the quote cancels it.
+model DevisLienClient {
+  id            Int             @id @default(autoincrement())
+  devisId       Int
+  type          DevisLienType
+  tokenHash     String          @unique
+  versionDevis  Int
+  canal         CanalEnvoi      @default(EMAIL)
+  destinataire  String
+  statut        DevisLienStatut @default(ACTIF)
+  expiresAt     DateTime
+  otpCodeHash   String?
+  otpExpiresAt  DateTime?
+  otpAttempts   Int             @default(0)
+  otpSentAt     DateTime?
+  otpVerifiedAt DateTime?
+  usedAt        DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
-  @@index([devisId])
-  @@map("lignes_devis")
+  devis Devis @relation(fields: [devisId], references: [id], onDelete: Cascade)
+
+  @@index([devisId, type, statut])
+  @@index([expiresAt])
+  @@map("devis_liens_client")
 }
 
+model BonCommande {
+  id        Int               @id @default(autoincrement())
+  devisId   Int               @unique
+  reference String            @unique
+  date      DateTime          @default(now())
+  statut    BonCommandeStatut @default(BROUILLON)
+  pdfUrl    String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  devis Devis @relation(fields: [devisId], references: [id])
+
+  @@index([statut])
+  @@map("bons_commande")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FINANCE — invoices, supplier orders, stock
+// ═════════════════════════════════════════════════════════════════════════════
+
 model Facture {
-  id                    Int            @id @default(autoincrement())
+  id                    Int           @id @default(autoincrement())
+  /// New in v2: direct tenant scoping (no more joining through devis for every query)
+  companyId             Int
   devisId               Int
-  reference             String         @unique
-  date                  DateTime       @default(now())
-  montantHT             Float
-  montantTVA            Float
-  montantTTC            Float
-  statut                FactureStatut  @default(BROUILLON)
-  pdfUrl                String?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  /// v2: assigned when the invoice is ISSUED, not when the draft is created — drafts no longer
+  /// consume numbers, so issued invoices are numbered continuously (French legal requirement)
+  reference             String?       @unique
+  typeFacture           FactureType   @default(FINALE)
+  statut                FactureStatut @default(BROUILLON)
+  /// Progress invoices: rank (1, 2, …) and CUMULATIVE progress billed so far, in %
+  numeroSituation       Int?
+  avancementCumule      Decimal?      @db.Decimal(5, 2)
+  /// A credit note (AVOIR) points to the invoice it cancels
+  factureOrigineId      Int?
+  dateEmission          DateTime?
+  date                  DateTime      @default(now())
   dateEcheance          DateTime?
+  tauxTVA               Decimal       @default(20) @db.Decimal(5, 2)
+  montantHT             Decimal       @db.Decimal(12, 2)
+  montantTVA            Decimal       @db.Decimal(12, 2)
+  montantTTC            Decimal       @db.Decimal(12, 2)
+  acomptePercent        Decimal?      @db.Decimal(5, 2)
+  acompteMontant        Decimal?      @db.Decimal(12, 2)
   referenceDevis        String?
-  tauxTVA               Float          @default(20)
-  typeFacture           FactureType    @default(FINALE)
-  acomptePercent        Float?
-  acompteMontant        Float?
+  // Snapshot of client & company at invoice time (legal requirement: an invoice never changes)
   nomClient             String?
   prenomClient          String?
   emailClient           String?
@@ -507,15 +717,22 @@ model Facture {
   communicationPaiement String?
   notesLegales          String?
   referencePaiement     String?
+  pdfUrl                String?
   emailEnvoiClient      String?
   dateEnvoiClient       DateTime?
   datePaiement          DateTime?
-  devis                 Devis          @relation(fields: [devisId], references: [id])
-  lignes                FactureLigne[]
-  savTickets            SavTicket[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
-  @@index([devisId])
-  @@index([statut])
+  company        Company        @relation(fields: [companyId], references: [id])
+  devis          Devis          @relation(fields: [devisId], references: [id])
+  factureOrigine Facture?       @relation("Avoir", fields: [factureOrigineId], references: [id])
+  avoirs         Facture[]      @relation("Avoir")
+  lignes         FactureLigne[]
+  savTickets     SavTicket[]
+
+  @@index([companyId, statut])
+  @@index([devisId, typeFacture])
   @@map("factures")
 }
 
@@ -524,178 +741,222 @@ model FactureLigne {
   factureId      Int
   description    String
   datePrestation DateTime?
-  quantite       Float     @default(1)
+  quantite       Decimal   @default(1) @db.Decimal(12, 3)
   unite          String    @default("UNITE")
-  prixUnitaireHT Float
-  tauxTVA        Float     @default(20)
-  montantHT      Float
-  montantTVA     Float
-  montantTTC     Float
+  prixUnitaireHT Decimal   @db.Decimal(12, 2)
+  tauxTVA        Decimal   @default(20) @db.Decimal(5, 2)
+  montantHT      Decimal   @db.Decimal(12, 2)
+  montantTVA     Decimal   @db.Decimal(12, 2)
+  montantTTC     Decimal   @db.Decimal(12, 2)
   ordre          Int       @default(0)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  facture        Facture   @relation(fields: [factureId], references: [id], onDelete: Cascade)
+
+  facture Facture @relation(fields: [factureId], references: [id], onDelete: Cascade)
 
   @@index([factureId])
   @@map("lignes_facture")
 }
 
-model BonCommande {
-  id        Int               @id @default(autoincrement())
-  devisId   Int               @unique
-  reference String            @unique
-  date      DateTime          @default(now())
-  statut    BonCommandeStatut @default(BROUILLON)
-  pdfUrl    String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  devis     Devis             @relation(fields: [devisId], references: [id])
-
-  @@index([statut])
-  @@map("bons_commande")
-}
-
-model Fournisseur {
-  id                   Int                   @id @default(autoincrement())
-  companyId            Int
-  nom                  String
-  contact              String?
-  email                String?
-  telephone            String?
-  adresse              String?
-  typesMateriaux       String?
-  delaiLivraison       Int?
-  conditions           String?
-  actif                Boolean               @default(true)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  commandesFournisseur CommandeFournisseur[]
-  company              Company               @relation(fields: [companyId], references: [id])
-  materiaux            Materiau[]
-
-  @@index([companyId])
-  @@map("fournisseurs")
-}
-
 model CommandeFournisseur {
-  id                  Int                        @id @default(autoincrement())
+  id                  Int                       @id @default(autoincrement())
+  companyId           Int
   devisId             Int
   fournisseurId       Int
-  reference           String                     @unique
-  date                DateTime                   @default(now())
-  statutLivraison     CommandeFournisseurStatut  @default(CREEE)
+  reference           String                    @unique
+  date                DateTime                  @default(now())
+  statutLivraison     CommandeFournisseurStatut @default(CREEE)
   dateEnvoi           DateTime?
   dateLivraisonPrevue DateTime?
   notes               String?
+  /// Step 11 — supplier portal: order acknowledged, and the supplier's own remark
+  dateAccuseReception DateTime?
+  commentaireFournisseur String?
   pdfUrl              String?
-  createdAt           DateTime                   @default(now())
-  updatedAt           DateTime                   @updatedAt
-  devis               Devis                      @relation(fields: [devisId], references: [id])
-  fournisseur         Fournisseur                @relation(fields: [fournisseurId], references: [id])
-  lignes              LigneCommandeFournisseur[]
-  receptions          Reception[]
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
 
-  @@index([devisId])
+  company     Company                    @relation(fields: [companyId], references: [id])
+  devis       Devis                      @relation(fields: [devisId], references: [id])
+  fournisseur Fournisseur                @relation(fields: [fournisseurId], references: [id])
+  lignes      LigneCommandeFournisseur[]
+  receptions  Reception[]
+
+  /// P0.4: one order per supplier per quote — a double click can't create two
+  @@unique([devisId, fournisseurId])
+  @@index([companyId, statutLivraison])
   @@index([fournisseurId])
-  @@index([statutLivraison])
   @@map("commandes_fournisseur")
 }
 
 model LigneCommandeFournisseur {
-  id                    Int                 @id @default(autoincrement())
+  id                    Int      @id @default(autoincrement())
   commandeFournisseurId Int
+  /// v2: lines are linked to the material (the old ones only had its name → receptions
+  /// could never update the stock)
+  materiauId            Int?
   materiauNom           String
-  quantite              Float
-  unite                 Unite               @default(PIECE)
-  prixUnitaire          Float
-  totalHT               Float
-  createdAt             DateTime            @default(now())
-  commandeFournisseur   CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id], onDelete: Cascade)
+  quantite              Decimal  @db.Decimal(12, 3)
+  quantiteRecue         Decimal  @default(0) @db.Decimal(12, 3)
+  unite                 Unite    @default(PIECE)
+  prixUnitaire          Decimal  @db.Decimal(12, 2)
+  totalHT               Decimal  @db.Decimal(12, 2)
+  createdAt             DateTime @default(now())
+
+  commandeFournisseur CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id], onDelete: Cascade)
+  materiau            Materiau?           @relation(fields: [materiauId], references: [id], onDelete: SetNull)
+  receptions          ReceptionLigne[]
 
   @@index([commandeFournisseurId])
   @@map("lignes_commande_fournisseur")
 }
 
+/// One delivery (possibly partial) of a supplier order. Each line updates the stock.
 model Reception {
-  id                    Int                 @id @default(autoincrement())
+  id                    Int      @id @default(autoincrement())
   commandeFournisseurId Int
-  dateReception         DateTime            @default(now())
-  quantiteRecue         Float
-  quantiteAttendue      Float
-  partielle             Boolean             @default(false)
+  userId                Int?
+  dateReception         DateTime @default(now())
   notes                 String?
-  createdAt             DateTime            @default(now())
-  commandeFournisseur   CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id])
+  createdAt             DateTime @default(now())
+
+  commandeFournisseur CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id])
+  user                User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  lignes              ReceptionLigne[]
 
   @@index([commandeFournisseurId])
   @@map("receptions")
 }
 
+model ReceptionLigne {
+  id              Int     @id @default(autoincrement())
+  receptionId     Int
+  ligneCommandeId Int
+  quantite        Decimal @db.Decimal(12, 3)
+
+  reception     Reception                @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  ligneCommande LigneCommandeFournisseur @relation(fields: [ligneCommandeId], references: [id])
+
+  @@index([receptionId])
+  @@index([ligneCommandeId])
+  @@map("receptions_lignes")
+}
+
+model MouvementStock {
+  id         Int                @id @default(autoincrement())
+  companyId  Int
+  materiauId Int
+  userId     Int?
+  type       TypeMouvementStock
+  quantite   Decimal            @db.Decimal(12, 3)
+  stockAvant Decimal            @db.Decimal(12, 3)
+  stockApres Decimal            @db.Decimal(12, 3)
+  motif      String?
+  reference  String?
+  /// Material consumed on / delivered for a job site
+  chantierId Int?
+  createdAt  DateTime           @default(now())
+
+  company  Company   @relation(fields: [companyId], references: [id])
+  materiau Materiau  @relation(fields: [materiauId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  chantier Chantier? @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([materiauId])
+  @@map("mouvements_stock")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// EXÉCUTION — job sites, tasks, teams
+// ═════════════════════════════════════════════════════════════════════════════
+
 model Chantier {
-  plan2d                Json?
-  id                    Int                    @id @default(autoincrement())
-  companyId             Int
-  clientId              Int
-  chefChantierId        Int?
-  reference             String                 @unique
-  adresse               String
-  description           String?
-  statut                ChantierStatut         @default(VISITE_TECHNIQUE)
-  dateDebut             DateTime?
-  dateFin               DateTime?
-  notes                 String?
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
-  chefChantier          User?                  @relation("ChefChantier", fields: [chefChantierId], references: [id])
-  client                Client                 @relation(fields: [clientId], references: [id])
+  id             Int            @id @default(autoincrement())
+  companyId      Int
+  clientId       Int
+  chefChantierId Int?
+  reference      String         @unique
+  adresse        String
+  description    String?
+  statut         ChantierStatut @default(PLANIFIE)
+  dateDebut      DateTime?
+  dateFin        DateTime?
+  notes          String?
+  plan2d         Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
   company               Company                @relation(fields: [companyId], references: [id])
-  sousTraitantsVisibles ChantierSousTraitant[]
+  client                Client                 @relation(fields: [clientId], references: [id])
+  chefChantier          User?                  @relation("ChefChantier", fields: [chefChantierId], references: [id], onDelete: SetNull)
   devis                 Devis[]
-  documents             DocumentChantier[]
   taches                Tache[]
+  documents             DocumentChantier[]
+  sousTraitantsVisibles ChantierSousTraitant[]
   contratsSousTraitant  ContratSousTraitant[]
   notationsSousTraitant NotationSousTraitant[]
   savTickets            SavTicket[]
+  mouvementsStock       MouvementStock[]
+  fichiers              Fichier[]
+  rapports              RapportChantier[]
 
-  @@index([companyId])
+  @@index([companyId, statut])
   @@index([clientId])
-  @@index([statut])
+  @@index([chefChantierId])
   @@map("chantiers")
 }
 
+/// Which sous-traitant ACCOUNTS (users) can see which job site.
+/// v2: field renamed sousTraitantId -> userId, because it points to User, not SousTraitant.
+model ChantierSousTraitant {
+  chantierId Int
+  userId     Int
+
+  chantier Chantier @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([chantierId, userId])
+  @@index([userId])
+  @@map("chantiers_sous_traitants")
+}
+
 model Equipe {
-  id                 Int                @id @default(autoincrement())
-  companyId          Int
-  nom                String
-  type               EquipeType         @default(INTERNE)
-  actif              Boolean            @default(true)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  affectationsTaches AffectationTache[]
+  id        Int        @id @default(autoincrement())
+  companyId Int
+  nom       String
+  type      EquipeType @default(INTERNE)
+  actif     Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
   company            Company            @relation(fields: [companyId], references: [id])
+  affectationsTaches AffectationTache[]
 
   @@index([companyId])
   @@map("equipes")
 }
 
 model Tache {
-  id           Int                @id @default(autoincrement())
-  chantierId   Int
-  libelle      String
-  description  String?
-  statut       TacheStatut        @default(A_FAIRE)
-  dateDebut    DateTime?
-  dateFin      DateTime?
-  avancement   Float              @default(0)
-  commentaire  String?
-  ordre        Int                @default(0)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  affectations AffectationTache[]
-  chantier     Chantier           @relation(fields: [chantierId], references: [id])
+  id          Int         @id @default(autoincrement())
+  chantierId  Int
+  libelle     String
+  description String?
+  statut      TacheStatut @default(A_FAIRE)
+  dateDebut   DateTime?
+  dateFin     DateTime?
+  /// Progress in percent, 0–100
+  avancement  Int         @default(0)
+  commentaire String?
+  ordre       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  @@index([chantierId])
-  @@index([statut])
+  chantier     Chantier           @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  affectations AffectationTache[]
+  rapports     RapportChantier[]
+
+  @@index([chantierId, statut])
   @@map("taches")
 }
 
@@ -705,11 +966,13 @@ model AffectationTache {
   userId    Int?
   equipeId  Int?
   createdAt DateTime @default(now())
-  equipe    Equipe?  @relation(fields: [equipeId], references: [id])
-  tache     Tache    @relation(fields: [tacheId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id])
+
+  tache  Tache   @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  equipe Equipe? @relation(fields: [equipeId], references: [id], onDelete: Cascade)
 
   @@index([tacheId])
+  @@index([userId])
   @@map("affectations_taches")
 }
 
@@ -718,218 +981,39 @@ model DocumentChantier {
   chantierId Int
   nom        String
   type       String
-  url        String
+  /// External link — null when the document is an uploaded file (Step 11)
+  url        String?
+  fichierId  Int?     @unique
   createdAt  DateTime @default(now())
-  chantier   Chantier @relation(fields: [chantierId], references: [id])
+
+  chantier Chantier @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  fichier  Fichier? @relation(fields: [fichierId], references: [id], onDelete: SetNull)
 
   @@index([chantierId])
   @@map("documents_chantier")
 }
 
-model ChatSession {
-  id              Int           @id @default(autoincrement())
-  companyId       Int
-  clientNom       String?
-  clientEmail     String?
-  clientTelephone String?
-  besoinStructure Json?
-  terminee        Boolean       @default(false)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  company         Company       @relation(fields: [companyId], references: [id])
-  messages        MessageChat[]
-
-  @@index([companyId])
-  @@map("chat_sessions")
-}
-
-model MessageChat {
-  id          Int         @id @default(autoincrement())
-  sessionId   Int
-  userId      Int?
-  role        String
-  contenu     String
-  nlpResultat Json?
-  createdAt   DateTime    @default(now())
-  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user        User?       @relation(fields: [userId], references: [id])
-
-  @@index([sessionId])
-  @@map("messages_chat")
-}
-
-model RagDocument {
-  id        Int      @id @default(autoincrement())
-  companyId Int
-  titre     String
-  categorie String
-  contenu   String
-  actif     Boolean  @default(true)
-  priorite  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  company   Company  @relation(fields: [companyId], references: [id])
-
-  @@index([companyId])
-  @@index([categorie])
-  @@index([actif])
-  @@map("rag_documents")
-}
-
-model AuditLog {
-  id             Int      @id @default(autoincrement())
-  companyId      Int
-  userId         Int?
-  action         String
-  entite         String
-  entiteId       Int
-  ancienneValeur Json?
-  nouvelleValeur Json?
-  createdAt      DateTime @default(now())
-  company        Company  @relation(fields: [companyId], references: [id])
-  user           User?    @relation(fields: [userId], references: [id])
-
-  @@index([companyId])
-  @@index([entite, entiteId])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-enum Role {
-  ADMIN
-  TECHNICO
-  ASSISTANTE
-  CHEF_CHANTIER
-  SOUS_TRAITANT
-}
-
-enum LeadSource {
-  CHATBOT
-  TECHNICO_COMMERCIAL
-  APPEL
-  RECOMMANDATION
-  SITE_WEB
-  AUTRE
-}
-
-enum DemandeStatut {
-  NOUVEAU
-  EN_COURS
-  QUALIFIE
-  CONVERTI
-  PERDU
-}
-
-enum DevisStatut {
-  BROUILLON
-  ENVOYE
-  ACCEPTE
-  SIGNE
-  REFUSE
-  ANNULE
-  REVISE
-  RENVOYE
-}
-
-enum DevisClientSignatureStatut {
-  EN_ATTENTE
-  OTP_ENVOYE
-  OTP_VERIFIE
-  SIGNE_CLIENT
-  BLOQUE
-  EXPIRE
-  ANNULE
-}
-
-enum FactureStatut {
-  BROUILLON
-  ENVOYEE
-  PAYEE
-  ANNULEE
-}
-
-enum FactureType {
-  ACOMPTE
-  FINALE
-}
-
-enum BonCommandeStatut {
-  BROUILLON
-  VALIDE
-  ENVOYE
-  ANNULE
-}
-
-enum CommandeFournisseurStatut {
-  CREEE
-  ENVOYEE
-  EXPEDIEE
-  PARTIELLE
-  RECUE
-  CLOTUREE
-}
-
-enum ChantierStatut {
-  VISITE_TECHNIQUE
-  DEVIS_EN_PREPARATION
-  DEVIS_ENVOYE
-  NEGOCIATION_EN_COURS
-  DEVIS_VALIDE
-  COMMANDES_GENEREES
-  MATERIAUX_EN_LIVRAISON
-  MATERIAUX_RECEPTIONNES
-  PLANIFIE
-  DEMARRE
-  EN_COURS
-  TERMINE
-  CLOTURE
-}
-
-enum TacheStatut {
-  A_FAIRE
-  EN_COURS
-  BLOQUEE
-  TERMINEE
-}
-
-enum EquipeType {
-  INTERNE
-  SOUS_TRAITANT
-}
-
-enum Unite {
-  M2
-  ML
-  PIECE
-  JOUR
-  HEURE
-  LITRE
-  KG
-  FORFAIT
-}
-
-enum ModeValidation {
-  EMAIL
-  SIGNATURE
-  VERBAL
-  AUTRE
-}
+// ═════════════════════════════════════════════════════════════════════════════
+// SOUS-TRAITANTS — company records (contracts, insurance, payments, ratings)
+// ═════════════════════════════════════════════════════════════════════════════
 
 model SousTraitant {
-  id             Int                         @id @default(autoincrement())
-  companyId      Int
-  userId         Int?                        @unique
-  nom            String
-  contact        String?
-  siret          String?
-  email          String?
-  telephone      String?
-  adresse        String?
-  specialite     String?
-  statut         String                      @default("ACTIF")
-  actif          Boolean                     @default(true)
-  createdAt      DateTime                    @default(now())
-  updatedAt      DateTime                    @updatedAt
+  id         Int                @id @default(autoincrement())
+  companyId  Int
+  /// Portal login account (role SOUS_TRAITANT)
+  userId     Int?               @unique
+  nom        String
+  contact    String?
+  siret      String?
+  email      String?
+  telephone  String?
+  adresse    String?
+  specialite String?
+  /// v2: replaces both `statut String` and the redundant `actif Boolean`
+  statut     SousTraitantStatut @default(ACTIF)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
   company        Company                     @relation(fields: [companyId], references: [id])
   utilisateur    User?                       @relation("CompteSousTraitant", fields: [userId], references: [id], onDelete: SetNull)
   contrats       ContratSousTraitant[]
@@ -938,147 +1022,127 @@ model SousTraitant {
   disponibilites DisponibiliteSousTraitant[]
   notations      NotationSousTraitant[]
 
-  @@index([companyId])
+  @@unique([companyId, siret])
+  @@index([companyId, statut])
   @@map("sous_traitants")
 }
 
 model ContratSousTraitant {
-  id             Int                    @id @default(autoincrement())
+  id             Int                       @id @default(autoincrement())
   companyId      Int
   sousTraitantId Int
   chantierId     Int
-  reference      String                 @unique
-  montantHT      Float
-  statut         String                 @default("BROUILLON")
+  reference      String                    @unique
+  montantHT      Decimal                   @db.Decimal(12, 2)
+  statut         ContratSousTraitantStatut @default(BROUILLON)
   dateDebut      DateTime?
   dateFin        DateTime?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  company        Company                @relation(fields: [companyId], references: [id])
-  sousTraitant   SousTraitant           @relation(fields: [sousTraitantId], references: [id])
-  chantier       Chantier               @relation(fields: [chantierId], references: [id])
-  paiements      PaiementSousTraitant[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 
-  @@index([companyId])
+  company      Company                @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant           @relation(fields: [sousTraitantId], references: [id])
+  chantier     Chantier               @relation(fields: [chantierId], references: [id])
+  paiements    PaiementSousTraitant[]
+
+  @@index([companyId, statut])
   @@index([sousTraitantId])
   @@index([chantierId])
   @@map("contrats_sous_traitant")
 }
 
 model AssuranceSousTraitant {
-  id                 Int          @id @default(autoincrement())
+  id                 Int              @id @default(autoincrement())
   companyId          Int
   sousTraitantId     Int
-  typeAssurance      String
+  typeAssurance      TypeAssurance
   numeroAttestation  String
   compagnieAssurance String
   dateExpiration     DateTime
   documentUrl        String?
-  statut             String       @default("VALIDE")
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  company            Company      @relation(fields: [companyId], references: [id])
-  sousTraitant       SousTraitant @relation(fields: [sousTraitantId], references: [id])
+  /// Uploaded certificate (Step 11); documentUrl stays for external links
+  fichierId          Int?
+  statut             AssuranceStatut  @default(VALIDE)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
-  @@index([companyId])
+  company      Company      @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+  fichier      Fichier?     @relation(fields: [fichierId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, dateExpiration])
   @@index([sousTraitantId])
   @@map("assurances_sous_traitant")
 }
 
 model PaiementSousTraitant {
-  id             Int                  @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   companyId      Int
   sousTraitantId Int
   contratId      Int?
-  montantHT      Float
-  montantTTC     Float
+  montantHT      Decimal         @db.Decimal(12, 2)
+  montantTTC     Decimal         @db.Decimal(12, 2)
   datePaiement   DateTime
-  modePaiement   String
-  statut         String               @default("REGLE")
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  company        Company              @relation(fields: [companyId], references: [id])
-  sousTraitant   SousTraitant         @relation(fields: [sousTraitantId], references: [id])
-  contrat        ContratSousTraitant? @relation(fields: [contratId], references: [id])
+  modePaiement   ModePaiement
+  statut         PaiementStatut  @default(REGLE)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
-  @@index([companyId])
+  company      Company              @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant         @relation(fields: [sousTraitantId], references: [id])
+  contrat      ContratSousTraitant? @relation(fields: [contratId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, datePaiement])
   @@index([sousTraitantId])
   @@index([contratId])
   @@map("paiements_sous_traitant")
 }
 
 model DisponibiliteSousTraitant {
-  id             Int          @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   companyId      Int
   sousTraitantId Int
   dateDebut      DateTime
   dateFin        DateTime
-  disponible     Boolean      @default(true)
+  disponible     Boolean  @default(true)
   notes          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  company        Company      @relation(fields: [companyId], references: [id])
-  sousTraitant   SousTraitant @relation(fields: [sousTraitantId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
+  company      Company      @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+
+  @@index([sousTraitantId, dateDebut])
   @@index([companyId])
-  @@index([sousTraitantId])
   @@map("disponibilites_sous_traitant")
 }
 
 model NotationSousTraitant {
-  id                Int          @id @default(autoincrement())
+  id                Int      @id @default(autoincrement())
   companyId         Int
   sousTraitantId    Int
   chantierId        Int?
+  /// Each note 1–5 (validated in the DTO)
   noteQualite       Int
   noteDelai         Int
   noteCommunication Int
-  noteGlobale       Float
+  noteGlobale       Decimal  @db.Decimal(3, 2)
   commentaire       String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  company           Company      @relation(fields: [companyId], references: [id])
-  sousTraitant      SousTraitant @relation(fields: [sousTraitantId], references: [id])
-  chantier          Chantier?    @relation(fields: [chantierId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
+  company      Company      @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+  chantier     Chantier?    @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+
+  @@unique([sousTraitantId, chantierId])
   @@index([companyId])
-  @@index([sousTraitantId])
-  @@index([chantierId])
   @@map("notations_sous_traitant")
 }
 
-model ChantierSousTraitant {
-  chantierId     Int
-  sousTraitantId Int
-  chantier       Chantier @relation(fields: [chantierId], references: [id], onDelete: Cascade)
-  sousTraitant   User     @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
-
-  @@id([chantierId, sousTraitantId])
-  @@index([sousTraitantId])
-  @@map("chantiers_sous_traitants")
-}
-
-model MouvementStock {
-  id         Int                @id @default(autoincrement())
-  companyId  Int
-  materiauId Int
-  userId     Int?
-  type       TypeMouvementStock
-  quantite   Float
-  stockAvant Float
-  stockApres Float
-  motif      String?
-  reference  String?
-  createdAt  DateTime           @default(now())
-  company    Company            @relation(fields: [companyId], references: [id])
-  materiau   Materiau           @relation(fields: [materiauId], references: [id])
-  user       User?              @relation(fields: [userId], references: [id])
-
-  @@index([companyId])
-  @@index([materiauId])
-  @@index([createdAt])
-  @@map("mouvements_stock")
-}
+// ═════════════════════════════════════════════════════════════════════════════
+// PILOTAGE — after-sales, demo requests
+// ═════════════════════════════════════════════════════════════════════════════
 
 model SavTicket {
   id             Int                @id @default(autoincrement())
@@ -1087,7 +1151,10 @@ model SavTicket {
   devisId        Int?
   factureId      Int?
   chantierId     Int?
-  createurId     Int
+  /// null when the client opened the ticket from his online space (Step 11)
+  createurId     Int?
+  /// INTERNE | ESPACE_CLIENT
+  origine        String             @default("INTERNE")
   assignedToId   Int?
   reference      String             @unique
   titre          String
@@ -1102,36 +1169,32 @@ model SavTicket {
 
   company    Company         @relation(fields: [companyId], references: [id])
   client     Client          @relation(fields: [clientId], references: [id])
-  devis      Devis?          @relation(fields: [devisId], references: [id])
-  facture    Facture?        @relation(fields: [factureId], references: [id])
-  chantier   Chantier?       @relation(fields: [chantierId], references: [id])
-  createur   User            @relation("SavTicketCreateur", fields: [createurId], references: [id])
-  assignedTo User?           @relation("SavTicketAssigne", fields: [assignedToId], references: [id])
+  devis      Devis?          @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  facture    Facture?        @relation(fields: [factureId], references: [id], onDelete: SetNull)
+  chantier   Chantier?       @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  createur   User?           @relation("SavTicketCreateur", fields: [createurId], references: [id], onDelete: SetNull)
+  assignedTo User?           @relation("SavTicketAssigne", fields: [assignedToId], references: [id], onDelete: SetNull)
   notes      SavTicketNote[]
 
-  @@index([companyId])
+  @@index([companyId, statut, priorite])
+  @@index([companyId, createdAt])
   @@index([clientId])
-  @@index([devisId])
-  @@index([factureId])
-  @@index([chantierId])
-  @@index([statut])
-  @@index([priorite])
-  @@index([createdAt])
+  @@index([assignedToId])
   @@map("sav_tickets")
 }
 
 model SavTicketNote {
   id        Int      @id @default(autoincrement())
   ticketId  Int
-  userId    Int
+  /// null = written by the client from his online space
+  userId    Int?
   contenu   String
   createdAt DateTime @default(now())
 
   ticket SavTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user   User      @relation(fields: [userId], references: [id])
+  user   User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([ticketId])
-  @@index([userId])
   @@map("sav_ticket_notes")
 }
 
@@ -1153,15 +1216,99 @@ model DemoRequest {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
-  company    Company? @relation(fields: [companyId], references: [id])
-  assignedTo User?    @relation("DemoRequestAssigne", fields: [assignedToId], references: [id])
+  company    Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  assignedTo User?    @relation("DemoRequestAssigne", fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  @@index([companyId])
-  @@index([assignedToId])
-  @@index([statut])
+  @@index([statut, createdAt])
   @@index([email])
-  @@index([createdAt])
+  @@index([assignedToId])
   @@map("demo_requests")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// IA — chatbot sessions, RAG knowledge base, feedback  (reviewed again in Step 14)
+// ═════════════════════════════════════════════════════════════════════════════
+
+/// Chatbot conversation = one prospect (Step 14). The visitor holds a session token (only its
+/// hash is stored): nobody can read or continue someone else's conversation by guessing an id.
+model ChatSession {
+  id               Int              @id @default(autoincrement())
+  companyId        Int
+  tokenHash        String           @unique
+  statut           ProspectStatut   @default(NOUVEAU)
+  clientNom        String?
+  clientPrenom     String?
+  clientEmail      String?
+  clientTelephone  String?
+  adresse          String?
+  /// One of the company's TypeProjet names, as understood from the conversation
+  typeProjet       String?
+  /// Summary of the need, built from the conversation (what the sales team reads first)
+  description      String?
+  delai            String?
+  besoinStructure  Json?
+  /// Existing client with the same email / phone (anti-duplicate)
+  clientId         Int?
+  /// Earlier open conversation of the same person (anti-duplicate)
+  doublonDeId      Int?
+  demandeDevisId   Int?             @unique
+  notesInternes    String?
+  motifRejet       String?
+  traiteParId      Int?
+  traiteLe         DateTime?
+  terminee         Boolean          @default(false)
+  derniereActivite DateTime         @default(now())
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  company      Company             @relation(fields: [companyId], references: [id])
+  client       Client?             @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  doublonDe    ChatSession?        @relation("ChatDoublon", fields: [doublonDeId], references: [id], onDelete: SetNull)
+  doublons     ChatSession[]       @relation("ChatDoublon")
+  demandeDevis DemandeDevis?       @relation(fields: [demandeDevisId], references: [id], onDelete: SetNull)
+  traitePar    User?               @relation("ProspectTraitePar", fields: [traiteParId], references: [id], onDelete: SetNull)
+  messages     MessageChat[]
+  feedbacks    AssistantFeedback[]
+  erreurs      AssistantErreur[]
+
+  @@index([companyId, statut, derniereActivite])
+  @@index([companyId, clientEmail])
+  @@map("chat_sessions")
+}
+
+model MessageChat {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int
+  userId      Int?
+  role        String
+  contenu     String
+  nlpResultat Json?
+  createdAt   DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, createdAt])
+  @@map("messages_chat")
+}
+
+/// Knowledge base of the assistant (Step 14), searched with PostgreSQL full-text (french).
+/// Never put prices, margins or supplier terms here: everything can be quoted to a visitor.
+model RagDocument {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  titre     String
+  categorie String
+  contenu   String
+  actif     Boolean  @default(true)
+  priorite  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, actif, categorie])
+  @@map("rag_documents")
 }
 
 model AssistantFeedback {
@@ -1169,18 +1316,314 @@ model AssistantFeedback {
   companyId      Int
   sessionId      Int?
   messageExcerpt String?
+  /// UTILE | PAS_UTILE
   rating         String
+  commentaire    String?
   createdAt      DateTime @default(now())
 
-  @@index([companyId])
-  @@index([rating])
+  company Company      @relation(fields: [companyId], references: [id])
+  session ChatSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, rating])
   @@map("assistant_feedbacks")
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ENUMS
+// ═════════════════════════════════════════════════════════════════════════════
+
+/// Keep in sync with packages/shared/src/roles.ts (checked by prisma-enums.spec.ts)
+
+/// AI errors and blocked answers (spec P4: "journaliser les erreurs IA"). Never stores the API key
+/// nor the full prompt; `detail` is a short technical message.
+model AssistantErreur {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  sessionId Int?
+  /// LLM_INDISPONIBLE | LLM_REPONSE_INVALIDE | REPONSE_BLOQUEE | QUOTA
+  type      String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  company Company      @relation(fields: [companyId], references: [id])
+  session ChatSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@map("assistant_erreurs")
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// Step 11 — portails : fichiers, rapports de chantier, espace client
+// ═════════════════════════════════════════════════════════════════════════
+
+/// A stored file. The bytes live in STORAGE_DIR (outside git and outside the database);
+/// this row holds the metadata. Every download goes through FichiersService.assertCanRead.
+model Fichier {
+  id           Int      @id @default(autoincrement())
+  companyId    Int
+  /// Path inside STORAGE_DIR, generated by the server (never derived from the client's file name)
+  cle          String   @unique
+  /// Original name, for display and download only
+  nom          String
+  mime         String
+  taille       Int
+  /// Readable by the people of this job site (chef, sous-traitants given access)
+  chantierId   Int?
+  /// Photo attached to a site report
+  rapportId    Int?
+  uploadedById Int?
+  createdAt    DateTime @default(now())
+
+  company    Company                 @relation(fields: [companyId], references: [id])
+  chantier   Chantier?               @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  rapport    RapportChantier?        @relation(fields: [rapportId], references: [id], onDelete: Cascade)
+  uploadedBy User?                   @relation("FichierAuteur", fields: [uploadedById], references: [id], onDelete: SetNull)
+  document   DocumentChantier?
+  assurances AssuranceSousTraitant[]
+
+  @@index([companyId])
+  @@index([chantierId])
+  @@index([rapportId])
+  @@map("fichiers")
+}
+
+/// Site report written by a sous-traitant from his portal (text + photos), reviewed by the office.
+/// A validated report with a declared progress updates the task.
+model RapportChantier {
+  id                    Int           @id @default(autoincrement())
+  companyId             Int
+  chantierId            Int
+  tacheId               Int?
+  auteurId              Int
+  contenu               String
+  /// Progress of the task declared by the author (0–100), applied on validation
+  avancement            Int?
+  statut                RapportStatut @default(SOUMIS)
+  commentaireValidation String?
+  valideParId           Int?
+  valideLe              DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  company   Company   @relation(fields: [companyId], references: [id])
+  chantier  Chantier  @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  tache     Tache?    @relation(fields: [tacheId], references: [id], onDelete: SetNull)
+  auteur    User      @relation("RapportAuteur", fields: [auteurId], references: [id])
+  validePar User?     @relation("RapportValidateur", fields: [valideParId], references: [id], onDelete: SetNull)
+  photos    Fichier[]
+
+  @@index([chantierId, createdAt])
+  @@index([auteurId])
+  @@index([companyId, statut])
+  @@map("rapports_chantier")
+}
+
+/// "Espace client" link, emailed like the quote links (no client account, as in the old app):
+/// read-only access to the client's quotes, invoices and job-site progress, + opening SAV tickets.
+/// Only the SHA-256 of the token is stored. Revocable; a new link revokes the previous ones.
+model ClientEspaceLien {
+  id           Int       @id @default(autoincrement())
+  companyId    Int
+  clientId     Int
+  tokenHash    String    @unique
+  destinataire String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  lastUsedAt   DateTime?
+  createdById  Int?
+  createdAt    DateTime  @default(now())
+
+  company   Company @relation(fields: [companyId], references: [id])
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("EspaceLienCreateur", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@map("client_espace_liens")
+}
+
+enum NiveauNotification {
+  INFO
+  SUCCES
+  ALERTE
+}
+
+enum Role {
+  ADMIN
+  TECHNICO
+  ASSISTANTE
+  CHEF_CHANTIER
+  SOUS_TRAITANT
+  FOURNISSEUR
+}
+
+enum LeadSource {
+  CHATBOT
+  TECHNICO_COMMERCIAL
+  APPEL
+  RECOMMANDATION
+  SITE_WEB
+  WHATSAPP
+  AUTRE
+}
+
+enum DemandeStatut {
+  NOUVEAU
+  EN_COURS
+  QUALIFIE
+  CONVERTI
+  PERDU
+}
+
+/// Transitions are enforced by WorkflowStateService (Step 7), not by the database.
+enum DevisStatut {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  SIGNE
+  REFUSE
+  REVISE
+  RENVOYE
+  ANNULE
+}
+
+enum DevisLienType {
+  VALIDATION
+  SIGNATURE
+}
+
+enum DevisLienStatut {
+  ACTIF
+  OTP_ENVOYE
+  OTP_VERIFIE
+  UTILISE
+  BLOQUE
+  EXPIRE
+  ANNULE
+}
+
+enum CanalEnvoi {
+  EMAIL
+  SMS
+}
+
+enum ModeValidation {
+  EMAIL
+  SIGNATURE
+  VERBAL
+  AUTRE
+}
+
+enum BonCommandeStatut {
+  BROUILLON
+  VALIDE
+  ENVOYE
+  ANNULE
+}
+
+enum FactureStatut {
+  BROUILLON
+  ENVOYEE
+  PAYEE
+  ANNULEE
+}
+
+enum FactureType {
+  ACOMPTE
+  /// "Situation de travaux": progress invoice (cumulative % of the quote)
+  SITUATION
+  FINALE
+  /// Credit note: the only legal way to cancel an issued invoice
+  AVOIR
+}
+
+enum CommandeFournisseurStatut {
+  CREEE
+  ENVOYEE
+  EXPEDIEE
+  PARTIELLE
+  RECUE
+  CLOTUREE
+  ANNULEE
 }
 
 enum TypeMouvementStock {
   ENTREE
   SORTIE
   AJUSTEMENT
+}
+
+/// v2: execution phases only. The old enum mixed in commercial phases (VISITE_TECHNIQUE,
+/// DEVIS_ENVOYE…) and supply phases that duplicated the quote and order statuses.
+enum ChantierStatut {
+  PLANIFIE
+  EN_COURS
+  SUSPENDU
+  TERMINE
+  CLOTURE
+  ANNULE
+}
+
+enum TacheStatut {
+  A_FAIRE
+  EN_COURS
+  BLOQUEE
+  TERMINEE
+}
+
+enum EquipeType {
+  INTERNE
+  SOUS_TRAITANT
+}
+
+enum Unite {
+  M2
+  ML
+  M3
+  PIECE
+  JOUR
+  HEURE
+  LITRE
+  KG
+  FORFAIT
+}
+
+enum SousTraitantStatut {
+  ACTIF
+  INACTIF
+  SUSPENDU
+}
+
+enum ContratSousTraitantStatut {
+  BROUILLON
+  ACTIF
+  TERMINE
+  RESILIE
+}
+
+enum TypeAssurance {
+  DECENNALE
+  RC_PRO
+  AUTRE
+}
+
+enum AssuranceStatut {
+  VALIDE
+  A_RENOUVELER
+  EXPIREE
+}
+
+enum ModePaiement {
+  VIREMENT
+  CHEQUE
+  ESPECES
+  CARTE
+  AUTRE
+}
+
+enum PaiementStatut {
+  EN_ATTENTE
+  REGLE
+  ANNULE
 }
 
 enum SavTicketStatut {
@@ -1214,3 +1657,22 @@ enum DemoRequestStatut {
   DONE
   CANCELED
 }
+
+enum RapportStatut {
+  SOUMIS
+  VALIDE
+  REJETE
+}
+
+/// Chatbot prospect, as the sales team sees it (spec: Nouveau, À qualifier, Qualifié, Rejeté)
+enum ProspectStatut {
+  /// Conversation started, contact details incomplete
+  NOUVEAU
+  /// Contact details complete: the sales team must look at it
+  A_QUALIFIER
+  /// Turned into a DemandeDevis
+  QUALIFIE
+  /// Spam, out of area, duplicate…
+  REJETE
+}
+

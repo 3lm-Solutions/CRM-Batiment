@@ -1,5 +1,29 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+node_modules/
 
-/generated/prisma
+# Builds
+dist/
+dist-cli/
+build/
+coverage/
+*.tsbuildinfo
+generated/
+
+# Environment (never commit real secrets)
+.env
+.env.*
+!.env.example
+
+# User uploads / runtime files (never in git)
+uploads/
+storage/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/

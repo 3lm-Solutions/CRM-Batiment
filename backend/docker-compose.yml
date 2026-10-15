@@ -1,0 +1,35 @@
+# Local PostgreSQL for development.
+# The AI assistant searches its knowledge base with PostgreSQL full-text search (french),
+# built into PostgreSQL. The image stays pgvector:pg16 (plain PostgreSQL 16 + an unused
+# extension) so existing local databases keep working.
+# Exposed on 5433 to avoid clashing with a PostgreSQL already installed on 5432.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: crm-batiment-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: crm
+      POSTGRES_DB: crm_batiment
+    ports:
+      - '5433:5432'
+    volumes:
+      - crm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U crm -d crm_batiment']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Catches every email sent in development. Inbox: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: crm-batiment-mail
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # web inbox
+
+volumes:
+  crm_pgdata:

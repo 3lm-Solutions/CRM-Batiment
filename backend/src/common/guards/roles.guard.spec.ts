@@ -1,65 +1,41 @@
-import { RolesGuard } from './roles.guard.js';
+import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ExecutionContext } from '@nestjs/common';
+import { Role } from '../../generated/prisma/client';
+import type { AuthUser } from '../auth/auth-user.interface';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+import { RolesGuard } from './roles.guard';
+
+function setup(metadata: Record<string, unknown>, user?: Partial<AuthUser>) {
+  const reflector = {
+    getAllAndOverride: (key: string) => metadata[key],
+  } as unknown as Reflector;
+  const ctx = {
+    getHandler: () => undefined,
+    getClass: () => undefined,
+    switchToHttp: () => ({ getRequest: () => ({ user }) }),
+  } as unknown as ExecutionContext;
+  return { guard: new RolesGuard(reflector), ctx };
+}
 
 describe('RolesGuard', () => {
-  let guard: RolesGuard;
-  let reflector: Reflector;
-
-  beforeEach(() => {
-    reflector = new Reflector();
-    guard = new RolesGuard(reflector);
+  it('lets public routes through', () => {
+    const { guard, ctx } = setup({ [IS_PUBLIC_KEY]: true });
+    expect(guard.canActivate(ctx)).toBe(true);
   });
 
-  it('should be defined', () => {
-    expect(guard).toBeDefined();
+  it('refuses a protected route that declares no roles (secure by default)', () => {
+    const { guard, ctx } = setup({}, { role: Role.ADMIN });
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
   });
 
-  it('should allow access if no roles are required', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([]);
-
-    const mockContext = {
-      getHandler: () => {},
-      getClass: () => {},
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: 'SOUS_TRAITANT' },
-        }),
-      }),
-    } as unknown as ExecutionContext;
-
-    expect(guard.canActivate(mockContext)).toBe(true);
+  it('allows a listed role', () => {
+    const { guard, ctx } = setup({ [ROLES_KEY]: [Role.ADMIN, Role.TECHNICO] }, { role: Role.TECHNICO });
+    expect(guard.canActivate(ctx)).toBe(true);
   });
 
-  it('should allow access if user has a required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['ADMIN', 'TECHNICO']);
-
-    const mockContext = {
-      getHandler: () => {},
-      getClass: () => {},
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: 'TECHNICO' },
-        }),
-      }),
-    } as unknown as ExecutionContext;
-
-    expect(guard.canActivate(mockContext)).toBe(true);
-  });
-
-  it('should deny access if user does not have a required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['ADMIN', 'TECHNICO']);
-
-    const mockContext = {
-      getHandler: () => {},
-      getClass: () => {},
-      switchToHttp: () => ({
-        getRequest: () => ({
-          user: { role: 'SOUS_TRAITANT' },
-        }),
-      }),
-    } as unknown as ExecutionContext;
-
-    expect(guard.canActivate(mockContext)).toBe(false);
+  it('refuses an unlisted role', () => {
+    const { guard, ctx } = setup({ [ROLES_KEY]: [Role.ADMIN] }, { role: Role.SOUS_TRAITANT });
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
   });
 });

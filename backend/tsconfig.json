@@ -1,40 +1,27 @@
 {
   "compilerOptions": {
+    "target": "ES2023",
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true,
+    "declaration": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "ignoreDeprecations": "5.0",
     "sourceMap": true,
     "outDir": "./dist",
-    "types": ["node", "jest"],
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "incremental": false,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "forceConsistentCasingInFileNames": false,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "exactOptionalPropertyTypes": false,
-    "noImplicitReturns": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "baseUrl": "./",
+    "incremental": true,
+    "strictPropertyInitialization": false,
+    "types": ["node", "jest"]
   },
-  "include": ["src", "test/*.ts", "prisma/seed-rag.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "prisma",
-    "src/modules/catalogue"
-  ]
+  "include": ["src", "test"]
 }

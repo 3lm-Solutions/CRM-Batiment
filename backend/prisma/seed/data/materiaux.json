@@ -1,0 +1,458 @@
+[
+  {
+    "nom": "Carrelage grès cérame 20x20",
+    "couleur": "Beige sable",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 10.8,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 60x60",
+    "couleur": "Gris anthracite",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 18.5,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 30x30",
+    "couleur": "Beige",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 14,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 45x45",
+    "couleur": "Ivoire",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 15.2,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 30x60",
+    "couleur": "Gris clair",
+    "finition": "Satin",
+    "unite": "M2",
+    "prixAchatFixe": 16.8,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 120x60",
+    "couleur": "Béton naturel",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 27.5,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage grès cérame 120x120",
+    "couleur": "Pierre claire",
+    "finition": "Lappato",
+    "unite": "M2",
+    "prixAchatFixe": 39,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Faïence murale 30x60",
+    "couleur": "Blanc",
+    "finition": "Brillant",
+    "unite": "M2",
+    "prixAchatFixe": 16,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage mural 10x10",
+    "couleur": "Blanc cassé",
+    "finition": "Brillant",
+    "unite": "M2",
+    "prixAchatFixe": 11.5,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage métro 10x20",
+    "couleur": "Blanc",
+    "finition": "Brillant",
+    "unite": "M2",
+    "prixAchatFixe": 14.5,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage mural 20x20",
+    "couleur": "Blanc neige",
+    "finition": "Satin",
+    "unite": "M2",
+    "prixAchatFixe": 13.8,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carrelage mural 25x75",
+    "couleur": "Gris perle",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 24,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Zellige artisanal 10x10",
+    "couleur": "Vert jade",
+    "finition": "Brillant irrégulier",
+    "unite": "M2",
+    "prixAchatFixe": 38,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Mosaïque pâte de verre 2x2",
+    "couleur": "Bleu lagon",
+    "finition": "Brillant",
+    "unite": "M2",
+    "prixAchatFixe": 32,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Carreaux de ciment 20x20",
+    "couleur": "Graphique noir et blanc",
+    "finition": "Mat",
+    "unite": "M2",
+    "prixAchatFixe": 29,
+    "fournisseur": "Céramique France"
+  },
+  {
+    "nom": "Colle carrelage C1 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 9,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Colle carrelage C2 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 12.5,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Colle carrelage C2S1 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 14.5,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Colle carrelage C2S2 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 17.5,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Joint carrelage (5kg)",
+    "couleur": "Gris",
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 8,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Ragréage autolissant P3 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 16,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Ragréage autolissant P4 (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 22,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Ragréage fibré haute résistance (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 26,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Primaire d'accrochage universel (5L)",
+    "couleur": null,
+    "finition": null,
+    "unite": "LITRE",
+    "prixAchatFixe": 6.5,
+    "fournisseur": "Point P"
+  },
+  {
+    "nom": "Peinture acrylique mat 10L",
+    "couleur": "Blanc",
+    "finition": "Mat",
+    "unite": "LITRE",
+    "prixAchatFixe": 45,
+    "fournisseur": "Parexlanko"
+  },
+  {
+    "nom": "Peinture acrylique satin 10L",
+    "couleur": "Blanc",
+    "finition": "Satin",
+    "unite": "LITRE",
+    "prixAchatFixe": 55,
+    "fournisseur": "Parexlanko"
+  },
+  {
+    "nom": "Sous-couche universelle 10L",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "LITRE",
+    "prixAchatFixe": 35,
+    "fournisseur": "Parexlanko"
+  },
+  {
+    "nom": "Enduit de lissage (25kg)",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 18,
+    "fournisseur": "Parexlanko"
+  },
+  {
+    "nom": "Receveur douche 80x120",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 180,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "Mitigeur douche thermostatique",
+    "couleur": "Chrome",
+    "finition": "Brillant",
+    "unite": "PIECE",
+    "prixAchatFixe": 120,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "WC complet avec réservoir",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 150,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "Lavabo vasque 60cm",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 85,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "Chauffe-eau électrique 200L",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 350,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "Tube PER 16mm (couronne 100m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "ML",
+    "prixAchatFixe": 1.2,
+    "fournisseur": "Cedeo"
+  },
+  {
+    "nom": "Câble R2V 3G2.5 (100m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "ML",
+    "prixAchatFixe": 1.5,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Prise électrique encastrée",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 5.5,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Interrupteur va-et-vient",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 6,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Spot LED encastré 7W",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 12,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Tableau électrique 2 rangées",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 85,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Disjoncteur 20A",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 15,
+    "fournisseur": "Rexel"
+  },
+  {
+    "nom": "Plaque de plâtre BA13 (2.5x1.2m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 6.5,
+    "fournisseur": "Isover / Saint-Gobain"
+  },
+  {
+    "nom": "Rail métallique R48 (3m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "ML",
+    "prixAchatFixe": 2,
+    "fournisseur": "Isover / Saint-Gobain"
+  },
+  {
+    "nom": "Montant M48 (3m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "ML",
+    "prixAchatFixe": 2.2,
+    "fournisseur": "Isover / Saint-Gobain"
+  },
+  {
+    "nom": "Sac ciment 35kg",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 8.5,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "Sable fin (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 3.5,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "Polystyrène expansé (m³)",
+    "couleur": null,
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 22,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "Fibres de polypropylène (1kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 4.5,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "Anhydrite (25kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 6,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "IPN 200 (6m)",
+    "couleur": null,
+    "finition": null,
+    "unite": "ML",
+    "prixAchatFixe": 45,
+    "fournisseur": "BigMat"
+  },
+  {
+    "nom": "Bloc porte intérieur 83cm",
+    "couleur": "Blanc",
+    "finition": "Lisse",
+    "unite": "PIECE",
+    "prixAchatFixe": 75,
+    "fournisseur": "Dispano"
+  },
+  {
+    "nom": "Fenêtre PVC 2 vantaux 120x135",
+    "couleur": "Blanc",
+    "finition": null,
+    "unite": "PIECE",
+    "prixAchatFixe": 180,
+    "fournisseur": "Dispano"
+  },
+  {
+    "nom": "Laine de verre GR32 100mm (R=3.15)",
+    "couleur": null,
+    "finition": null,
+    "unite": "M2",
+    "prixAchatFixe": 8,
+    "fournisseur": "Isover / Saint-Gobain"
+  },
+  {
+    "nom": "Laine de roche soufflée (sac 12.5kg)",
+    "couleur": null,
+    "finition": null,
+    "unite": "KG",
+    "prixAchatFixe": 15,
+    "fournisseur": "Isover / Saint-Gobain"
+  },
+  {
+    "nom": "Parquet flottant chêne 7mm",
+    "couleur": "Chêne naturel",
+    "finition": "Verni",
+    "unite": "M2",
+    "prixAchatFixe": 12,
+    "fournisseur": "Dispano"
+  },
+  {
+    "nom": "Parquet massif chêne 14mm",
+    "couleur": "Chêne naturel",
+    "finition": "Brut",
+    "unite": "M2",
+    "prixAchatFixe": 35,
+    "fournisseur": "Dispano"
+  },
+  {
+    "nom": "Sol PVC lame clipsable",
+    "couleur": "Gris béton",
+    "finition": null,
+    "unite": "M2",
+    "prixAchatFixe": 8,
+    "fournisseur": "Dispano"
+  },
+  {
+    "nom": "Sous-couche parquet 3mm",
+    "couleur": null,
+    "finition": null,
+    "unite": "M2",
+    "prixAchatFixe": 2.5,
+    "fournisseur": "Dispano"
+  }
+]

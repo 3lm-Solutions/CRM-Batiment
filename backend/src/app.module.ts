@@ -1,73 +1,101 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { DevController } from './dev.controller.js';
-import { PrismaModule } from './prisma/prisma.module.js';
-import { AuthModule } from './auth/auth.module.js';
-import { UsersModule } from './users/users.module.js';
-import { ClientsModule } from './clients/clients.module.js';
-import { DemandesDevisModule } from './demandes-devis/demandes-devis.module.js';
-import { DevisModule } from './devis/devis.module.js';
-import { FournisseursModule } from './fournisseurs/fournisseurs.module.js';
-import { MateriauxModule } from './materiaux/materiaux.module.js';
-import { ServicesMoModule } from './services-mo/services-mo.module.js';
-import { PrestationsModule } from './prestations/prestations.module.js';
-import { TypesProjetModule } from './types-projet/types-projet.module.js';
-import { SeedModule } from './seed/seed.module.js';
-import { PortailFournisseurModule } from './portail-fournisseur/portail-fournisseur.module.js';
-import { CommandesFournisseurModule } from './commandes-fournisseur/commandes-fournisseur.module.js';
-import { NotificationsModule } from './notifications/notifications.module.js';
-import { ChantiersModule } from './chantiers/chantiers.module.js';
-import { FacturesModule } from './factures/factures.module.js';
-import { AssistantModule } from './assistant/assistant.module.js';
-import { WorkflowModule } from './workflow.module.js';
-import { RagModule } from './rag/rag.module.js';
-import { SousTraitantModule } from './sous-traitant/sous-traitant.module.js';
-import { SousTraitantsModule } from './sous-traitants/sous-traitants.module.js';
+import { CommonModule } from './common/common.module';
+import { validateEnv } from './config/env.validation';
+import { AuthModule } from './modules/core/auth/auth.module';
+import { CompanyModule } from './modules/core/company/company.module';
+import { HealthModule } from './modules/core/health/health.module';
+import { MailModule } from './modules/core/mail/mail.module';
+import { StorageModule } from './modules/core/storage/storage.module';
+import { UsersModule } from './modules/core/users/users.module';
+import { DemandesDevisModule } from './modules/commercial/demandes-devis/demandes-devis.module';
+import { DevisModule } from './modules/commercial/devis/devis.module';
+import { ChantiersModule } from './modules/execution/chantiers/chantiers.module';
+import { SousTraitantsModule } from './modules/execution/sous-traitants/sous-traitants.module';
+import { CommandesModule } from './modules/finance/commandes-fournisseur/commandes.module';
+import { FacturesModule } from './modules/finance/factures/factures.module';
+import { StockModule } from './modules/finance/stock/stock.module';
+import { CatalogueModule } from './modules/referentiel/catalogue/catalogue.module';
+import { ClientsModule } from './modules/referentiel/clients/clients.module';
+import { FournisseursModule } from './modules/referentiel/fournisseurs/fournisseurs.module';
+import { TypesProjetModule } from './modules/referentiel/types-projet/types-projet.module';
+import { AuditModule } from './modules/pilotage/audit/audit.module';
+import { DashboardModule } from './modules/pilotage/dashboard/dashboard.module';
+import { DemoRequestsModule } from './modules/pilotage/demo-requests/demo-requests.module';
+import { SandboxModule } from './modules/pilotage/sandbox/sandbox.module';
+import { NotificationsModule } from './modules/pilotage/notifications/notifications.module';
+import { SavModule } from './modules/pilotage/sav/sav.module';
+import { AssistantModule } from './modules/ia/assistant/assistant.module';
+import { DevisIaModule } from './modules/ia/devis-ia/devis-ia.module';
+import { PortailsModule } from './modules/portails/portails.module';
+import { WorkflowModule } from './modules/workflow/workflow.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    // Configuration globale (.env)
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      cache: true,
+      envFilePath: ['.env'],
+      validate: validateEnv,
     }),
 
-    // Schedule module
-    ScheduleModule.forRoot(),
+    // Side effects (notifications, audit, WhatsApp…) listen to domain events emitted
+    // AFTER a transaction commits — see Step 7. No module needs to import them.
+    EventEmitterModule.forRoot(),
+    // Scheduled jobs (insurance expiry check). Disabled in tests.
+    ...(process.env.NODE_ENV === 'test' ? [] : [ScheduleModule.forRoot()]),
 
-    // Modules fondation
+    // ── infrastructure ──
     PrismaModule,
-    WorkflowModule,
+    CommonModule, // global guards, error filter, Decimal serializer, JWT, references
 
-    // Modules métier
+    // ── core ──
+    HealthModule,
+    MailModule,
+    StorageModule, // uploaded files (Step 11), global
     AuthModule,
     UsersModule,
+    CompanyModule,
+
+    // ── référentiel ──
     ClientsModule,
-    DemandesDevisModule,
-    DevisModule,
-    // TODO: Re-enable CatalogueModule once imports are fixed
-    // CatalogueModule,
-    FournisseursModule,
-    MateriauxModule,
-    ServicesMoModule,
-    PrestationsModule,
     TypesProjetModule,
-    SeedModule,
-    PortailFournisseurModule,
-    CommandesFournisseurModule,
-    NotificationsModule,
+    FournisseursModule,
+    CatalogueModule,
+
+    // ── commercial ──
+    DevisModule,
+    DemandesDevisModule,
+
+    // ── execution & finance ──
     ChantiersModule,
-    FacturesModule,
-    RagModule,
-    AssistantModule,
-    SousTraitantModule,
-    
     SousTraitantsModule,
+    StockModule,
+    CommandesModule,
+    FacturesModule,
+
+    // ── workflow: devis accepté / signé → commandes, chantier, acompte ──
+    WorkflowModule,
+
+    // ── pilotage (mostly listen to the events above; SavModule is also used by the client space) ──
+    AuditModule,
+    NotificationsModule,
+    SavModule,
+    DashboardModule,
+    DemoRequestsModule,
+    // Démo en ligne (Step 15): instance séparée, réinitialisée chaque nuit (DEMO_MODE)
+    SandboxModule,
+
+    // ── portails (Step 11): sous-traitant, fournisseur, espace client ──
+    PortailsModule,
+
+    // ── IA (Step 14): chatbot public, qualification des prospects, base de connaissances ──
+    AssistantModule,
+    // ── IA (Step 15): proposition de lignes de devis à partir d'une description ──
+    DevisIaModule,
   ],
-  controllers: [AppController, DevController],
-  providers: [AppService],
 })
 export class AppModule {}
