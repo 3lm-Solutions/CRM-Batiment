@@ -1,0 +1,3 @@
+cd backend
+$env:OPENAI_BASE_URL="https://api.x.ai/v1"
+pnpm dev

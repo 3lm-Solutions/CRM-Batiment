@@ -1,0 +1,26 @@
+cd cd backend
+cp .env.example .env          # Windows: copy .env.example .env
+pnpm install
+pnpm db:up                    # starts PostgreSQL + Mailpit in Docker
+pnpm db:migrate               # creates the tables
+pnpm db:seed                  # demo data + AI knowledge base
+pnpm dev                      # API on http://localhost:3000
+
+
+cd frontend
+cp .env.example .env          # Windows: copy .env.example .env
+pnpm install
+pnpm dev                      # site on http://localhost:5173
+
+http://localhost:5173 and log in with admin@batiment-pro.fr / Admin@2026!
+http://localhost:5173/chat for the public chatbot
+http://localhost:8025 for emails sent by the app
+
+| Rôle | Email | Mot de passe |
+|---|---|---|
+| ADMIN | admin@batiment-pro.fr | Admin@2026! |
+| TECHNICO | technico@batiment-pro.fr | Technico@2026! |
+| ASSISTANTE | assistante@batiment-pro.fr | Assistante@2026! |
+| CHEF_CHANTIER | chef@batiment-pro.fr | Chef@2026! |
+| SOUS_TRAITANT | soustraitant@batiment-pro.fr | Soustraitant@2026! |
+| FOURNISSEUR | fournisseur@batiment-pro.fr | Fournisseur@2026! |
