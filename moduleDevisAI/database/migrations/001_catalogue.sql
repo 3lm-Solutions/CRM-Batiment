@@ -9,6 +9,7 @@ CREATE TABLE catalogue_items (
   description TEXT NOT NULL DEFAULT '',
   unite TEXT NOT NULL,
   unit_cost NUMERIC(12,2) NOT NULL CHECK (unit_cost >= 0),
+  unit_sale_price NUMERIC(12,2) CHECK (unit_sale_price >= 0),
   source_hash TEXT,
   source_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   actif BOOLEAN NOT NULL DEFAULT TRUE,
@@ -42,3 +43,15 @@ CREATE TABLE quotation_snapshots (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX quotation_snapshots_company_created_idx ON quotation_snapshots(company_id, created_at DESC);
+
+CREATE TABLE catalogue_profitability_history (
+  id BIGSERIAL PRIMARY KEY,
+  company_id BIGINT NOT NULL,
+  catalogue_item_id BIGINT NOT NULL REFERENCES catalogue_items(id) ON DELETE RESTRICT,
+  unit_sale_price NUMERIC(12,2) NOT NULL CHECK (unit_sale_price >= 0),
+  unit_cost NUMERIC(12,2) NOT NULL CHECK (unit_cost >= 0),
+  margin_percent NUMERIC(8,2) NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX catalogue_profitability_history_item_idx
+  ON catalogue_profitability_history(company_id, catalogue_item_id, recorded_at DESC);

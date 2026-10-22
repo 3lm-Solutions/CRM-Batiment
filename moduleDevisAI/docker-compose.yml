@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: catalog
+      POSTGRES_USER: devis_ai
+      POSTGRES_PASSWORD: devis_ai_dev
+    ports: ["55432:5432"]
+    volumes:
+      - devis_ai_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://devis_ai:devis_ai_dev@postgres:5432/catalog
+    env_file:
+      - .env
+    ports: ["8000:8000"]
+    depends_on:
+      - postgres
+volumes:
+  devis_ai_data:

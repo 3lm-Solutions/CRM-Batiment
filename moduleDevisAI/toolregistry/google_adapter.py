@@ -34,16 +34,21 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
 
     def generate_devis_from_text(self, request: TextGenerationRequest) -> GeneratedContent:
         model = self._config.google_text_model
+        generation_config: dict[str, Any] = {
+            "max_output_tokens": request.max_output_tokens
+            or self._config.max_output_tokens,
+        }
+        if request.response_mime_type is not None:
+            generation_config["response_mime_type"] = request.response_mime_type
+        if request.response_json_schema is not None:
+            generation_config["response_json_schema"] = dict(request.response_json_schema)
         response = self._call(
             "generate_devis_from_text",
             model,
             lambda: self._client_or_raise().models.generate_content(
                 model=model,
                 contents=self._input_with_system_prompt(request.system_prompt, request.text),
-                config={
-                    "max_output_tokens": request.max_output_tokens
-                    or self._config.max_output_tokens,
-                },
+                config=generation_config,
             ),
         )
         return self._generated_content(response, model, "generate_devis_from_text")

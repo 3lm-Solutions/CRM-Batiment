@@ -10,7 +10,7 @@
     "max_output_tokens": 3072,
     "timeout_seconds": 120.0,
     "max_retries": 3,
-    "prompt_path": "prompts/vision_analysis_prompt.txt",
+    "prompt_path": "../prompts/vision_analysis_system_prompt.txt",
     "dataset_path": "data/image_cases.csv",
     "image_directory": "data/image",
     "output_directory": "results",
@@ -22,7 +22,7 @@
       "whisper-large-v3-turbo"
     ],
     "language": "fr",
-    "prompt_path": "prompts/vocal_transcription_prompt.txt",
+    "prompt_path": "../prompts/vocal_transcription_system_prompt.txt",
     "dataset_path": "data/audio_cases.csv",
     "audio_directory": "data/audio",
     "output_directory": "results",

@@ -13,6 +13,8 @@ class TextGenerationRequest:
     text: str # Prompt
     system_prompt: str | None = None
     max_output_tokens: int | None = None
+    response_mime_type: str | None = None
+    response_json_schema: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
