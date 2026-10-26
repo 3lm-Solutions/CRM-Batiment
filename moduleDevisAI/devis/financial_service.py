@@ -3,6 +3,8 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 
+from .text import display_text
+
 
 LOW_MARGIN_THRESHOLD = Decimal("15")
 HIGH_MARGIN_THRESHOLD = Decimal("40")
@@ -13,7 +15,6 @@ class QuoteFinancialService:
 
     def calculate(self, selections: list[dict[str, Any]], quantities: dict[int, float]) -> dict[str, Any]:
         lines: list[dict[str, Any]] = []
-        alerts: list[str] = []
         total_revenue = Decimal("0")
         total_cost = Decimal("0")
         for item in selections:
@@ -28,43 +29,31 @@ class QuoteFinancialService:
             line_cost = quantity * unit_cost
             margin = revenue - line_cost
             margin_percent = margin / revenue * 100 if revenue else None
+            line_alerts: list[str] = []
+            if margin_percent is not None and margin_percent < LOW_MARGIN_THRESHOLD:
+                line_alerts.append("Alerte marge basse (< 15 %).")
+            if margin_percent is not None and margin_percent > HIGH_MARGIN_THRESHOLD:
+                line_alerts.append("Alerte marge élevée (> 40 %), à vérifier.")
             total_revenue += revenue
             total_cost += line_cost
             lines.append({
                 "catalogue_item_id": item["id"], "sku_catalogue": item["sku_catalogue"],
-                "label_prestation": item["label"], "quantite_estimee": float(quantity),
+                "label_prestation": display_text(item["label"]), "quantite_estimee": float(quantity),
                 "unite": item["unite"], "prix_unitaire": self.money(Decimal(str(sale_price))),
                 "sous_total": self.money(revenue), "cout_unitaire": self.money(unit_cost),
                 "cout_total": self.money(line_cost), "marge_euros": self.money(margin),
                 "marge_pourcent": self.money(margin_percent) if margin_percent is not None else None,
+                "alertes": line_alerts,
                 "composants": component_lines,
-                "marge_historique_pourcent": self.money(Decimal(str(item["historical_margin_percent"])))
-                if item.get("historical_margin_percent") is not None else None,
-                "observations_historiques": item.get("historical_observation_count", 0),
-                "matching_confidence": item.get("matching_confidence", "unrated"),
-                "matching_score": float(item["rrf_score"]) if item.get("rrf_score") is not None else None,
+                "selection_confidence": item.get("selection_confidence"),
             })
         total_margin = total_revenue - total_cost
         margin_percent = total_margin / total_revenue * 100 if total_revenue else None
-        if margin_percent is not None and margin_percent < LOW_MARGIN_THRESHOLD:
-            alerts.append("Alerte marge basse (< 15 %).")
-        if margin_percent is not None and margin_percent > HIGH_MARGIN_THRESHOLD:
-            alerts.append("Alerte marge élevée (> 40 %), à vérifier.")
-        historical_revenue = sum(
-            Decimal(str(line["sous_total"])) for line in lines if line["marge_historique_pourcent"] is not None
-        )
-        historical_margin = (
-            sum(
-                Decimal(str(line["sous_total"])) * Decimal(str(line["marge_historique_pourcent"]))
-                for line in lines if line["marge_historique_pourcent"] is not None
-            ) / historical_revenue if historical_revenue else None
-        )
         return {
             "lines": lines, "total_ht": self.money(total_revenue),
             "cout_total": self.money(total_cost), "marge_total_euros": self.money(total_margin),
             "marge_pourcent": self.money(margin_percent) if margin_percent is not None else None,
-            "marge_historique_moyenne_pourcent": self.money(historical_margin) if historical_margin is not None else None,
-            "alertes": alerts,
+            "alertes": [],
         }
 
     def component_cost(self, item: dict[str, Any], prestation_quantity: Decimal) -> tuple[Decimal, list[dict[str, Any]]]:
@@ -85,7 +74,8 @@ class QuoteFinancialService:
             component_total = quantity * unit_cost
             cost += component_total
             lines.append({
-                "sku_catalogue": component["sku_catalogue"], "label": component["label"],
+                "catalogue_item_id": component["id"],
+                "sku_catalogue": component["sku_catalogue"], "label": display_text(component["label"]),
                 "type": component["item_type"], "unite": component["unite"],
                 "quantite_par_unite": float(quantity), "cout_unitaire": self.money(unit_cost),
                 "cout_par_unite_prestation": self.money(component_total),

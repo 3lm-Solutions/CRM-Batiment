@@ -8,13 +8,14 @@ import os
 from typing import Any, Literal
 
 import psycopg
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from catalog import HybridCatalogueRetriever
 from catalog.embeddings import EmbeddingGemmaProvider
 from devis import CataloguePricingRepository, QuoteFinancialService, QuoteSnapshotRepository
-from devis import estimate_quantity, llm_select_candidates, select_grounded_candidates
+from devis import llm_select_candidates, select_grounded_candidates
+from devis.text import display_text
 from toolregistry import AudioInput, ImageInput, ToolRegistry, ToolRegistryConfig, TranscriptionRequest, VisionAnalysisRequest
 
 from .prompt_loader import load_system_prompt
@@ -24,6 +25,21 @@ router = APIRouter()
 
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 MAX_AUDIO_BYTES = 25 * 1024 * 1024
+TRANSCRIPTION_MODELS: dict[str, set[str]] = {
+    "openai": {"whisper-1"},
+    "groq": {"whisper-large-v3", "whisper-large-v3-turbo"},
+}
+TEXT_MODELS: dict[str, set[str]] = {
+    "openai": {"gpt-4o", "gpt-4o-mini"},
+    "anthropic": {"claude-sonnet-5"},
+    "google": {
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-3.7-flash",
+        "gemini-3.8-flash",
+    },
+}
 VISION_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -61,6 +77,8 @@ class MatchRequest(BaseModel):
     company_id: int = Field(gt=0, description="Injected by authenticated gateway in production.")
     description_libre: str = Field(default="", max_length=4000)
     modalite_source: Literal["texte", "text", "audio", "image"] = "texte"
+    provider: Literal["openai", "anthropic", "google"] | None = None
+    model: str | None = Field(default=None, max_length=100)
     image: ImagePayload | None = None
     audio: AudioPayload | None = None
 
@@ -95,6 +113,48 @@ def _capability_registry(setting: str) -> ToolRegistry:
     return ToolRegistry(ToolRegistryConfig.from_env(values))
 
 
+def _transcription_registry(provider: str | None, model: str | None) -> ToolRegistry:
+    """Build a registry from an allowlisted UI selection; credentials stay server-side."""
+    if not provider and not model:
+        return _capability_registry("AUDIO_TOOLREGISTRY_PROVIDER")
+
+    selected_provider = (provider or "").strip().lower()
+    if selected_provider not in TRANSCRIPTION_MODELS:
+        raise ValueError("provider must be 'openai' or 'groq' for transcription.")
+    selected_model = (model or "").strip()
+    if selected_model not in TRANSCRIPTION_MODELS[selected_provider]:
+        raise ValueError("The selected model is not supported by this transcription provider.")
+
+    values = dict(os.environ)
+    values["TOOLREGISTRY_PROVIDER"] = selected_provider
+    values[
+        "OPENAI_TRANSCRIPTION_MODEL" if selected_provider == "openai" else "GROQ_TRANSCRIPTION_MODEL"
+    ] = selected_model
+    return ToolRegistry(ToolRegistryConfig.from_env(values))
+
+
+def _text_generation_registry(provider: str | None, model: str | None) -> ToolRegistry:
+    """Build a registry from an allowlisted text-model selection."""
+    if not provider and not model:
+        return ToolRegistry()
+
+    selected_provider = (provider or "").strip().lower()
+    selected_model = (model or "").strip()
+    if selected_provider not in TEXT_MODELS:
+        raise ValueError("Unsupported text generation provider.")
+    if selected_model not in TEXT_MODELS[selected_provider]:
+        raise ValueError("The selected model is not supported by this provider.")
+
+    model_setting = {
+        "openai": "OPENAI_TEXT_MODEL",
+        "anthropic": "ANTHROPIC_TEXT_MODEL",
+        "google": "GOOGLE_TEXT_MODEL",
+    }[selected_provider]
+    values = dict(os.environ)
+    values["TOOLREGISTRY_PROVIDER"] = selected_provider
+    values[model_setting] = selected_model
+    return ToolRegistry(ToolRegistryConfig.from_env(values))
+
 def _parse_structured_vision(content: str) -> dict[str, Any]:
     value = content.strip()
     if value.startswith("```") and value.endswith("```"):
@@ -116,7 +176,14 @@ def _parse_structured_vision(content: str) -> dict[str, Any]:
 
 
 def _model_trace(result: Any) -> dict[str, Any]:
-    return {"provider": getattr(result, "provider", None), "model": getattr(result, "model", None), "request_id": getattr(result, "request_id", None)}
+    metadata = getattr(result, "metadata", {})
+    model_version = metadata.get("model_version") if isinstance(metadata, dict) else None
+    return {
+        "provider": getattr(result, "provider", None),
+        "model": getattr(result, "model", None),
+        "model_version": model_version,
+        "request_id": getattr(result, "request_id", None),
+    }
 
 
 def _enrich_description(request: MatchRequest) -> tuple[str, dict[str, Any], dict[str, Any] | None]:
@@ -148,46 +215,159 @@ def _enrich_description(request: MatchRequest) -> tuple[str, dict[str, Any], dic
     return combined, {"source": "image", "vision": _model_trace(vision)}, analysis
 
 
+@router.get("/api/v1/catalogue/prestations")
+def list_catalogue_prestations(company_id: int) -> dict[str, Any]:
+    """List active prestation choices for one tenant only.
+
+    A production gateway must inject ``company_id`` from the authenticated user.
+    """
+    if company_id <= 0:
+        raise HTTPException(422, "company_id must be positive.")
+    try:
+        items = CataloguePricingRepository(connection).list_prestations(company_id)
+        return {"items": [{"catalogue_item_id": item["id"], "sku_catalogue": item["sku_catalogue"], "label": display_text(item["label"]), "unite": item["unite"], "prix_unitaire": float(item["unit_sale_price"]), "cout_unitaire": float(item["unit_cost"])} for item in items]}
+    except KeyError as error:
+        raise HTTPException(503, "DATABASE_URL absent.") from error
+
+
+@router.get("/api/v1/catalogue/components")
+def list_catalogue_components(company_id: int) -> dict[str, Any]:
+    """List active material and labour choices for quote composition editing."""
+    if company_id <= 0:
+        raise HTTPException(422, "company_id must be positive.")
+    try:
+        items = CataloguePricingRepository(connection).list_components(company_id)
+        return {
+            "items": [
+                {
+                    "catalogue_item_id": item["id"],
+                    "sku_catalogue": item["sku_catalogue"],
+                    "label": display_text(item["label"]),
+                    "item_type": item["item_type"],
+                    "unite": item["unite"],
+                    "cout_unitaire": float(item["unit_cost"]),
+                }
+                for item in items
+            ]
+        }
+    except KeyError as error:
+        raise HTTPException(503, "DATABASE_URL absent.") from error
+
+
+@router.post("/api/v1/devis/vocal-transcribe")
+async def vocal_transcribe(
+    audio: UploadFile = File(...),
+    provider: str | None = Form(default=None),
+    model: str | None = Form(default=None),
+    duration_seconds: float | None = Form(default=None, ge=0, le=60 * 60),
+) -> dict[str, Any]:
+    try:
+        content = await audio.read(MAX_AUDIO_BYTES + 1)
+        if not content:
+            raise ValueError("audio must not be empty.")
+        if len(content) > MAX_AUDIO_BYTES:
+            raise ValueError("audio exceeds the maximum accepted size.")
+        transcription = _transcription_registry(provider, model).transcription.transcribe_audio(
+            TranscriptionRequest(
+                audio=AudioInput(
+                    data=content,
+                    filename=audio.filename or "enregistrement.wav",
+                    media_type=audio.content_type,
+                ),
+                language="fr",
+                prompt=load_system_prompt("audio_transcription_prompt.txt"),
+            )
+        )
+        provider_duration = transcription.metadata.get("duration")
+        duration = (
+            provider_duration
+            if isinstance(provider_duration, (int, float))
+            else duration_seconds
+        )
+        return {
+            "transcription_texte": transcription.text,
+            "duration_seconds": duration,
+            "provider": transcription.provider,
+            "model": transcription.model,
+        }
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    except Exception as error:
+        logger.exception("Audio transcription request failed.")
+        raise HTTPException(503, "Service de transcription indisponible.") from error
+
+
 @router.post("/api/v1/devis/match-catalogue")
 def match_catalogue(request: MatchRequest) -> dict[str, Any]:
     try:
-        query, input_trace, source_analysis = _enrich_description(request)
-        candidates = HybridCatalogueRetriever(connection, EmbeddingGemmaProvider()).search(request.company_id, query, limit=int(os.getenv("CATALOGUE_RETRIEVAL_LIMIT", "12")))
+        query, _, _ = _enrich_description(request)
+        candidates = HybridCatalogueRetriever(connection, EmbeddingGemmaProvider()).search(request.company_id, query, limit=int(os.getenv("CATALOGUE_RETRIEVAL_LIMIT", "24")))
         grounded, assumptions = select_grounded_candidates(candidates, query)
         matches = [item for item in grounded if item["item_type"] == "prestation"]
         if grounded and not matches:
             assumptions.append("Aucune prestation exploitable n'a été trouvée dans le catalogue.")
         model_quantities = None
+        model_confidences: dict[int, float] = {}
         model_trace = None
         use_llm = os.getenv("CATALOGUE_USE_LLM", "true").lower() in ("1", "true", "yes")
         if use_llm and matches:
-            matches, model_quantities, uncovered, model_trace = llm_select_candidates(query, matches, ToolRegistry())
-            assumptions.extend(f"Élément demandé non couvert par le catalogue : {item}." for item in uncovered)
+            try:
+                matches, model_quantities, model_confidences, uncovered, model_trace = llm_select_candidates(
+                    query,
+                    matches,
+                    _text_generation_registry(request.provider, request.model),
+                )
+                assumptions.extend(
+                    f"Élément demandé non couvert par le catalogue : {item}."
+                    for item in uncovered
+                )
+            except ValueError as error:
+                # Never price an invalid model selection, but keep the retrieved
+                # prestations available to the editor instead of failing the quote.
+                logger.warning("Catalogue model selection rejected: %s", error)
+                assumptions.append(
+                    "La sélection automatique doit être vérifiée. Choisissez les prestations dans le catalogue."
+                )
+                matches = []
+                model_quantities = {}
         elif matches:
             assumptions.append("Sélection de devis indisponible : active CATALOGUE_USE_LLM.")
             matches = []
-        _, detected_unit = estimate_quantity(query)
         quantities = model_quantities or {}
-        retrieved_by_id = {item["id"]: item for item in matches}
-        priced_by_id = {item["id"]: item for item in CataloguePricingRepository(connection).load_prestations(request.company_id, list(quantities))}
+        catalogue_pricing = CataloguePricingRepository(connection)
+        priced_by_id = {item["id"]: item for item in catalogue_pricing.load_prestations(request.company_id, list(quantities))}
         priced_matches: list[dict[str, Any]] = []
         for item_id in quantities:
             if item_id not in priced_by_id:
                 raise ValueError("Une prestation sélectionnée est indisponible dans le catalogue.")
             priced_item = priced_by_id[item_id]
-            retrieved_item = retrieved_by_id[item_id]
-            priced_item["matching_confidence"] = retrieved_item["matching_confidence"]
-            priced_item["rrf_score"] = retrieved_item["rrf_score"]
+            priced_item["selection_confidence"] = model_confidences[item_id]
             priced_matches.append(priced_item)
         result = QuoteFinancialService().calculate(priced_matches, quantities)
-        result.update({"retrieval_strategy": "hybrid_lexical_pgvector_rrf", "candidate_count": len(candidates), "matched_candidate_count": len(matches), "assumptions": assumptions, "quantity_assumption": None if model_quantities is not None else "Quantité à confirmer par sélection du modèle.", "detected_unit": detected_unit, "model_trace": model_trace, "input_trace": input_trace, "source_analysis": source_analysis, "description_utilisee": query})
         if request.modalite_source == "image":
             result["alertes"].append("Les observations image exigent confirmation client.")
-        result["snapshot_id"] = QuoteSnapshotRepository(connection).save(request.company_id, query, result)
-        return result
+        QuoteSnapshotRepository(connection).save(request.company_id, query, result)
+        return {
+            "lines": result["lines"],
+            "alertes": result["alertes"],
+            "assumptions": assumptions,
+            "model_trace": (
+                {
+                    "provider": model_trace["provider"],
+                    "model": model_trace["model"],
+                    "model_version": model_trace["model_version"],
+                }
+                if model_trace
+                else None
+            ),
+        }
     except KeyError as error:
-        raise HTTPException(503, "DATABASE_URL absent.") from error
+        if error.args == ("DATABASE_URL",):
+            raise HTTPException(503, "DATABASE_URL absent.") from error
+        logger.exception("Catalogue matching failed because of a missing result field.")
+        raise HTTPException(503, "Service de matching catalogue indisponible.") from error
     except ValueError as error:
+        logger.warning("Catalogue matching request rejected: %s", error)
         raise HTTPException(422, str(error)) from error
     except Exception as error:
         logger.exception("Catalogue matching request failed.")

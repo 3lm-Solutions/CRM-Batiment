@@ -8,6 +8,7 @@ from typing import Any
 from toolregistry import TextGenerationRequest, ToolRegistry
 
 from api.prompt_loader import load_system_prompt
+from devis.text import display_text
 
 
 def estimate_quantity(text: str) -> tuple[float | None, str | None]:
@@ -33,13 +34,13 @@ def select_grounded_candidates(candidates: list[dict[str, Any]], description: st
         if candidate["item_type"] != "prestation" and not lexical_hit:
             continue
         copy = dict(candidate)
-        copy["matching_confidence"] = "supported" if lexical_hit and close_semantic else "review"
         selected.append(copy)
     return selected, ([] if selected else ["Aucun article du catalogue ne correspond avec une confiance suffisante."])
 
 
 def _semantic_distance_threshold() -> float:
-    raw_value = os.getenv("CATALOGUE_SEMANTIC_DISTANCE_THRESHOLD", "0.65")
+    # Cosine distance: a higher ceiling retains more retrieval candidates.
+    raw_value = os.getenv("CATALOGUE_SEMANTIC_DISTANCE_THRESHOLD", "0.95")
     try:
         threshold = float(raw_value)
     except ValueError as error:
@@ -55,8 +56,8 @@ def catalogue_prompt_context(candidates: list[dict[str, Any]]) -> list[dict[str,
         {
             "sku_catalogue": row["sku_catalogue"],
             "type": row["item_type"],
-            "label": row["label"],
-            "description": row.get("description", ""),
+            "label": display_text(row["label"]),
+            "description": display_text(row.get("description", "")),
             "unite": row["unite"],
         }
         for row in candidates
@@ -74,8 +75,9 @@ _QUOTE_SELECTION_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "sku_catalogue": {"type": "string"},
                     "quantite": {"type": "number", "exclusiveMinimum": 0},
+                    "confiance_selection": {"type": "number", "minimum": 0, "maximum": 100},
                 },
-                "required": ["sku_catalogue", "quantite"],
+                "required": ["sku_catalogue", "quantite", "confiance_selection"],
                 "additionalProperties": False,
             },
         },
@@ -88,16 +90,18 @@ _QUOTE_SELECTION_SCHEMA: dict[str, Any] = {
 
 def llm_select_candidates(
     description: str, candidates: list[dict[str, Any]], registry: ToolRegistry
-) -> tuple[list[dict[str, Any]], dict[int, float], list[str], dict[str, Any]]:
+) -> tuple[list[dict[str, Any]], dict[int, float], dict[int, float], list[str], dict[str, Any]]:
     """Returns only model lines grounded in the retrieved candidate SKU set."""
     context = catalogue_prompt_context(candidates)
-    prompt = load_system_prompt("quote_selection_system_prompt.txt").replace(
-        "{{catalogue_context}}", json.dumps(context, ensure_ascii=False)
+    request_text = (
+        f"Demande client :\n{description}\n\n"
+        "Prestations catalogue disponibles (JSON) :\n"
+        f"{json.dumps(context, ensure_ascii=False)}"
     )
     response = registry.text.generate_devis_from_text(
         TextGenerationRequest(
-            text=description,
-            system_prompt=prompt,
+            text=request_text,
+            system_prompt=load_system_prompt("quote_selection_system_prompt.txt"),
             response_mime_type="application/json",
             response_json_schema=_QUOTE_SELECTION_SCHEMA,
         )
@@ -111,25 +115,45 @@ def llm_select_candidates(
     allowed = {row["sku_catalogue"]: row for row in candidates if row["item_type"] == "prestation"}
     selected: list[dict[str, Any]] = []
     quantities: dict[int, float] = {}
+    confidences: dict[int, float] = {}
     seen: set[str] = set()
     if not isinstance(lines, list):
         raise ValueError("The model quotation must contain a lignes list.")
     for line in lines:
         if not isinstance(line, dict):
             raise ValueError("Each model quotation line must be an object.")
-        sku, quantity = line.get("sku_catalogue"), line.get("quantite")
-        if sku not in allowed or sku in seen or not isinstance(quantity, (int, float)) or isinstance(quantity, bool) or quantity <= 0:
-            raise ValueError("The model returned an unknown SKU, duplicate SKU, or invalid quantity.")
+        sku, quantity, confidence = (
+            line.get("sku_catalogue"),
+            line.get("quantite"),
+            line.get("confiance_selection"),
+        )
+        if (
+            sku not in allowed
+            or sku in seen
+            or not isinstance(quantity, (int, float))
+            or isinstance(quantity, bool)
+            or quantity <= 0
+            or not isinstance(confidence, (int, float))
+            or isinstance(confidence, bool)
+            or not 0 <= confidence <= 100
+        ):
+            raise ValueError("The model returned an unknown SKU, duplicate SKU, invalid quantity, or invalid selection confidence.")
         seen.add(sku)
         item = allowed[sku]
         selected.append(item)
         quantities[item["id"]] = float(quantity)
+        confidences[item["id"]] = float(confidence)
     trace = {
         "provider": getattr(response, "provider", None),
         "model": getattr(response, "model", None),
+        "model_version": (
+            response.metadata.get("model_version")
+            if isinstance(getattr(response, "metadata", None), dict)
+            else None
+        ),
         "request_id": getattr(response, "request_id", None),
     }
-    return selected, quantities, uncovered, trace
+    return selected, quantities, confidences, uncovered, trace
 
 
 def _strip_json_fence(content: str) -> str:

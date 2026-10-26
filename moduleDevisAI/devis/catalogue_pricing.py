@@ -53,3 +53,30 @@ class CataloguePricingRepository:
             prestation["components"] = components[prestation["id"]]
             prestation.update(history.get(prestation["id"], {}))
         return prestations
+
+    def list_prestations(self, company_id: int) -> list[dict[str, Any]]:
+        """Return only active prestations for the requested tenant."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, sku_catalogue, label, unite, unit_cost, unit_sale_price
+                   FROM catalogue_items
+                   WHERE company_id=%s AND actif AND item_type='prestation'
+                   ORDER BY label ASC, id ASC""",
+                (company_id,),
+            )
+            columns = [column.name for column in cur.description]
+            return [dict(zip(columns, row, strict=True)) for row in cur.fetchall()]
+
+    def list_components(self, company_id: int) -> list[dict[str, Any]]:
+        """Return active materials and labour for the quote composition editor."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, sku_catalogue, item_type, label, unite, unit_cost
+                   FROM catalogue_items
+                   WHERE company_id=%s AND actif
+                     AND item_type IN ('materiau', 'main_oeuvre')
+                   ORDER BY item_type ASC, label ASC, id ASC""",
+                (company_id,),
+            )
+            columns = [column.name for column in cur.description]
+            return [dict(zip(columns, row, strict=True)) for row in cur.fetchall()]
