@@ -31,7 +31,6 @@ const schemas = {
       email: z.string().nullish(),
       telephone: z.string().nullish(),
       adresse: z.string().nullish(),
-      typesMateriaux: z.string().nullish(),
       delaiLivraison: z.number().int().nullish(),
       conditions: z.string().nullish(),
     }),
@@ -129,7 +128,7 @@ function checkReferences(data: {
       }
 
   if (problems.length) {
-    throw new Error(`Références introuvables dans prisma/seed/data :\n  - ${problems.join('\n  - ')}`);
+    throw new Error(`Références introuvables dans src/database/seed/data :\n  - ${problems.join('\n  - ')}`);
   }
 }
 

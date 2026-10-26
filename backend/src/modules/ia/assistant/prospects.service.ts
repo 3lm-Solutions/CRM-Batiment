@@ -10,6 +10,8 @@ import { ProspectMachine } from './prospect-status';
 const LIST_SELECT = {
   id: true,
   statut: true,
+  source: true,
+  emailSujet: true,
   clientNom: true,
   clientPrenom: true,
   clientEmail: true,
@@ -42,6 +44,7 @@ export class ProspectsService {
     const where: Prisma.ChatSessionWhereInput = {
       companyId: user.companyId,
       statut: query.statuts?.length ? { in: query.statuts } : undefined,
+      source: query.source,
       // Empty conversations (visitor said nothing) are noise
       messages: { some: { role: 'user' } },
       ...(query.search && {
@@ -50,6 +53,7 @@ export class ProspectsService {
           { clientEmail: { contains: query.search, mode: 'insensitive' } },
           { clientTelephone: { contains: query.search } },
           { description: { contains: query.search, mode: 'insensitive' } },
+          { emailSujet: { contains: query.search, mode: 'insensitive' } },
         ],
       }),
     };
@@ -135,7 +139,8 @@ export class ProspectsService {
           companyId: user.companyId,
           clientId,
           createurId: user.id,
-          source: 'CHATBOT',
+          // CHATBOT or EMAIL (22/10): the request keeps where the prospect came from
+          source: p.source,
           description: p.description!,
           besoinStructure: { typeProjet: p.typeProjet, delai: p.delai, adresse: p.adresse, conversationId: p.id } as Prisma.InputJsonValue,
           reference: await this.references.next(ReferencePrefix.DEMANDE, user.companyId, tx),

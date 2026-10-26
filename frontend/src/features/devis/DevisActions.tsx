@@ -126,6 +126,23 @@ function actionsFor(devis: DevisDetail, isAdmin: boolean): ActionDef[] {
       run: () => 'delete',
     });
   }
+  // A cancelled quote can be deleted by the admin if it left nothing behind (the API checks
+  // invoices, supplier orders and job site, and explains why it refuses)
+  if (isAdmin && s === 'ANNULE' && !devis.chantier) {
+    list.push({
+      key: 'delete',
+      label: 'Supprimer',
+      icon: <Trash2 className="size-4" />,
+      variant: 'danger',
+      confirm: {
+        title: 'Supprimer ce devis annulé ?',
+        message: 'Suppression définitive du devis, de ses versions et de ses liens client. Refusée s’il a des factures, des commandes ou un chantier.',
+        label: 'Supprimer définitivement',
+        danger: true,
+      },
+      run: () => 'delete',
+    });
+  }
   return list;
 }
 
@@ -147,7 +164,7 @@ export function DevisActions({ devis, onLink }: { devis: DevisDetail; onLink: (u
     const call = def.run(reason.trim());
     if (call === 'delete') {
       remove.mutate(devis.id, {
-        onSuccess: () => { toast.success('Brouillon supprimé'); navigate('/devis'); },
+        onSuccess: () => { toast.success('Devis supprimé'); navigate('/devis'); },
         onError: (e) => toast.error(errorMessage(e)),
       });
       return;

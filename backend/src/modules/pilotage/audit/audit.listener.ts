@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { type DevisEvent, DevisEvents, type DevisPriceChangedEvent } from '../../commercial/devis/devis.events';
 import { type FactureEvent, FactureEvents } from '../../finance/factures/facture.events';
 import { CATALOGUE_PRICE_CHANGED, type CataloguePriceChangedEvent } from '../../referentiel/catalogue/catalogue.events';
+import { RELANCE_ENVOYEE, type RelanceEnvoyeeEvent } from '../relances/relances.events';
 import { AuditService } from './audit.service';
 
 const ASYNC = { async: true } as const;
@@ -79,6 +80,25 @@ export class AuditListener {
   @OnEvent(FactureEvents.ANNULEE, ASYNC)
   onFactureAnnulee(e: FactureEvent) {
     return this.facture('FACTURE_ANNULEE', e);
+  }
+
+  /** C3 of 21/10: every reminder, automatic (userId null) or « Relancer maintenant ». */
+  @OnEvent(RELANCE_ENVOYEE, ASYNC)
+  onRelance(e: RelanceEnvoyeeEvent) {
+    return this.audit.record({
+      companyId: e.companyId,
+      userId: e.userId,
+      action: e.type === 'DEVIS' ? 'RELANCE_DEVIS' : 'RELANCE_FACTURE',
+      entite: e.type === 'DEVIS' ? 'Devis' : 'Facture',
+      entiteId: e.entiteId,
+      nouvelleValeur: {
+        reference: e.reference,
+        niveau: e.niveau,
+        par: e.automatique ? 'automatique' : 'utilisateur',
+        destinataire: e.destinataire,
+        emailEnvoye: e.emailEnvoye,
+      },
+    });
   }
 
   private devis(action: string, e: DevisEvent) {

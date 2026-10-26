@@ -1,9 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, ParseIntPipe, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
+import type { UploadedBinary } from '../../core/storage/upload.config';
+import { MAX_PHOTOS_IA } from './devis-ia.prompt';
 import { DevisIaService } from './devis-ia.service';
-import { AppliquerDevisIaDto, ProposerDevisIaDto } from './dto/devis-ia.dto';
+import { AppliquerDevisIaDto, ProposerDevisIaDto, ProposerPhotoIaDto } from './dto/devis-ia.dto';
 
 @ApiTags('Devis — assistant IA')
 @ApiBearerAuth()
@@ -19,6 +22,32 @@ export class DevisIaController {
   @ApiOperation({ summary: 'Proposer des lignes du catalogue à partir d’une description (rien n’est enregistré)' })
   proposer(@CurrentUser() user: AuthUser, @Param('devisId', ParseIntPipe) devisId: number, @Body() dto: ProposerDevisIaDto) {
     return this.service.proposer(user, devisId, dto);
+  }
+
+  /** Image analysis costs more than text: 10 per minute. */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('proposer-photo')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FilesInterceptor('photos', MAX_PHOTOS_IA))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['photos'],
+      properties: {
+        description: { type: 'string' },
+        photos: { type: 'array', items: { type: 'string', format: 'binary' }, maxItems: MAX_PHOTOS_IA },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Proposer des lignes du catalogue à partir de 1 à 3 photos du chantier (photos non conservées)' })
+  proposerPhoto(
+    @CurrentUser() user: AuthUser,
+    @Param('devisId', ParseIntPipe) devisId: number,
+    @Body() dto: ProposerPhotoIaDto,
+    @UploadedFiles() photos: UploadedBinary[] | undefined,
+  ) {
+    return this.service.proposerPhoto(user, devisId, dto.description ?? '', photos);
   }
 
   @Post('appliquer')

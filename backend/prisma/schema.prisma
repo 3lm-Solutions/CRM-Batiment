@@ -32,6 +32,9 @@ model Company {
   telephone String?
   email     String?
   logo      String?
+  /// Bank details printed on invoices + payment QR code (SEPA EPC) — 21/10
+  iban      String?
+  bic       String?
   tvaDefaut Decimal  @default(20) @db.Decimal(5, 2)
   /// Default deposit (acompte) rate applied when a quote is signed (P0.3)
   acomptePercentDefault Decimal @default(35) @db.Decimal(5, 2)
@@ -43,6 +46,12 @@ model Company {
   /// Suggested prices are rounded to this step (0.01 = to the cent, 0.5, 1, 5…)
   pasArrondiPrix           Decimal @default(0.01) @db.Decimal(8, 2)
   devise    String   @default("EUR")
+  // ── Automatic reminders (C3 of 21/10) ──
+  relancesActives      Boolean @default(true)
+  /// Days after sending a quote with no answer (one reminder per value)
+  relanceDevisJours    Int[]   @default([7, 14])
+  /// Days after the due date of an unpaid invoice
+  relanceFactureJours  Int[]   @default([1, 15, 30])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -63,7 +72,6 @@ model Company {
   factures                   Facture[]
   commandesFournisseur       CommandeFournisseur[]
   chantiers                  Chantier[]
-  equipes                    Equipe[]
   mouvementsStock            MouvementStock[]
   sousTraitants              SousTraitant[]
   contratsSousTraitant       ContratSousTraitant[]
@@ -80,6 +88,8 @@ model Company {
   fichiers                   Fichier[]
   rapportsChantier           RapportChantier[]
   espaceLiens                ClientEspaceLien[]
+  relances                   Relance[]
+  pointages                  Pointage[]
 
   @@map("companies")
 }
@@ -124,6 +134,8 @@ model User {
   savTicketsCrees      SavTicket[]            @relation("SavTicketCreateur")
   savTicketsAssignes   SavTicket[]            @relation("SavTicketAssigne")
   savTicketNotes       SavTicketNote[]
+  savTicketHistorique  SavTicketHistorique[]
+  relances             Relance[]
   demoRequestsAssignes DemoRequest[]          @relation("DemoRequestAssigne")
   messagesChat         MessageChat[]
   auditLogs            AuditLog[]
@@ -133,6 +145,9 @@ model User {
   rapportsValides      RapportChantier[]      @relation("RapportValidateur")
   espaceLiensCrees     ClientEspaceLien[]     @relation("EspaceLienCreateur")
   prospectsTraites     ChatSession[]          @relation("ProspectTraitePar")
+  pointagesSaisis      Pointage[]             @relation("PointageAuteur")
+  pointagesValides     Pointage[]             @relation("PointageValidateur")
+  checklistCoches      TacheChecklistItem[]
 
   @@index([companyId])
   @@index([role])
@@ -468,7 +483,8 @@ model Fournisseur {
   email          String?
   telephone      String?
   adresse        String?
-  typesMateriaux String?
+  /// What it supplies = its materials (Materiau.fournisseurId) — the free text « types de
+  /// matériaux » was removed on 21/10, the materials are picked on the supplier form instead
   delaiLivraison Int?
   conditions     String?
   actif          Boolean  @default(true)
@@ -555,9 +571,9 @@ model Devis {
   versions             VersionDevis[]
   liensClient          DevisLienClient[]
   factures             Facture[]
-  bonCommande          BonCommande?
   commandesFournisseur CommandeFournisseur[]
   savTickets           SavTicket[]
+  relances             Relance[]
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -657,22 +673,6 @@ model DevisLienClient {
   @@map("devis_liens_client")
 }
 
-model BonCommande {
-  id        Int               @id @default(autoincrement())
-  devisId   Int               @unique
-  reference String            @unique
-  date      DateTime          @default(now())
-  statut    BonCommandeStatut @default(BROUILLON)
-  pdfUrl    String?
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-
-  devis Devis @relation(fields: [devisId], references: [id])
-
-  @@index([statut])
-  @@map("bons_commande")
-}
-
 // ═════════════════════════════════════════════════════════════════════════════
 // FINANCE — invoices, supplier orders, stock
 // ═════════════════════════════════════════════════════════════════════════════
@@ -713,11 +713,15 @@ model Facture {
   companyTelephone      String?
   companyAdresse        String?
   companySiret          String?
+  /// Bank details at issue time (an issued invoice never changes) — payment QR code, 21/10
+  companyIban           String?
+  companyBic            String?
+  /// Random token of the « view this invoice » link / QR code (no account needed), set at issue
+  lienPublicToken       String?       @unique
   conditionsPaiement    String?
   communicationPaiement String?
   notesLegales          String?
   referencePaiement     String?
-  pdfUrl                String?
   emailEnvoiClient      String?
   dateEnvoiClient       DateTime?
   datePaiement          DateTime?
@@ -730,6 +734,7 @@ model Facture {
   avoirs         Facture[]      @relation("Avoir")
   lignes         FactureLigne[]
   savTickets     SavTicket[]
+  relances       Relance[]
 
   @@index([companyId, statut])
   @@index([devisId, typeFacture])
@@ -740,7 +745,6 @@ model FactureLigne {
   id             Int       @id @default(autoincrement())
   factureId      Int
   description    String
-  datePrestation DateTime?
   quantite       Decimal   @default(1) @db.Decimal(12, 3)
   unite          String    @default("UNITE")
   prixUnitaireHT Decimal   @db.Decimal(12, 2)
@@ -761,8 +765,11 @@ model FactureLigne {
 model CommandeFournisseur {
   id                  Int                       @id @default(autoincrement())
   companyId           Int
-  devisId             Int
+  /// Null for a manual order (restocking, or extra material for a job site — 20/10)
+  devisId             Int?
   fournisseurId       Int
+  /// Manual order for a job site (orders generated from a quote use devis.chantierId)
+  chantierId          Int?
   reference           String                    @unique
   date                DateTime                  @default(now())
   statutLivraison     CommandeFournisseurStatut @default(CREEE)
@@ -772,18 +779,20 @@ model CommandeFournisseur {
   /// Step 11 — supplier portal: order acknowledged, and the supplier's own remark
   dateAccuseReception DateTime?
   commentaireFournisseur String?
-  pdfUrl              String?
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
 
   company     Company                    @relation(fields: [companyId], references: [id])
-  devis       Devis                      @relation(fields: [devisId], references: [id])
+  devis       Devis?                     @relation(fields: [devisId], references: [id])
   fournisseur Fournisseur                @relation(fields: [fournisseurId], references: [id])
+  chantier    Chantier?                  @relation(fields: [chantierId], references: [id], onDelete: SetNull)
   lignes      LigneCommandeFournisseur[]
   receptions  Reception[]
 
   /// P0.4: one order per supplier per quote — a double click can't create two
+  /// (manual orders have no quote: PostgreSQL never compares NULLs, so they are not limited)
   @@unique([devisId, fournisseurId])
+  @@index([chantierId])
   @@index([companyId, statutLivraison])
   @@index([fournisseurId])
   @@map("commandes_fournisseur")
@@ -900,6 +909,8 @@ model Chantier {
   mouvementsStock       MouvementStock[]
   fichiers              Fichier[]
   rapports              RapportChantier[]
+  commandesFournisseur  CommandeFournisseur[]
+  pointages             Pointage[]
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -921,22 +932,6 @@ model ChantierSousTraitant {
   @@map("chantiers_sous_traitants")
 }
 
-model Equipe {
-  id        Int        @id @default(autoincrement())
-  companyId Int
-  nom       String
-  type      EquipeType @default(INTERNE)
-  actif     Boolean    @default(true)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  company            Company            @relation(fields: [companyId], references: [id])
-  affectationsTaches AffectationTache[]
-
-  @@index([companyId])
-  @@map("equipes")
-}
-
 model Tache {
   id          Int         @id @default(autoincrement())
   chantierId  Int
@@ -955,21 +950,72 @@ model Tache {
   chantier     Chantier           @relation(fields: [chantierId], references: [id], onDelete: Cascade)
   affectations AffectationTache[]
   rapports     RapportChantier[]
+  checklist    TacheChecklistItem[]
+  pointages    Pointage[]
 
   @@index([chantierId, statut])
   @@map("taches")
+}
+
+/// Sub-tasks to tick (21/10). When a task has a checklist, its progress follows it.
+model TacheChecklistItem {
+  id        Int       @id @default(autoincrement())
+  tacheId   Int
+  libelle   String
+  fait      Boolean   @default(false)
+  ordre     Int       @default(0)
+  faitLe    DateTime?
+  faitParId Int?
+  createdAt DateTime  @default(now())
+
+  tache   Tache @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  faitPar User? @relation(fields: [faitParId], references: [id], onDelete: SetNull)
+
+  @@index([tacheId])
+  @@map("taches_checklist")
+}
+
+/// Hours entered by a sous-traitant in his portal, validated by the chef or the office (21/10).
+/// Follow-up only: payments stay entered separately.
+model Pointage {
+  id             Int             @id @default(autoincrement())
+  companyId      Int
+  sousTraitantId Int
+  chantierId     Int
+  tacheId        Int?
+  /// The day worked (time part ignored)
+  date           DateTime        @db.Date
+  heures         Decimal         @db.Decimal(4, 2)
+  commentaire    String?
+  statut         PointageStatut  @default(SOUMIS)
+  motifRefus     String?
+  saisiParId     Int?
+  valideParId    Int?
+  valideLe       DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  company      Company      @relation(fields: [companyId], references: [id])
+  sousTraitant SousTraitant @relation(fields: [sousTraitantId], references: [id], onDelete: Cascade)
+  chantier     Chantier     @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  tache        Tache?       @relation(fields: [tacheId], references: [id], onDelete: SetNull)
+  saisiPar     User?        @relation("PointageAuteur", fields: [saisiParId], references: [id], onDelete: SetNull)
+  validePar    User?        @relation("PointageValidateur", fields: [valideParId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, statut])
+  @@index([sousTraitantId, date])
+  @@index([chantierId])
+  @@map("pointages")
 }
 
 model AffectationTache {
   id        Int      @id @default(autoincrement())
   tacheId   Int
   userId    Int?
-  equipeId  Int?
   createdAt DateTime @default(now())
 
   tache  Tache   @relation(fields: [tacheId], references: [id], onDelete: Cascade)
   user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  equipe Equipe? @relation(fields: [equipeId], references: [id], onDelete: Cascade)
 
   @@index([tacheId])
   @@index([userId])
@@ -1021,6 +1067,7 @@ model SousTraitant {
   paiements      PaiementSousTraitant[]
   disponibilites DisponibiliteSousTraitant[]
   notations      NotationSousTraitant[]
+  pointages      Pointage[]
 
   @@unique([companyId, siret])
   @@index([companyId, statut])
@@ -1175,6 +1222,8 @@ model SavTicket {
   createur   User?           @relation("SavTicketCreateur", fields: [createurId], references: [id], onDelete: SetNull)
   assignedTo User?           @relation("SavTicketAssigne", fields: [assignedToId], references: [id], onDelete: SetNull)
   notes      SavTicketNote[]
+  historique SavTicketHistorique[]
+  photos     Fichier[]
 
   @@index([companyId, statut, priorite])
   @@index([companyId, createdAt])
@@ -1189,6 +1238,8 @@ model SavTicketNote {
   /// null = written by the client from his online space
   userId    Int?
   contenu   String
+  /// A team reply shown to the client in his online space (and emailed). false = internal note.
+  visibleClient Boolean @default(false)
   createdAt DateTime @default(now())
 
   ticket SavTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
@@ -1196,6 +1247,49 @@ model SavTicketNote {
 
   @@index([ticketId])
   @@map("sav_ticket_notes")
+}
+
+/// Reminder sent to a client (C3 of 21/10): a quote with no answer, or an unpaid invoice.
+model Relance {
+  id           Int         @id @default(autoincrement())
+  companyId    Int
+  type         RelanceType
+  devisId      Int?
+  factureId    Int?
+  /// 1, 2, 3… for the automatic reminders; 0 for a manual one
+  niveau       Int
+  automatique  Boolean     @default(true)
+  destinataire String
+  emailEnvoye  Boolean
+  /// Who clicked « Relancer maintenant » (null: the daily job)
+  userId       Int?
+  createdAt    DateTime    @default(now())
+
+  company Company  @relation(fields: [companyId], references: [id])
+  devis   Devis?   @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  facture Facture? @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([devisId])
+  @@index([factureId])
+  @@index([companyId, createdAt])
+  @@map("relances")
+}
+
+/// Status timeline of a ticket (20/10): shown to the team and to the client in his online space.
+model SavTicketHistorique {
+  id        Int             @id @default(autoincrement())
+  ticketId  Int
+  statut    SavTicketStatut
+  /// null = the client (ticket opened or answered from his online space) or the system
+  userId    Int?
+  createdAt DateTime        @default(now())
+
+  ticket SavTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+  @@map("sav_ticket_historique")
 }
 
 model DemoRequest {
@@ -1236,6 +1330,11 @@ model ChatSession {
   companyId        Int
   tokenHash        String           @unique
   statut           ProspectStatut   @default(NOUVEAU)
+  /// Where the prospect came from: the website chatbot, or an email read in the mailbox (22/10)
+  source           LeadSource       @default(CHATBOT)
+  /// Message-ID of the first email (never imported twice)
+  emailMessageId   String?          @unique
+  emailSujet       String?
   clientNom        String?
   clientPrenom     String?
   clientEmail      String?
@@ -1256,7 +1355,6 @@ model ChatSession {
   motifRejet       String?
   traiteParId      Int?
   traiteLe         DateTime?
-  terminee         Boolean          @default(false)
   derniereActivite DateTime         @default(now())
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
@@ -1273,6 +1371,7 @@ model ChatSession {
 
   @@index([companyId, statut, derniereActivite])
   @@index([companyId, clientEmail])
+  @@index([companyId, source])
   @@map("chat_sessions")
 }
 
@@ -1371,12 +1470,15 @@ model Fichier {
   chantierId   Int?
   /// Photo attached to a site report
   rapportId    Int?
+  /// Photo of an after-sales ticket (C42 of 21/10): sent by the client from his space or added by the team
+  savTicketId  Int?
   uploadedById Int?
   createdAt    DateTime @default(now())
 
   company    Company                 @relation(fields: [companyId], references: [id])
   chantier   Chantier?               @relation(fields: [chantierId], references: [id], onDelete: SetNull)
   rapport    RapportChantier?        @relation(fields: [rapportId], references: [id], onDelete: Cascade)
+  savTicket  SavTicket?              @relation(fields: [savTicketId], references: [id], onDelete: Cascade)
   uploadedBy User?                   @relation("FichierAuteur", fields: [uploadedById], references: [id], onDelete: SetNull)
   document   DocumentChantier?
   assurances AssuranceSousTraitant[]
@@ -1384,6 +1486,7 @@ model Fichier {
   @@index([companyId])
   @@index([chantierId])
   @@index([rapportId])
+  @@index([savTicketId])
   @@map("fichiers")
 }
 
@@ -1463,6 +1566,8 @@ enum LeadSource {
   RECOMMANDATION
   SITE_WEB
   WHATSAPP
+  /// Prospect read from the company's mailbox (22/10)
+  EMAIL
   AUTRE
 }
 
@@ -1513,11 +1618,9 @@ enum ModeValidation {
   AUTRE
 }
 
-enum BonCommandeStatut {
-  BROUILLON
-  VALIDE
-  ENVOYE
-  ANNULE
+enum RelanceType {
+  DEVIS
+  FACTURE
 }
 
 enum FactureStatut {
@@ -1570,11 +1673,6 @@ enum TacheStatut {
   TERMINEE
 }
 
-enum EquipeType {
-  INTERNE
-  SOUS_TRAITANT
-}
-
 enum Unite {
   M2
   ML
@@ -1591,6 +1689,12 @@ enum SousTraitantStatut {
   ACTIF
   INACTIF
   SUSPENDU
+}
+
+enum PointageStatut {
+  SOUMIS
+  VALIDE
+  REFUSE
 }
 
 enum ContratSousTraitantStatut {

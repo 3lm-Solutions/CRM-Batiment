@@ -1,14 +1,14 @@
-import { ArrowRightCircle, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRightCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button, Card, DataTable, ErrorState, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Tabs, Textarea } from '@/components/ui';
+import { Button, Card, ConfirmDialog, DataTable, ErrorState, Modal, PageHeader, Pagination, SearchInput, Select, StatusBadge, Tabs, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { formatDate, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import { LEAD_SOURCE_OPTIONS, LEAD_SOURCES, type LeadSource } from '../clients/api';
 import { ClientPicker } from '../devis/ClientPicker';
-import { useCreateDemande, useDemandeAction, useDemandes, type Demande, type DemandeAction, type DemandesQuery, type DemandeStatut } from './api';
+import { useCreateDemande, useDeleteDemande, useDemandeAction, useDemandes, useUpdateDemande, type Demande, type DemandeAction, type DemandesQuery, type DemandeStatut } from './api';
 
 const TABS: { value: string; label: string; statuts?: DemandeStatut[] }[] = [
   { value: 'open', label: 'À traiter', statuts: ['NOUVEAU', 'EN_COURS', 'QUALIFIE'] },
@@ -62,6 +62,49 @@ function NewDemandeModal({ open, onClose }: { open: boolean; onClose: () => void
   );
 }
 
+/** E6 of 20/10: correct the need or the origin of a request that is not converted yet. */
+function EditDemandeModal({ demande, onClose }: { demande: Demande | null; onClose: () => void }) {
+  const update = useUpdateDemande();
+  const [description, setDescription] = useState('');
+  const [source, setSource] = useState<LeadSource>('AUTRE');
+  useEffect(() => {
+    if (!demande) return;
+    update.reset();
+    setDescription(demande.description);
+    setSource(demande.source);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demande]);
+  return (
+    <Modal
+      open={demande !== null}
+      onClose={onClose}
+      title={demande ? `Modifier la demande ${demande.reference}` : 'Modifier la demande'}
+      description={demande ? `Client : ${fullName(demande.client)}` : undefined}
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>Annuler</Button>
+          <Button
+            disabled={!description.trim()}
+            loading={update.isPending}
+            onClick={() =>
+              demande &&
+              update.mutate({ id: demande.id, description: description.trim(), source }, { onSuccess: () => { toast.success('Demande modifiée'); onClose(); } })
+            }
+          >
+            Enregistrer
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Textarea id="demande-description" label="Besoin du client" required rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Select id="demande-source" label="Origine" options={LEAD_SOURCE_OPTIONS} value={source} onChange={(e) => setSource(e.target.value as LeadSource)} />
+        {update.isError && <p role="alert" className="text-sm text-red-600">{errorMessage(update.error)}</p>}
+      </div>
+    </Modal>
+  );
+}
+
 export function DemandesPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
@@ -71,6 +114,9 @@ export function DemandesPage() {
   const demandes = useDemandes(query);
   const action = useDemandeAction();
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Demande | null>(null);
+  const [deleting, setDeleting] = useState<Demande | null>(null);
+  const remove = useDeleteDemande();
 
   const run = (d: Demande, act: DemandeAction) =>
     action.mutate(
@@ -137,6 +183,10 @@ export function DemandesPage() {
                           <Button size="sm" icon={<ArrowRightCircle className="size-4" />} disabled={action.isPending} onClick={() => run(d, 'convertir-en-devis')}>Créer le devis</Button>
                         )}
                         {d.statut !== 'PERDU' && <Button size="sm" variant="ghost" disabled={action.isPending} onClick={() => run(d, 'perdre')}>Perdue</Button>}
+                        <Button size="sm" variant="ghost" aria-label={`Modifier ${d.reference}`} icon={<Pencil className="size-4" />} onClick={() => setEditing(d)} />
+                        {canConvert && (
+                          <Button size="sm" variant="ghost" aria-label={`Supprimer ${d.reference}`} icon={<Trash2 className="size-4 text-red-600" />} onClick={() => setDeleting(d)} />
+                        )}
                       </>
                     )}
                   </div>
@@ -148,6 +198,23 @@ export function DemandesPage() {
         <Pagination meta={demandes.data?.meta} onPage={(page) => setQuery((q) => ({ ...q, page }))} />
       </Card>
       {creating && <NewDemandeModal open onClose={() => setCreating(false)} />}
+      <EditDemandeModal demande={editing} onClose={() => setEditing(null)} />
+      <ConfirmDialog
+        open={deleting !== null}
+        onClose={() => setDeleting(null)}
+        danger
+        title={deleting ? `Supprimer la demande ${deleting.reference} ?` : 'Supprimer la demande ?'}
+        message="Suppression définitive, pour une demande saisie par erreur ou en double. Pour une demande sans suite, utilisez plutôt « Perdue » : elle reste dans l’historique."
+        confirmLabel="Supprimer"
+        loading={remove.isPending}
+        onConfirm={() =>
+          deleting &&
+          remove.mutate(deleting.id, {
+            onSuccess: () => { toast.success('Demande supprimée'); setDeleting(null); },
+            onError: (e) => toast.error(errorMessage(e)),
+          })
+        }
+      />
     </>
   );
 }

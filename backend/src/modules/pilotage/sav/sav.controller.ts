@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import type { UploadedBinary } from '../../core/storage/upload.config';
 import { CreateSavTicketDto, QuerySavDto, ResoudreSavDto, SavNoteDto, UpdateSavTicketDto } from './sav.dto';
-import { SavService } from './sav.service';
+import { MAX_PHOTOS_PAR_TICKET, SavService } from './sav.service';
 
 @ApiTags('SAV')
 @ApiBearerAuth()
@@ -34,6 +36,20 @@ export class SavController {
   @Post(':id/notes')
   addNote(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: SavNoteDto) {
     return this.sav.addNote(user, id, dto);
+  }
+
+  @Post(':id/photos')
+  @UseInterceptors(FilesInterceptor('photos', MAX_PHOTOS_PAR_TICKET))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: { type: 'object', properties: { photos: { type: 'array', items: { type: 'string', format: 'binary' } } } } })
+  @ApiOperation({ summary: 'Ajouter des photos au ticket (JPEG, PNG, WebP)' })
+  ajouterPhotos(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @UploadedFiles() photos: UploadedBinary[] | undefined) {
+    return this.sav.ajouterPhotos(user, id, photos);
+  }
+
+  @Delete(':id/photos/:fichierId') @HttpCode(HttpStatus.NO_CONTENT)
+  supprimerPhoto(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('fichierId', ParseIntPipe) fichierId: number) {
+    return this.sav.supprimerPhoto(user, id, fichierId);
   }
 
   @Post(':id/prendre-en-charge') @HttpCode(HttpStatus.OK)

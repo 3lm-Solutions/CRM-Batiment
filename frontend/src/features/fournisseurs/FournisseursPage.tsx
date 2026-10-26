@@ -5,18 +5,33 @@ import { Avatar, Badge, Button, Card, ConfirmDialog, DataTable, ErrorState, Inpu
 import { errorMessage } from '@/lib/api';
 import { fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
-import { useUserOptions } from '../users/api';
+import { usePortalAccounts } from '../users/api';
 import { useDeleteFournisseur, useFournisseurs, useLierCompteFournisseur, useSaveFournisseur, type Fournisseur } from './api';
+import { MateriauxPicker, useMateriauxDuFournisseur } from './MateriauxPicker';
 
-const EMPTY = { nom: '', contact: '', email: '', telephone: '', adresse: '', typesMateriaux: '', delaiLivraison: '', conditions: '' };
+const EMPTY = { nom: '', contact: '', email: '', telephone: '', adresse: '', delaiLivraison: '', conditions: '' };
 
 function FournisseurModal({ open, onClose, fournisseur }: { open: boolean; onClose: () => void; fournisseur?: Fournisseur }) {
   const save = useSaveFournisseur();
   const lier = useLierCompteFournisseur();
-  const comptes = useUserOptions(['FOURNISSEUR'], open && !!fournisseur);
+  // Existing FOURNISSEUR accounts; those already linked to another supplier are shown disabled
+  const comptes = usePortalAccounts('FOURNISSEUR', open);
+  const tous = useFournisseurs({ page: 1, limit: 100 }, open);
+  const lieA = new Map((tous.data?.data ?? []).filter((x) => x.userId && x.id !== fournisseur?.id).map((x) => [x.userId!, x.nom]));
   const [f, setF] = useState(EMPTY);
   const [compte, setCompte] = useState('');
   const [actif, setActif] = useState(true);
+  // Materials it supplies (21/10): picked in the catalogue instead of a free text
+  const actuels = useMateriauxDuFournisseur(fournisseur?.id, open);
+  const [materiauIds, setMateriauIds] = useState<number[]>([]);
+  const [materiauxTouches, setMateriauxTouches] = useState(false);
+  // 100 = the page size: more than that cannot be edited safely here (catalogue › Matériaux)
+  const tropDeMateriaux = (actuels.data?.length ?? 0) >= 100;
+  useEffect(() => {
+    if (!open) return;
+    setMateriauIds(fournisseur ? (actuels.data ?? []).map((m) => m.id) : []);
+    setMateriauxTouches(false);
+  }, [open, fournisseur, actuels.data]);
 
   useEffect(() => {
     if (!open) return;
@@ -28,7 +43,6 @@ function FournisseurModal({ open, onClose, fournisseur }: { open: boolean; onClo
             email: fournisseur.email ?? '',
             telephone: fournisseur.telephone ?? '',
             adresse: fournisseur.adresse ?? '',
-            typesMateriaux: fournisseur.typesMateriaux ?? '',
             delaiLivraison: fournisseur.delaiLivraison?.toString() ?? '',
             conditions: fournisseur.conditions ?? '',
           }
@@ -51,10 +65,12 @@ function FournisseurModal({ open, onClose, fournisseur }: { open: boolean; onClo
         email: orNull(f.email),
         telephone: orNull(f.telephone),
         adresse: orNull(f.adresse),
-        typesMateriaux: orNull(f.typesMateriaux),
+        // Sent only if changed: an untouched list is never rewritten
+        ...(materiauxTouches && !tropDeMateriaux ? { materiauIds } : {}),
         delaiLivraison: f.delaiLivraison ? Number(f.delaiLivraison) : null,
         conditions: orNull(f.conditions),
         ...(fournisseur && { actif }),
+        ...(!fournisseur && compte && { userId: Number(compte) }),
       },
       {
         onSuccess: (saved) => {
@@ -81,30 +97,59 @@ function FournisseurModal({ open, onClose, fournisseur }: { open: boolean; onClo
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
+        <Select
+          label={fournisseur ? 'Compte du portail fournisseur' : 'Créer depuis un compte existant'}
+          containerClassName="sm:col-span-2"
+          hint={
+            fournisseur
+              ? 'Ce compte (rôle Fournisseur) voit les commandes de ce fournisseur dans son portail.'
+              : 'Facultatif — le compte (rôle Fournisseur, créé dans Utilisateurs) verra les commandes dans son portail. Contact, email et téléphone sont repris.'
+          }
+          placeholder="Aucun"
+          options={(comptes.data ?? []).map((u) => ({
+            value: u.id,
+            label: `${fullName(u)} — ${u.email}${lieA.has(u.id) ? ` (déjà lié à ${lieA.get(u.id)})` : ''}`,
+          }))}
+          value={compte}
+          onChange={(e) => {
+            const id = e.target.value;
+            if (id && lieA.has(Number(id))) {
+              toast.error(`Ce compte est déjà lié à « ${lieA.get(Number(id))} ». Déliez-le d’abord.`);
+              return;
+            }
+            setCompte(id);
+            const u = comptes.data?.find((x) => x.id === Number(id));
+            // Prefill the empty fields from the account (creation only)
+            if (u && !fournisseur) {
+              setF((s) => ({ ...s, contact: s.contact || fullName(u), email: s.email || u.email, telephone: s.telephone || (u.telephone ?? '') }));
+            }
+          }}
+        />
         <Input label="Raison sociale" required value={f.nom} onChange={set('nom')} />
         <Input label="Contact" value={f.contact} onChange={set('contact')} />
         <Input label="Email" type="email" hint="Les bons de commande y sont envoyés" value={f.email} onChange={set('email')} />
         <Input label="Téléphone" type="tel" value={f.telephone} onChange={set('telephone')} />
         <Input label="Adresse" containerClassName="sm:col-span-2" value={f.adresse} onChange={set('adresse')} />
-        <Input label="Types de matériaux" placeholder="Carrelage, plomberie…" value={f.typesMateriaux} onChange={set('typesMateriaux')} />
         <Input label="Délai de livraison (jours)" type="number" min={0} value={f.delaiLivraison} onChange={set('delaiLivraison')} />
+        <div className="sm:col-span-2">
+          {tropDeMateriaux ? (
+            <p className="text-sm text-slate-500">Ce fournisseur fournit plus de 100 matériaux : modifiez-les dans Catalogue › Matériaux.</p>
+          ) : (
+            <MateriauxPicker
+              value={materiauIds}
+              onChange={(ids) => { setMateriauIds(ids); setMateriauxTouches(true); }}
+              fournisseurId={fournisseur?.id}
+              initial={actuels.data}
+              enabled={open}
+            />
+          )}
+        </div>
         <Textarea label="Conditions" containerClassName="sm:col-span-2" rows={2} value={f.conditions} onChange={set('conditions')} />
         {fournisseur && (
           <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input type="checkbox" className="size-4 accent-brand-700" checked={actif} onChange={(e) => setActif(e.target.checked)} />
             Fournisseur actif (décoché : n’apparaît plus dans les nouvelles commandes)
           </label>
-        )}
-        {fournisseur && (
-          <Select
-            label="Compte du portail fournisseur"
-            containerClassName="sm:col-span-2"
-            hint="Ce compte (rôle Fournisseur) voit les commandes de ce fournisseur dans son portail."
-            placeholder="Aucun"
-            options={(comptes.data ?? []).map((u) => ({ value: u.id, label: fullName(u) }))}
-            value={compte}
-            onChange={(e) => setCompte(e.target.value)}
-          />
         )}
       </div>
     </Modal>
@@ -163,7 +208,19 @@ export function FournisseursPage() {
               },
               { key: 'tel', header: 'Téléphone', cell: (f) => f.telephone ?? '—' },
               { key: 'email', header: 'Email', cell: (f) => f.email ?? <span className="text-orange-600">À renseigner</span> },
-              { key: 'types', header: 'Matériaux', cell: (f) => <span className="text-gray-600">{f.typesMateriaux ?? '—'}</span> },
+              {
+                key: 'types',
+                header: 'Matériaux',
+                cell: (f) =>
+                  f._count.materiaux ? (
+                    <span className="text-gray-600" title={`${f._count.materiaux} matériau(x) au catalogue`}>
+                      {(f.materiaux ?? []).map((m) => m.nom).join(', ')}
+                      {f._count.materiaux > (f.materiaux?.length ?? 0) && ` +${f._count.materiaux - (f.materiaux?.length ?? 0)}`}
+                    </span>
+                  ) : (
+                    <span className="text-orange-600">Aucun</span>
+                  ),
+              },
               { key: 'delai', header: 'Délai', align: 'right', cell: (f) => (f.delaiLivraison != null ? `${f.delaiLivraison} j` : '—') },
               {
                 key: 'statut',
@@ -171,7 +228,11 @@ export function FournisseursPage() {
                 cell: (f) => (
                   <span className="flex flex-wrap gap-1">
                     <Badge tone={f.actif ? 'green' : 'slate'}>{f.actif ? 'Actif' : 'Inactif'}</Badge>
-                    {f.userId && <Badge tone="blue">Portail</Badge>}
+                    {f.userId ? (
+                      <span title={f.utilisateur ? `Compte : ${f.utilisateur.email}` : undefined}><Badge tone="blue">Portail</Badge></span>
+                    ) : (
+                      <Badge tone="amber">Sans compte portail</Badge>
+                    )}
                   </span>
                 ),
               },

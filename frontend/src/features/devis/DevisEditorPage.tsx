@@ -7,8 +7,9 @@ import { errorMessage } from '@/lib/api';
 import { formatDate, formatDateTime, formatEuros, formatPercent, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import { DevisFacturesCard } from '../factures/DevisFacturesCard';
+import { RelancesCard } from '../relances/RelancesCard';
 import { AddLigneModal } from './AddLigneModal';
-import { EDITABLE, useCompany, useCompanySettings, useDevis, useUpdateDevis, useVersions, type DevisDetail } from './api';
+import { AWAITING_CLIENT, EDITABLE, useCompany, useCompanySettings, useDevis, useUpdateDevis, useVersions, type DevisDetail } from './api';
 import { DevisActions } from './DevisActions';
 import { DevisIaModal } from './DevisIaModal';
 import { LignesTable } from './LignesTable';
@@ -270,6 +271,13 @@ export function DevisEditorPage() {
           <div className="space-y-6">
             <Totals devis={d} editable={editable} />
             <SuiviClient devis={d} lastLink={lastLink} />
+            {isBureau && d.dateEnvoi && (
+              <RelancesCard
+                cible={{ devisId: d.id }}
+                canRelancer={AWAITING_CLIENT.includes(d.statut) && !!d.client.email}
+                description={AWAITING_CLIENT.includes(d.statut) && !d.client.email ? 'Le client n’a pas d’email : relance impossible.' : 'Automatiques tant que le client n’a pas répondu'}
+              />
+            )}
             {d.statut === 'SIGNE' && <DevisFacturesCard devisId={d.id} canWrite={isBureau} />}
             <Versions devis={d} />
           </div>

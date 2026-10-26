@@ -9,3 +9,8 @@ process.env.JWT_SECRET ??= 'test-secret-'.padEnd(40, 'x');
 process.env.STORAGE_DIR ??= join(tmpdir(), 'crm-batiment-e2e-storage');
 // The chatbot never calls OpenAI in tests: guided mode, or a fake client injected by the test
 process.env.OPENAI_API_KEY = '';
+process.env.OPENAI_VISION_MODEL = '';
+process.env.OPENAI_VISION_API_KEY = '';
+// Never read a real mailbox in tests (prospects by email: a fake reader is injected)
+process.env.IMAP_HOST = '';
+process.env.IMAP_SUBJECTS = '';

@@ -4,7 +4,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { DevisLignesService } from '../../commercial/devis/devis-lignes.service';
 import { assertEditable } from '../../commercial/devis/devis-status';
 import { PricingService } from '../../referentiel/catalogue/pricing/pricing.service';
-import { LLM_CLIENT, type LlmClient, LlmError } from '../assistant/llm/llm.client';
+import { LLM_CLIENT, LLM_VISION_CLIENT, type LlmClient, LlmError } from '../assistant/llm/llm.client';
 import {
   type CatalogueEntry,
   extractLength,
@@ -12,7 +12,20 @@ import {
   guessQuantity,
   scoreCatalogue,
 } from './catalogue-match';
-import { buildMessages, type LigneProposee, MAX_LIGNES, parseProposition, PROPOSITION_SCHEMA } from './devis-ia.prompt';
+import { detectFileType } from '../../core/storage/file-type';
+import type { UploadedBinary } from '../../core/storage/upload.config';
+import {
+  type AnalysePhoto,
+  buildMessages,
+  buildPhotoMessages,
+  type LigneProposee,
+  MAX_LIGNES,
+  MAX_PHOTOS_IA,
+  parseAnalysePhoto,
+  parseProposition,
+  PHOTO_SCHEMA,
+  PROPOSITION_SCHEMA,
+} from './devis-ia.prompt';
 import { AppliquerDevisIaDto, ProposerDevisIaDto } from './dto/devis-ia.dto';
 
 /** The whole catalogue is sent to the model when it is small; otherwise the best matches. */
@@ -43,7 +56,15 @@ export interface PropositionView {
   hypotheses: string[];
   totalHT: Money;
   avertissement: string | null;
+  /** Quote from photos (C37 of 21/10): what the AI saw; null for a text description */
+  analysePhoto?: AnalysePhoto | null;
 }
+
+type PropositionBrute = { lignes: LigneProposee[]; nonCouverts: string[]; hypotheses: string[] };
+
+/** Image analysis is slower than text: up to 60 s before giving up. */
+const PHOTO_TIMEOUT_MS = 60_000;
+const PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
  * Step 15 — quote assistant. The technician describes the job; the assistant proposes catalogue
@@ -59,6 +80,7 @@ export class DevisIaService {
     private readonly pricing: PricingService,
     private readonly lignes: DevisLignesService,
     @Inject(LLM_CLIENT) private readonly llm: LlmClient | null,
+    @Inject(LLM_VISION_CLIENT) private readonly vision: LlmClient | null,
   ) {}
 
   async proposer(user: AuthUser, devisId: number, dto: ProposerDevisIaDto): Promise<PropositionView> {
@@ -69,7 +91,7 @@ export class DevisIaService {
     }
 
     const scored = scoreCatalogue(dto.description, catalogue);
-    let proposition: { lignes: LigneProposee[]; nonCouverts: string[]; hypotheses: string[] };
+    let proposition: PropositionBrute;
     let modeIA = false;
     let avertissement: string | null = null;
 
@@ -91,6 +113,81 @@ export class DevisIaService {
       proposition = this.guided(dto.description, scored);
     }
 
+    return this.toView(user, catalogue, proposition, modeIA, avertissement);
+  }
+
+  /**
+   * Quote from 1 to 3 photos (C37 of 21/10), with an optional short description. The photos go to
+   * the language model and are NOT stored. A blurry photo, or the AI failing, falls back on the
+   * description (keyword matching) when there is one; otherwise the technician is told to use
+   * the « Texte » tab.
+   */
+  async proposerPhoto(user: AuthUser, devisId: number, description: string, photos: UploadedBinary[] | undefined): Promise<PropositionView> {
+    const devis = await this.editableDevis(user, devisId);
+    if (!photos?.length) throw new BusinessException('PHOTO_MANQUANTE', 'Ajoutez au moins une photo du chantier.');
+    if (photos.length > MAX_PHOTOS_IA) throw new BusinessException('TROP_DE_PHOTOS', `${MAX_PHOTOS_IA} photos au maximum.`);
+    const images = photos.map((p) => {
+      const type = detectFileType(p.buffer);
+      if (!type || !PHOTO_MIMES.includes(type.mime)) {
+        throw new BusinessException('FICHIER_TYPE_REFUSE', 'Seules les photos sont acceptées (JPEG, PNG, WebP).');
+      }
+      return `data:${type.mime};base64,${p.buffer.toString('base64')}`;
+    });
+    const vision = this.vision;
+    if (!vision) {
+      throw new BusinessException(
+        'IA_NON_CONFIGUREE',
+        'L’analyse de photos demande un modèle IA qui lit les images (OPENAI_VISION_MODEL non configuré). Utilisez l’onglet « Texte ».',
+      );
+    }
+    const catalogue = await this.loadCatalogue(user.companyId);
+    if (!catalogue.length) throw new BusinessException('CATALOGUE_VIDE', 'Le catalogue ne contient aucune prestation active.');
+
+    const texte = description.trim();
+    const scored = scoreCatalogue(texte, catalogue);
+    const candidates = pickCandidates(catalogue, scored);
+    try {
+      const raw = await vision.completeJson(buildPhotoMessages(images, texte, candidates), PHOTO_SCHEMA, { maxTokens: 1800, timeoutMs: PHOTO_TIMEOUT_MS });
+      const parsed = parseProposition(raw, new Set(candidates.map((c) => c.id)));
+      if (!parsed) throw new LlmError('LLM_REPONSE_INVALIDE', 'réponse hors format');
+      const analyse = parseAnalysePhoto(raw);
+
+      const hypotheses = [...parsed.hypotheses];
+      if (analyse.surfaceEstimeeM2 !== null) {
+        hypotheses.unshift(
+          `Surface estimée sur photo ≈ ${String(analyse.surfaceEstimeeM2).replace('.', ',')} m² — ${analyse.objetReference ? 'approximative' : 'très approximative (aucun objet de référence)'}, à mesurer sur place.`,
+        );
+      }
+      let avertissement: string | null = null;
+      if (analyse.qualitePhoto === 'INSUFFISANTE') {
+        avertissement = texte.length >= 10
+          ? 'Photo peu exploitable (floue, sombre ou trop serrée) : proposition complétée à partir de votre description, à vérifier.'
+          : 'Photo peu exploitable (floue, sombre ou trop serrée) : reprenez-la ou décrivez les travaux dans l’onglet « Texte ».';
+        if (texte.length >= 10 && !parsed.lignes.length) {
+          const guided = this.guided(texte, scored);
+          return this.toView(user, catalogue, { ...guided, hypotheses: [...hypotheses, ...guided.hypotheses] }, false, avertissement, analyse);
+        }
+      }
+      return this.toView(user, catalogue, { ...parsed, hypotheses }, true, avertissement, analyse);
+    } catch (error) {
+      const type = error instanceof LlmError ? error.type : 'LLM_INDISPONIBLE';
+      await this.logError(user.companyId, `PHOTO_${type}`, `Devis ${devis.reference} : ${error instanceof Error ? error.message : String(error)}`);
+      if (texte.length >= 10) {
+        return this.toView(user, catalogue, this.guided(texte, scored), false, 'L’IA n’a pas pu analyser les photos : proposition faite à partir de votre description, par mots-clés.', null);
+      }
+      throw new BusinessException('IA_PHOTO_INDISPONIBLE', 'L’IA n’a pas pu analyser les photos. Réessayez dans un instant ou décrivez les travaux dans l’onglet « Texte ».');
+    }
+  }
+
+  /** Prices every proposed line with the catalogue's pricing engine (never the AI). */
+  private async toView(
+    user: AuthUser,
+    catalogue: CatalogueEntry[],
+    proposition: PropositionBrute,
+    modeIA: boolean,
+    avertissement: string | null,
+    analysePhoto: AnalysePhoto | null = null,
+  ): Promise<PropositionView> {
     const byId = new Map(catalogue.map((c) => [c.id, c]));
     const lignes: LignePropositionView[] = [];
     for (const l of proposition.lignes) {
@@ -119,6 +216,7 @@ export class DevisIaService {
       hypotheses,
       totalHT: lignes.reduce((sum, l) => sum.plus(l.totalHT), toDecimal(0)),
       avertissement,
+      analysePhoto,
     };
   }
 

@@ -6,6 +6,8 @@ import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Input, Load
 import { errorMessage } from '@/lib/api';
 import { formatDate, formatEuros, formatNumber, formatPercent, fromDateInput, fullName, toDateInput } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
+import { RelancesCard } from '../relances/RelancesCard';
+import { FactureQrCodes } from './FactureQrCodes';
 import {
   FACTURE_TYPE_TITLE,
   factureLabel,
@@ -218,6 +220,7 @@ function FactureDocument({ facture: f, editable, onEditLigne, onRemoveLigne }: {
           {f.notesLegales && <p className="whitespace-pre-line">{f.notesLegales}</p>}
         </div>
       )}
+      <FactureQrCodes f={f} />
       {f.statut === 'PAYEE' && <p className="mt-6 text-center text-lg font-bold uppercase tracking-widest text-emerald-600">Payée le {formatDate(f.datePaiement)}</p>}
       {f.statut === 'ANNULEE' && <p className="mt-6 text-center text-lg font-bold uppercase tracking-widest text-red-600">Annulée</p>}
     </Card>
@@ -309,6 +312,13 @@ export function FactureDetailPage() {
               {f.factureOrigine && <div className="flex justify-between gap-2"><dt className="text-slate-500">Facture annulée</dt><dd><Link to={`/factures/${f.factureOrigine.id}`} className="font-medium text-brand-700 hover:underline dark:text-blue-300">{f.factureOrigine.reference}</Link></dd></div>}
             </dl>
           </Card>
+          {canWrite && f.reference && f.typeFacture !== 'AVOIR' && (
+            <RelancesCard
+              cible={{ factureId: f.id }}
+              canRelancer={f.statut === 'ENVOYEE' && !!f.emailClient}
+              description={f.statut === 'ENVOYEE' && !f.emailClient ? 'Pas d’email client : relance impossible.' : 'Automatiques après l’échéance tant qu’elle n’est pas payée'}
+            />
+          )}
           {draft && <p className="px-1 text-xs text-slate-500">Un brouillon n’a pas encore de numéro : il est attribué à l’émission, dans l’ordre chronologique (obligation légale). Une facture émise ne se modifie plus ; elle s’annule par un avoir.</p>}
         </div>
       </div>

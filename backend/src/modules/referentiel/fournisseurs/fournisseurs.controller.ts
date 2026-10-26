@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPip
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
-import { CreateFournisseurDto, LierCompteFournisseurDto, QueryFournisseursDto, UpdateFournisseurDto } from './dto/fournisseurs.dto';
+import { CreateFournisseurDto, LierCompteFournisseurDto, MateriauxFournisseurDto, QueryFournisseursDto, UpdateFournisseurDto } from './dto/fournisseurs.dto';
 import { FournisseursService } from './fournisseurs.service';
 
 @ApiTags('Fournisseurs')
@@ -34,6 +34,12 @@ export class FournisseursController {
   @ApiOperation({ summary: 'Modifier (actif: false pour désactiver)' })
   update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateFournisseurDto) {
     return this.fournisseurs.update(user, id, dto);
+  }
+
+  @Put(':id/materiaux')
+  @ApiOperation({ summary: 'Matériaux fournis : la liste remplace l’actuelle (un matériau = un fournisseur)' })
+  remplacerMateriaux(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: MateriauxFournisseurDto) {
+    return this.fournisseurs.remplacerMateriaux(user, id, dto.materiauIds);
   }
 
   @Put(':id/compte')

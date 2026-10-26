@@ -14,14 +14,16 @@ const OPERATIONS = [Role.ADMIN, Role.ASSISTANTE, Role.CHEF_CHANTIER];
 export class ChantiersController {
   constructor(private readonly chantiers: ChantiersService) {}
 
-  @Roles(...STAFF, Role.SOUS_TRAITANT)
+  // Staff only. A sous-traitant uses /portail/sous-traitant/chantiers, which never returns the client's
+  // phone, internal notes or other people's comments (this route used to accept him too: data leak).
+  @Roles(...STAFF)
   @Get()
-  @ApiOperation({ summary: 'Liste (chef : ses chantiers ; sous-traitant : chantiers qui lui sont ouverts)' })
+  @ApiOperation({ summary: 'Liste (chef de chantier : ses chantiers uniquement)' })
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryChantiersDto) {
     return this.chantiers.findAll(user, query);
   }
 
-  @Roles(...STAFF, Role.SOUS_TRAITANT)
+  @Roles(...STAFF)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.chantiers.findOne(user, id);

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, DataTable, ErrorState, Input, Modal, PageHeader, Pagination, SearchInput, Select, statusOptions, StatusBadge, Tabs } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { formatDateTime, formatEuros, formatNumber, formatUnite, fullName } from '@/lib/format';
+import { useAuth } from '../auth/auth-context';
 import { useChantiers } from '../chantiers/api';
 import { useCreateMouvement, useMouvements, useStock, type StockItem, type TypeMouvement } from './api';
 
@@ -83,6 +84,8 @@ function MouvementModal({ item, type, onClose }: { item: StockItem | null; type:
 }
 
 function Niveaux() {
+  const { hasRole } = useAuth();
+  const seesCosts = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
   const [query, setQuery] = useState({ page: 1, search: '', alerte: false });
   const stock = useStock(query);
   const [mouvement, setMouvement] = useState<{ item: StockItem; type: TypeMouvement } | null>(null);
@@ -128,7 +131,7 @@ function Niveaux() {
               ),
             },
             { key: 'min', header: 'Seuil', align: 'right', cell: (m) => <span className="tabular-nums text-slate-500">{formatNumber(m.stockMinimum)}</span> },
-            { key: 'valeur', header: 'Valeur', align: 'right', cell: (m) => <span className="tabular-nums">{formatEuros(m.valeurStock)}</span> },
+            ...(seesCosts ? [{ key: 'valeur', header: 'Valeur', align: 'right' as const, cell: (m: StockItem) => <span className="tabular-nums">{formatEuros(m.valeurStock)}</span> }] : []),
             {
               key: 'actions',
               header: <span className="sr-only">Mouvements</span>,

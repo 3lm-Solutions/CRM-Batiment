@@ -9,7 +9,6 @@ export const ReferencePrefix = {
   CHANTIER: 'CH',
   FACTURE: 'FAC',
   COMMANDE_FOURNISSEUR: 'CMD',
-  BON_COMMANDE: 'BC',
   SAV: 'SAV',
   CONTRAT_SOUS_TRAITANT: 'CST',
 } as const;

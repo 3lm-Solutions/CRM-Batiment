@@ -1,4 +1,4 @@
-import { Bot, ExternalLink, MessagesSquare, Pencil, Plus, Search, ThumbsUp, Trash2, TriangleAlert, UserCheck } from 'lucide-react';
+import { Bot, ExternalLink, Mail, MessagesSquare, Pencil, Plus, RefreshCw, Search, ThumbsUp, Trash2, TriangleAlert, UserCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,6 +26,9 @@ import { errorMessage } from '@/lib/api';
 import { formatDateTime, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import {
+  type ProspectSource,
+  useReleverEmails,
+  useEmailStatut,
   useAssistantErreurs,
   useAssistantStats,
   useCategoriesConnaissances,
@@ -43,7 +46,61 @@ const ERREURS: Record<string, string> = {
   LLM_INDISPONIBLE: 'IA indisponible',
   LLM_REPONSE_INVALIDE: 'Réponse IA invalide',
   QUOTA: 'Quota OpenAI atteint',
+  EMAIL_IMPORT: 'Email non importé',
+  EMAIL_LLM_INDISPONIBLE: 'Tri des emails : IA indisponible (tri par mots-clés)',
+  EMAIL_LLM_REPONSE_INVALIDE: 'Tri des emails : réponse IA invalide',
+  EMAIL_QUOTA: 'Tri des emails : quota IA atteint',
 };
+
+const SOURCES: { value: ProspectSource; label: string }[] = [
+  { value: 'CHATBOT', label: 'Chatbot' },
+  { value: 'EMAIL', label: 'Email' },
+];
+
+/** Mailbox of the prospects (22/10): status line + « Relever les emails » (ADMIN). */
+function EmailsBar({ isAdmin }: { isAdmin: boolean }) {
+  const statut = useEmailStatut();
+  const relever = useReleverEmails();
+  const s = statut.data;
+  if (!s) return null;
+  if (!s.active) {
+    return isAdmin ? (
+      <p className="mb-3 flex items-center gap-2 text-xs text-slate-500">
+        <Mail className="size-3.5" /> Prospects par email désactivés : configurez une boîte (IMAP_HOST, IMAP_USER, IMAP_PASS) dans le .env du backend.
+      </p>
+    ) : null;
+  }
+  const d = s.dernier;
+  return (
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+      <span className="flex items-center gap-2">
+        <Mail className="size-3.5" />
+        Boîte {s.boite} · lue toutes les {s.intervalleMinutes} min
+        {d && (
+          <span className={d.erreur ? 'text-red-600' : 'text-slate-500'}>
+            {' '}· dernier relevé {formatDateTime(d.date)} : {d.erreur ?? `${d.prospects} prospect(s), ${d.suites} réponse(s), ${d.rejetes} écarté(s)`}
+          </span>
+        )}
+      </span>
+      {isAdmin && (
+        <Button
+          size="sm"
+          variant="outline"
+          icon={<RefreshCw className="size-3.5" />}
+          loading={relever.isPending || s.enCours}
+          onClick={() =>
+            relever.mutate(undefined, {
+              onSuccess: (b) => toast.success(b.lus ? `${b.lus} email(s) lu(s) : ${b.prospects} prospect(s), ${b.suites} réponse(s), ${b.rejetes} écarté(s)` : 'Aucun nouvel email'),
+              onError: (e) => toast.error(errorMessage(e)),
+            })
+          }
+        >
+          Relever les emails
+        </Button>
+      )}
+    </div>
+  );
+}
 
 // ── prospects ─────────────────────────────────────────────────────────────
 
@@ -55,14 +112,24 @@ const PROSPECT_TABS: { value: string; label: string; statuts?: ProspectStatut[] 
   { value: 'all', label: 'Tous' },
 ];
 
-function Prospects() {
+function Prospects({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
   const [tab, setTab] = useState('todo');
-  const [query, setQuery] = useState<{ page: number; search: string; statuts?: ProspectStatut[] }>({ page: 1, search: '', statuts: ['A_QUALIFIER'] });
+  const [query, setQuery] = useState<{ page: number; search: string; statuts?: ProspectStatut[]; source: ProspectSource | '' }>({ page: 1, search: '', statuts: ['A_QUALIFIER'], source: '' });
   const list = useProspects(query);
   return (
     <>
+      <EmailsBar isAdmin={isAdmin} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-3">
+        <Select
+          aria-label="Source"
+          containerClassName="w-48"
+          placeholder="Toutes sources"
+          options={SOURCES}
+          value={query.source}
+          onChange={(e) => setQuery((q) => ({ ...q, page: 1, source: e.target.value as ProspectSource | '' }))}
+        />
         <Select
           aria-label="Statut"
           containerClassName="w-52"
@@ -73,6 +140,7 @@ function Prospects() {
             setQuery((q) => ({ ...q, page: 1, statuts: PROSPECT_TABS.find((t) => t.value === e.target.value)?.statuts }));
           }}
         />
+        </div>
         <SearchInput value={query.search} onChange={(search) => setQuery((q) => ({ ...q, search, page: 1 }))} placeholder="Nom, email, téléphone, projet…" />
       </div>
       <Card className="overflow-hidden">
@@ -84,7 +152,7 @@ function Prospects() {
             rows={list.data?.data}
             rowKey={(p) => p.id}
             onRowClick={(p) => navigate(`/assistant/prospects/${p.id}`)}
-            empty={{ title: 'Aucun prospect', description: 'Les conversations du chatbot apparaissent ici dès que le visiteur a écrit.' }}
+            empty={{ title: 'Aucun prospect', description: 'Les conversations du chatbot et les emails reçus dans la boîte des prospects apparaissent ici.' }}
             columns={[
               {
                 key: 'qui',
@@ -103,6 +171,7 @@ function Prospects() {
                 cell: (p) => (
                   <div>
                     {p.typeProjet && <Badge tone="blue" className="mb-1">{p.typeProjet}</Badge>}
+                    {p.emailSujet && <p className="truncate text-xs font-medium text-gray-700 dark:text-slate-200">{p.emailSujet}</p>}
                     <p className="line-clamp-2 text-sm text-gray-600">{p.description ?? '—'}</p>
                   </div>
                 ),
@@ -116,6 +185,11 @@ function Prospects() {
                     {p.doublonDeId && <Badge tone="amber">Doublon ?</Badge>}
                   </span>
                 ),
+              },
+              {
+                key: 'source',
+                header: 'Source',
+                cell: (p) => (p.source === 'EMAIL' ? <Badge tone="violet"><Mail className="mr-1 inline size-3" />Email</Badge> : <Badge tone="slate"><Bot className="mr-1 inline size-3" />Chatbot</Badge>),
               },
               { key: 'msgs', header: 'Messages', align: 'right', cell: (p) => p._count.messages },
               { key: 'date', header: 'Dernière activité', cell: (p) => formatDateTime(p.derniereActivite) },
@@ -344,7 +418,7 @@ export function AssistantPage() {
     <>
       <PageHeader
         title="Assistant IA"
-        description="Prospects du chatbot, base de connaissances et qualité des réponses"
+        description="Prospects du chatbot et des emails, base de connaissances et qualité des réponses"
         actions={
           <a href="/chat" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             <ExternalLink className="size-4" /> Ouvrir le chatbot
@@ -352,7 +426,7 @@ export function AssistantPage() {
         }
       />
       <div className="mb-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat icon={<MessagesSquare />} iconTone="blue" label="Conversations (30 jours)" value={s?.conversations ?? '—'} />
+        <Stat icon={<MessagesSquare />} iconTone="blue" label="Conversations et emails (30 jours)" value={s?.conversations ?? '—'} />
         <Stat icon={<UserCheck />} iconTone="orange" label="Prospects à qualifier" value={s?.parStatut.A_QUALIFIER ?? 0} hint={`${s?.parStatut.QUALIFIE ?? 0} qualifiés`} tone={s?.parStatut.A_QUALIFIER ? 'warning' : 'default'} />
         <Stat icon={<ThumbsUp />} iconTone="green" label="Réponses jugées utiles" value={avis ? `${Math.round((utiles / avis) * 100)} %` : '—'} hint={`${avis} avis`} />
         <Stat icon={<Bot />} iconTone="purple" label="Réponses bloquées / erreurs IA" value={`${bloquees} / ${pannes}`} hint="30 derniers jours" />
@@ -366,7 +440,7 @@ export function AssistantPage() {
           ...(isAdmin ? [{ value: 'journal' as const, label: 'Journal' }] : []),
         ]}
       />
-      {tab === 'prospects' && <Prospects />}
+      {tab === 'prospects' && <Prospects isAdmin={isAdmin} />}
       {tab === 'connaissances' && <Connaissances canWrite={isAdmin} />}
       {tab === 'journal' && isAdmin && <Journal />}
       {tab === 'prospects' && s && s.conversations === 0 && (

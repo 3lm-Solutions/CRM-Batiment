@@ -7,12 +7,13 @@ import { MailService } from '../../core/mail/mail.service';
 import { commandeFournisseurMail } from '../../core/mail/templates/finance.templates';
 import { StockService } from '../stock/stock.service';
 import { CommandeMachine, RECEIVABLE } from './commande-status';
-import { QueryCommandesDto, ReceptionDto, UpdateCommandeDto, UpdateLignesCommandeDto } from './commandes.dto';
+import { CreateCommandeDto, QueryCommandesDto, ReceptionDto, UpdateCommandeDto, UpdateLignesCommandeDto } from './commandes.dto';
 import { type CatalogueForNeeds, computeMaterialNeeds } from './material-needs';
 
 const INCLUDE = {
   fournisseur: { select: { id: true, nom: true, email: true, telephone: true } },
   devis: { select: { id: true, reference: true, chantierId: true } },
+  chantier: { select: { id: true, reference: true, adresse: true } },
   lignes: { orderBy: { id: 'asc' }, include: { materiau: { select: { id: true, nom: true, stockActuel: true } } } },
   receptions: {
     orderBy: { dateReception: 'desc' },
@@ -106,6 +107,7 @@ export class CommandesService {
         include: {
           fournisseur: { select: { id: true, nom: true } },
           devis: { select: { id: true, reference: true } },
+          chantier: { select: { id: true, reference: true } },
           lignes: { select: { totalHT: true } },
         },
         ...toSkipTake(query),
@@ -123,6 +125,71 @@ export class CommandesService {
   }
 
   // ── write ───────────────────────────────────────────────────────────────
+
+  /**
+   * Manual order (20/10): restocking, or extra material for a job site.
+   * Only materials of THIS supplier, at their catalogue purchase price; created CREEE,
+   * then follows the same flow as a generated order (adjust, send, deliveries → stock).
+   */
+  async create(user: AuthUser, dto: CreateCommandeDto) {
+    const fournisseur = await this.prisma.fournisseur.findFirst({
+      where: { id: dto.fournisseurId, companyId: user.companyId },
+      select: { id: true, nom: true, actif: true, delaiLivraison: true },
+    });
+    if (!fournisseur) throw new NotFoundException(`Fournisseur #${dto.fournisseurId} introuvable`);
+    if (!fournisseur.actif) throw new BusinessException('FOURNISSEUR_INACTIF', 'Ce fournisseur est désactivé.');
+
+    if (dto.chantierId) {
+      const chantier = await this.prisma.chantier.findFirst({ where: { id: dto.chantierId, companyId: user.companyId }, select: { statut: true } });
+      if (!chantier) throw new NotFoundException(`Chantier #${dto.chantierId} introuvable`);
+      if (chantier.statut === 'CLOTURE' || chantier.statut === 'ANNULE') {
+        throw new BusinessException('CHANTIER_FERME', 'Ce chantier est clôturé ou annulé.');
+      }
+    }
+
+    const ids = dto.lignes.map((l) => l.materiauId);
+    if (new Set(ids).size !== ids.length) throw new BusinessException('LIGNE_EN_DOUBLE', 'Un même matériau apparaît deux fois.');
+    const materiaux = await this.prisma.materiau.findMany({
+      where: { id: { in: ids }, companyId: user.companyId },
+      select: { id: true, nom: true, unite: true, prixAchatFixe: true, fournisseurId: true, actif: true },
+    });
+    const lignes = dto.lignes.map((l) => {
+      const m = materiaux.find((x) => x.id === l.materiauId);
+      if (!m) throw new NotFoundException(`Matériau #${l.materiauId} introuvable`);
+      if (m.fournisseurId !== fournisseur.id) {
+        throw new BusinessException('MATERIAU_AUTRE_FOURNISSEUR', `« ${m.nom} » n’est pas fourni par ${fournisseur.nom}.`);
+      }
+      if (!m.actif) throw new BusinessException('MATERIAU_INACTIF', `« ${m.nom} » est désactivé.`);
+      return {
+        materiauId: m.id,
+        materiauNom: m.nom,
+        quantite: l.quantite,
+        unite: m.unite,
+        prixUnitaire: m.prixAchatFixe,
+        totalHT: m.prixAchatFixe.times(l.quantite).toDecimalPlaces(2),
+      };
+    });
+
+    const commande = await this.prisma.$transaction(async (tx) =>
+      tx.commandeFournisseur.create({
+        data: {
+          companyId: user.companyId,
+          fournisseurId: fournisseur.id,
+          chantierId: dto.chantierId ?? null,
+          reference: await this.references.next(ReferencePrefix.COMMANDE_FOURNISSEUR, user.companyId, tx),
+          dateLivraisonPrevue: dto.dateLivraisonPrevue
+            ? new Date(dto.dateLivraisonPrevue)
+            : fournisseur.delaiLivraison != null
+              ? new Date(Date.now() + fournisseur.delaiLivraison * 86_400_000)
+              : null,
+          notes: dto.notes ?? 'Commande manuelle',
+          lignes: { create: lignes },
+        },
+        select: { id: true },
+      }),
+    );
+    return this.findOne(user, commande.id);
+  }
 
   async update(user: AuthUser, id: number, dto: UpdateCommandeDto) {
     const commande = await this.findOne(user, id);
@@ -234,7 +301,7 @@ export class CommandesService {
             quantite: item.quantite,
             motif: `Réception commande ${commande.reference}`,
             reference: commande.reference,
-            chantierId: commande.devis.chantierId,
+            chantierId: commande.chantierId ?? commande.devis?.chantierId ?? null,
           });
         }
       }
@@ -263,10 +330,13 @@ export class CommandesService {
     if (!count) throw new BusinessException('COMMANDE_MODIFIEE', 'La commande vient de changer de statut. Rechargez.');
   }
 
-  /** Chef de chantier: orders for his job sites (to receive deliveries). */
+  /** Chef de chantier: orders for his job sites (to receive deliveries) — from a quote or manual. */
   private scope(user: AuthUser): Prisma.CommandeFournisseurWhereInput {
     return user.role === Role.CHEF_CHANTIER
-      ? { companyId: user.companyId, devis: { chantier: { chefChantierId: user.id } } }
+      ? {
+          companyId: user.companyId,
+          OR: [{ devis: { chantier: { chefChantierId: user.id } } }, { chantier: { chefChantierId: user.id } }],
+        }
       : { companyId: user.companyId };
   }
 

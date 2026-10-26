@@ -45,6 +45,24 @@ export function useDemandeAction() {
   });
 }
 
+/** E6 of 20/10: correct a request (not once converted). */
+export function useUpdateDemande() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...body }: { id: number; description: string; source: LeadSource }) => (await api.patch<Demande>(`/demandes-devis/${id}`, body)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['demandes'] }),
+  });
+}
+
+/** Deleted for good (ADMIN, TECHNICO) — refused once a quote exists: mark it lost instead. */
+export function useDeleteDemande() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => api.delete(`/demandes-devis/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['demandes'] }),
+  });
+}
+
 export function useCreateDemande() {
   const qc = useQueryClient();
   return useMutation({

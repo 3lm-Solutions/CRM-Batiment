@@ -65,7 +65,9 @@ export class SousTraitantsService {
     return st;
   }
 
-  create(user: AuthUser, dto: CreateSousTraitantDto) {
+  /** Can be created straight from an existing SOUS_TRAITANT account (decision F1 of 20/10). */
+  async create(user: AuthUser, dto: CreateSousTraitantDto) {
+    if (dto.userId) await this.assertCompteLibre(user, dto.userId);
     // Same SIRET twice in the company -> P2002 -> 409
     return this.prisma.sousTraitant.create({ data: { ...dto, companyId: user.companyId } });
   }
@@ -78,14 +80,19 @@ export class SousTraitantsService {
   /** Links (or unlinks) the portal login of this sous-traitant. */
   async lierCompte(user: AuthUser, id: number, dto: LierCompteDto) {
     await this.assertExists(user, id);
-    if (dto.userId) {
-      const account = await this.prisma.user.count({
-        where: { id: dto.userId, companyId: user.companyId, role: Role.SOUS_TRAITANT },
-      });
-      if (!account) throw new BusinessException('COMPTE_INVALIDE', 'Le compte doit avoir le rôle SOUS_TRAITANT.');
-    }
-    // Account already linked to another sous-traitant -> P2002 -> 409
+    if (dto.userId) await this.assertCompteLibre(user, dto.userId, id);
     return this.prisma.sousTraitant.update({ where: { id }, data: { userId: dto.userId } });
+  }
+
+  /** A SOUS_TRAITANT account of the company, not yet linked to another record (clear message instead of a 409). */
+  private async assertCompteLibre(user: AuthUser, userId: number, sousTraitantId?: number) {
+    const account = await this.prisma.user.count({ where: { id: userId, companyId: user.companyId, role: Role.SOUS_TRAITANT } });
+    if (!account) throw new BusinessException('COMPTE_INVALIDE', 'Le compte doit avoir le rôle SOUS_TRAITANT.');
+    const other = await this.prisma.sousTraitant.findFirst({
+      where: { userId, ...(sousTraitantId ? { NOT: { id: sousTraitantId } } : {}) },
+      select: { nom: true },
+    });
+    if (other) throw new BusinessException('COMPTE_DEJA_LIE', `Ce compte est déjà lié au sous-traitant « ${other.nom} ». Déliez-le d’abord.`);
   }
 
   /** Only without history; otherwise set statut INACTIF. */
@@ -96,7 +103,7 @@ export class SousTraitantsService {
       this.prisma.paiementSousTraitant.count({ where: { sousTraitantId: id } }),
     ]);
     if (contrats || paiements) {
-      throw new BusinessException('SOUS_TRAITANT_AVEC_HISTORIQUE', 'Ce sous-traitant a des contrats ou paiements : passez-le INACTIF.');
+      throw new BusinessException('SOUS_TRAITANT_AVEC_HISTORIQUE', 'Ce sous-traitant a des contrats ou des paiements : supprimez-les d’abord (un contrat brouillon ou résilié, sans paiement, se supprime) ou passez-le INACTIF.');
     }
     await this.prisma.sousTraitant.delete({ where: { id } });
   }

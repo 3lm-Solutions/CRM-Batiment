@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles } from '../../../common';
+import { amountsFor, type AuthUser, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ContratsService } from './contrats.service';
 import { CreateContratDto, UpdateContratDto } from './dto/sous-traitants.dto';
@@ -20,7 +20,7 @@ export class ContratsController {
     @Query('sousTraitantId', new ParseIntPipe({ optional: true })) sousTraitantId?: number,
     @Query('chantierId', new ParseIntPipe({ optional: true })) chantierId?: number,
   ) {
-    return this.contrats.findAll(user, { sousTraitantId, chantierId });
+    return amountsFor(user, this.contrats.findAll(user, { sousTraitantId, chantierId }));
   }
 
   @Post()

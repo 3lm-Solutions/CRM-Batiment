@@ -6,7 +6,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { ACCEPTED_LABEL, detectFileType } from '../../core/storage/file-type';
 import { FICHIER_SELECT, FichiersService } from '../../core/storage/fichiers.service';
 import { MAX_PHOTOS_PER_RAPPORT, type UploadedBinary } from '../../core/storage/upload.config';
-import { ChantiersService } from '../../execution/chantiers/chantiers.service';
+import { CHANTIER_FERME, ChantiersService } from '../../execution/chantiers/chantiers.service';
 import { normalizeTaskProgress } from '../../execution/chantiers/tache-rules';
 import { PortailEvents, type RapportEvent } from '../portails.events';
 import { CreateRapportDto } from './rapports.dto';
@@ -119,9 +119,11 @@ export class RapportsService {
       });
       if (!count) throw new BusinessException('RAPPORT_DEJA_TRAITE', 'Ce rapport a déjà été traité.');
 
-      if (decision === 'VALIDE' && rapport.tacheId && rapport.avancement !== null) {
+      if (decision === 'VALIDE' && rapport.tacheId && rapport.avancement !== null && !CHANTIER_FERME.includes(chantier.statut)) {
         const tache = await tx.tache.findUnique({ where: { id: rapport.tacheId } });
-        if (tache) {
+        // A report only ever RAISES progress: validating an old "50 %" report after the task moved on
+        // to 80 % (or was finished) used to bring it back to 50 % and reopen it.
+        if (tache && rapport.avancement > tache.avancement) {
           await tx.tache.update({
             where: { id: tache.id },
             data: normalizeTaskProgress(tache, { avancement: rapport.avancement }),

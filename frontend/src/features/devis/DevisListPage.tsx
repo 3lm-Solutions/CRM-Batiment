@@ -52,17 +52,18 @@ export function DevisListPage() {
     <>
       <PageHeader
         title="Devis"
-        description={isBureau ? 'Du brouillon à la signature' : 'Devis de vos chantiers'}
+        description={isBureau ? 'Du brouillon à la signature' : 'Devis signés de vos chantiers (lignes et quantités, sans montants)'}
         actions={isBureau && <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nouveau devis</Button>}
       />
-      <Tabs
+      {/* The chef only sees signed quotes of his job sites: status tabs make no sense for him */}
+      {isBureau && <Tabs
         value={tab}
         onChange={(v) => {
           setTab(v);
           setQuery((q) => ({ ...q, page: 1, statuts: TABS.find((t) => t.value === v)?.statuts }));
         }}
         tabs={TABS}
-      />
+      />}
       <Card>
         <div className="border-b border-gray-100 px-6 py-4 dark:border-slate-800">
           <SearchInput value={query.search ?? ''} onChange={(search) => setQuery((q) => ({ ...q, search, page: 1 }))} placeholder="Référence ou client…" />
@@ -75,7 +76,7 @@ export function DevisListPage() {
             rows={devis.data?.data}
             rowKey={(d) => d.id}
             onRowClick={(d) => navigate(`/devis/${d.id}`)}
-            empty={{ title: 'Aucun devis', action: isBureau && tab === 'all' ? <Button onClick={() => setCreating(true)}>Créer un devis</Button> : undefined }}
+            empty={{ title: 'Aucun devis', description: isBureau ? undefined : 'Un devis apparaît ici une fois signé, quand son chantier vous est affecté.', action: isBureau && tab === 'all' ? <Button onClick={() => setCreating(true)}>Créer un devis</Button> : undefined }}
             columns={columns}
           />
         )}

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../../common';
+import { type AuthUser, BUREAU, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
 import { ReplaceCompositionsDto } from '../compositions/compositions.dto';
 import { ChiffrageDto } from '../pricing/pricing.dto';
@@ -21,14 +21,14 @@ export class PrestationsController {
   @Roles(...STAFF)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryPrestationsDto) {
-    return this.prestations.findAll(user, query);
+    return costsFor(user, this.prestations.findAll(user, query));
   }
 
   @Roles(...STAFF)
   @Get(':id')
   @ApiOperation({ summary: 'Détail : composition, options, choix et leurs compositions' })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
-    return this.prestations.findOne(user, id);
+    return costsFor(user, this.prestations.findOne(user, id));
   }
 
   @Roles(...BUREAU)

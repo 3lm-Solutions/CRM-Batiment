@@ -24,13 +24,14 @@ import { DemoRequestsPage } from '@/features/demo/DemoRequestsPage';
 import { PublicDemoPage } from '@/features/demo/PublicDemoPage';
 import { DevisEditorPage } from '@/features/devis/DevisEditorPage';
 import { DevisListPage } from '@/features/devis/DevisListPage';
-import { EspaceClientPage } from '@/features/espace-client/EspaceClientPage';
+import { EspaceClientApercuPage, EspaceClientPage } from '@/features/espace-client/EspaceClientPage';
 import { FactureDetailPage } from '@/features/factures/FactureDetailPage';
 import { FournisseursPage } from '@/features/fournisseurs/FournisseursPage';
 import { FacturesPage } from '@/features/factures/FacturesPage';
 import { FournisseurCommandePage, FournisseurCommandesPage } from '@/features/portail-fournisseur/FournisseurPages';
 import { PortailHomePage } from '@/features/portail-st/PortailHomePage';
 import { StChantierPage, StChantiersPage, StDossierPage, StRapportsPage } from '@/features/portail-st/StPages';
+import { StDisponibilitesPage } from '@/features/portail-st/StDisponibilitesPage';
 import { ClientDevisPage } from '@/features/public/ClientDevisPage';
 import { SavDetailPage } from '@/features/sav/SavDetailPage';
 import { SavPage } from '@/features/sav/SavPage';
@@ -38,6 +39,11 @@ import { SousTraitantDetailPage } from '@/features/sous-traitants/SousTraitantDe
 import { SousTraitantsPage } from '@/features/sous-traitants/SousTraitantsPage';
 import { StockPage } from '@/features/stock/StockPage';
 import { UsersPage } from '@/features/users/UsersPage';
+import { SettingsPage } from '@/features/company/SettingsPage';
+import { PublicFacturePage } from '@/features/public/PublicFacturePage';
+import { PlanningPage } from '@/features/planning/PlanningPage';
+import { PointagesPage } from '@/features/pointages/PointagesPage';
+import { StHeuresPage } from '@/features/portail-st/StHeuresPage';
 import { AppLayout } from '@/layouts/AppLayout';
 import { RequireAuth, RequireRoles, RoleHome } from './guards';
 import { NotFoundPage } from './placeholders';
@@ -78,6 +84,19 @@ export const router = createBrowserRouter([
       // Links emailed to the client — no account
       { path: '/devis/lien/:token', element: <ClientDevisPage /> },
       { path: '/espace-client/:token', element: <EspaceClientPage /> },
+      // QR code printed on an invoice (21/10)
+      { path: '/facture/:token', element: <PublicFacturePage /> },
+      // Office preview of a client's space (full page, like the client sees it)
+      {
+        path: '/clients/:id/espace-client',
+        element: (
+          <RequireAuth>
+            <RequireRoles roles={BUREAU}>
+              <EspaceClientApercuPage />
+            </RequireRoles>
+          </RequireAuth>
+        ),
+      },
       {
         element: (
           <RequireAuth>
@@ -105,6 +124,8 @@ export const router = createBrowserRouter([
           // ── opérations ──
           page('chantiers', STAFF, <ChantiersPage />, 'Chantiers'),
           page('chantiers/:id', STAFF, <ChantierDetailPage />, 'Chantier'),
+          page('planning', STAFF, <PlanningPage />, 'Planning'),
+          page('pointages', STAFF, <PointagesPage />, 'Pointages'),
           page('factures', STAFF, <FacturesPage />, 'Factures'),
           page('factures/:id', STAFF, <FactureDetailPage />, 'Facture'),
           page('commandes', STAFF, <CommandesPage />, 'Commandes fournisseur'),
@@ -120,6 +141,7 @@ export const router = createBrowserRouter([
           page('catalogue/prestations/:id', STAFF, <PrestationDetailPage />, 'Prestation'),
           page('fournisseurs', BUREAU, <FournisseursPage />, 'Fournisseurs'),
           page('utilisateurs', ['ADMIN'], <UsersPage />, 'Utilisateurs'),
+          page('parametres', ['ADMIN'], <SettingsPage />, 'Paramètres'),
 
           // ── portails (Step 11) ──
           page('portail', PORTAL, <PortailHomePage />, 'Mon espace'),
@@ -127,6 +149,8 @@ export const router = createBrowserRouter([
           page('portail/chantiers/:id', ['SOUS_TRAITANT'], <StChantierPage />, 'Chantier'),
           page('portail/rapports', ['SOUS_TRAITANT'], <StRapportsPage />, 'Mes rapports'),
           page('portail/dossier', ['SOUS_TRAITANT'], <StDossierPage />, 'Mon dossier'),
+          page('portail/heures', ['SOUS_TRAITANT'], <StHeuresPage />, 'Mes heures'),
+          page('portail/disponibilites', ['SOUS_TRAITANT'], <StDisponibilitesPage />, 'Mes disponibilités'),
           page('portail/commandes', ['FOURNISSEUR'], <FournisseurCommandesPage />, 'Mes commandes'),
           page('portail/commandes/:id', ['FOURNISSEUR'], <FournisseurCommandePage />, 'Commande'),
 

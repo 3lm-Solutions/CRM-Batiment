@@ -1,11 +1,115 @@
-import { ArrowLeft, Lightbulb, SearchX, Sparkles, TriangleAlert } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Camera, Eye, Lightbulb, SearchX, Sparkles, TriangleAlert, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Badge, Button, Modal, Textarea } from '@/components/ui';
+import { Badge, Button, Modal, Tabs, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { formatEuros, formatUnite } from '@/lib/format';
-import { useAppliquerIa, useProposerIa, type LigneProposee, type PropositionIa } from './api';
+import { formatEuros, formatNumber, formatUnite } from '@/lib/format';
+import { shrinkImage } from '@/lib/images';
+import { MAX_PHOTOS_IA, useAppliquerIa, useProposerIa, useProposerPhotoIa, type AnalysePhoto, type LigneProposee, type PropositionIa } from './api';
+
+type Mode = 'texte' | 'photo';
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const QUALITE: Record<AnalysePhoto['qualitePhoto'], { label: string; tone: 'green' | 'amber' | 'red' }> = {
+  BONNE: { label: 'Photo nette', tone: 'green' },
+  MOYENNE: { label: 'Photo moyenne', tone: 'amber' },
+  INSUFFISANTE: { label: 'Photo peu exploitable', tone: 'red' },
+};
+
+/** 1 to 3 photos, shrunk in the browser before sending; previews with « remove ». */
+function PhotoPicker({ photos, onChange, disabled }: { photos: File[]; onChange: (p: File[]) => void; disabled?: boolean }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [urls, setUrls] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const u = photos.map((p) => URL.createObjectURL(p));
+    setUrls(u);
+    return () => u.forEach((x) => URL.revokeObjectURL(x));
+  }, [photos]);
+
+  const add = async (list: FileList | null) => {
+    setError(null);
+    const files = [...(list ?? [])];
+    if (!files.length) return;
+    if (files.some((f) => !PHOTO_TYPES.includes(f.type))) return setError('Photos JPEG, PNG ou WebP uniquement.');
+    if (photos.length + files.length > MAX_PHOTOS_IA) return setError(`${MAX_PHOTOS_IA} photos au maximum.`);
+    setBusy(true);
+    try {
+      onChange([...photos, ...(await Promise.all(files.map((f) => shrinkImage(f))))]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        Photos du chantier <span className="font-normal text-slate-500">(1 à {MAX_PHOTOS_IA}, plusieurs angles de la même pièce)</span>
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        {urls.map((u, i) => (
+          <div key={u} className="relative">
+            <img src={u} alt={photos[i]?.name ?? 'Photo'} className="size-28 rounded-lg object-cover" />
+            {!disabled && (
+              <button
+                type="button"
+                aria-label={`Retirer ${photos[i]?.name ?? 'la photo'}`}
+                className="absolute -right-1.5 -top-1.5 rounded-full bg-white p-0.5 text-slate-700 shadow ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700"
+                onClick={() => onChange(photos.filter((_, j) => j !== i))}
+              >
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+        ))}
+        {photos.length < MAX_PHOTOS_IA && (
+          <>
+            {/* no `capture`: on a phone the user picks the camera OR the gallery */}
+            <input ref={input} type="file" multiple accept={PHOTO_TYPES.join(',')} className="hidden" onChange={(e) => { void add(e.target.files); e.target.value = ''; }} />
+            <button
+              type="button"
+              disabled={disabled || busy}
+              onClick={() => input.current?.click()}
+              className="flex size-28 flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-300 text-xs font-medium text-slate-600 transition hover:border-brand-700 hover:text-brand-700 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+            >
+              <Camera className="size-6" />
+              {busy ? 'Préparation…' : 'Ajouter'}
+            </button>
+          </>
+        )}
+      </div>
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+      <p className="text-xs text-slate-500">Astuce : une porte, un carreau ou un mètre visible sur la photo aide l’IA à estimer la surface. Les photos ne sont pas conservées.</p>
+    </div>
+  );
+}
+
+/** What the AI saw on the photos, shown above the proposed lines. */
+function AnalyseCard({ a }: { a: AnalysePhoto }) {
+  const q = QUALITE[a.qualitePhoto];
+  return (
+    <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm text-violet-950 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-100">
+      <p className="mb-2 flex flex-wrap items-center gap-2 font-semibold">
+        <Eye className="size-4" /> Ce que l’IA voit : {a.piece}
+        <Badge tone={q.tone}>{q.label}</Badge>
+      </p>
+      <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
+        <div>
+          <dt className="inline text-violet-700 dark:text-violet-300">Surface estimée : </dt>
+          <dd className="inline font-medium">
+            {a.surfaceEstimeeM2 !== null ? `≈ ${formatNumber(a.surfaceEstimeeM2)} m²` : 'non estimable'}
+            {a.surfaceEstimeeM2 !== null && <span className="ml-1 text-xs font-normal">({a.objetReference ? 'approximative' : 'très approximative'}, à mesurer)</span>}
+          </dd>
+        </div>
+        {a.etat && <div><dt className="inline text-violet-700 dark:text-violet-300">État : </dt><dd className="inline">{a.etat}</dd></div>}
+        {a.elementsVisibles.length > 0 && (
+          <div className="sm:col-span-2"><dt className="inline text-violet-700 dark:text-violet-300">Éléments visibles : </dt><dd className="inline">{a.elementsVisibles.join(', ')}</dd></div>
+        )}
+      </dl>
+    </div>
+  );
+}
 
 const EXEMPLE = 'Ex. : Rénovation salle de bain 8 m² — dépose de la baignoire, douche à l’italienne, faïence murale sur 2 m de haut, carrelage au sol, remplacement du WC.';
 
@@ -20,15 +124,21 @@ const qty = (r: Row) => Number(r.saisie.replace(',', '.'));
 const validQty = (r: Row) => Number.isFinite(qty(r)) && qty(r) > 0 && qty(r) <= 10_000;
 
 /**
- * Step 15 — "Proposer avec l’IA": the technician describes the job, reviews the proposed
+ * Step 15 — "Proposer avec l’IA" (C37 of 21/10: « Texte » / « Photo » tabs): the technician
+ * describes the job or sends 1 to 3 photos, reviews the proposed
  * catalogue lines (keep / remove / change quantity), then adds them in one go.
  * Prices shown come from the catalogue, exactly like a line added by hand.
  */
 export function DevisIaModal({ devisId, description: initial, onClose }: { devisId: number; description?: string; onClose: () => void }) {
+  const [mode, setMode] = useState<Mode>('texte');
   const [description, setDescription] = useState(initial ?? '');
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [precision, setPrecision] = useState('');
   const [proposition, setProposition] = useState<PropositionIa | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const proposer = useProposerIa(devisId);
+  const proposerPhoto = useProposerPhotoIa(devisId);
+  const current = mode === 'texte' ? proposer : proposerPhoto;
   const appliquer = useAppliquerIa(devisId);
 
   const kept = rows.filter((r) => r.garder);
@@ -36,13 +146,12 @@ export function DevisIaModal({ devisId, description: initial, onClose }: { devis
   const total = kept.reduce((sum, r) => sum + (validQty(r) ? r.prixUnitaireHT * qty(r) : 0), 0);
   const update = (i: number, patch: Partial<Row>) => setRows((list) => list.map((r, j) => (j === i ? { ...r, ...patch } : r)));
 
-  const submitDescription = () =>
-    proposer.mutate(description.trim(), {
-      onSuccess: (p) => {
-        setProposition(p);
-        setRows(toRows(p));
-      },
-    });
+  const show = (p: PropositionIa) => {
+    setProposition(p);
+    setRows(toRows(p));
+  };
+  const submitDescription = () => proposer.mutate(description.trim(), { onSuccess: show });
+  const submitPhotos = () => proposerPhoto.mutate({ photos, description: precision }, { onSuccess: show });
 
   const apply = () =>
     appliquer.mutate(
@@ -64,28 +173,58 @@ export function DevisIaModal({ devisId, description: initial, onClose }: { devis
         onClose={onClose}
         size="lg"
         title="Proposer les lignes avec l’IA"
-        description="Décrivez les travaux : l’assistant choisit les prestations de votre catalogue et estime les quantités. Rien n’est ajouté sans votre validation."
+        description="Décrivez les travaux ou prenez le chantier en photo : l’assistant choisit les prestations de votre catalogue et estime les quantités. Rien n’est ajouté sans votre validation."
         footer={
           <>
             <Button variant="outline" onClick={onClose}>Annuler</Button>
-            <Button icon={<Sparkles className="size-4" />} loading={proposer.isPending} disabled={description.trim().length < 10} onClick={submitDescription}>
-              Proposer les lignes
-            </Button>
+            {mode === 'texte' ? (
+              <Button icon={<Sparkles className="size-4" />} loading={proposer.isPending} disabled={description.trim().length < 10} onClick={submitDescription}>
+                Proposer les lignes
+              </Button>
+            ) : (
+              <Button icon={<Sparkles className="size-4" />} loading={proposerPhoto.isPending} disabled={!photos.length} onClick={submitPhotos}>
+                Analyser {photos.length > 1 ? `les ${photos.length} photos` : 'la photo'}
+              </Button>
+            )}
           </>
         }
       >
-        <Textarea
-          label="Description des travaux"
-          rows={6}
-          autoFocus
-          placeholder={EXEMPLE}
-          hint="Indiquez les surfaces (m²), longueurs (ml) et nombres d’éléments : les quantités seront plus justes."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          maxLength={3000}
+        <Tabs<Mode>
+          tabs={[{ value: 'texte', label: 'Texte' }, { value: 'photo', label: 'Photo' }]}
+          value={mode}
+          onChange={(m) => !proposer.isPending && !proposerPhoto.isPending && setMode(m)}
         />
-        {proposer.isPending && <p className="mt-3 text-sm text-gray-500" role="status">L’assistant prépare la proposition… (jusqu’à 30 secondes)</p>}
-        {proposer.isError && <p role="alert" className="mt-3 text-sm text-red-600">{errorMessage(proposer.error)}</p>}
+        {mode === 'texte' ? (
+          <Textarea
+            label="Description des travaux"
+            rows={6}
+            autoFocus
+            placeholder={EXEMPLE}
+            hint="Indiquez les surfaces (m²), longueurs (ml) et nombres d’éléments : les quantités seront plus justes."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={3000}
+          />
+        ) : (
+          <div className="space-y-4">
+            <PhotoPicker photos={photos} onChange={setPhotos} disabled={proposerPhoto.isPending} />
+            <Textarea
+              label="Précisions (facultatif)"
+              rows={3}
+              placeholder="Ex. : refaire toute la salle de bain, garder la baignoire ; pièce de 2,40 × 2,80 m."
+              hint="Ce que la photo ne montre pas : dimensions, travaux voulus. Prioritaire sur ce que l’IA croit voir."
+              value={precision}
+              onChange={(e) => setPrecision(e.target.value)}
+              maxLength={3000}
+            />
+          </div>
+        )}
+        {current.isPending && (
+          <p className="mt-3 text-sm text-gray-500" role="status">
+            {mode === 'texte' ? 'L’assistant prépare la proposition… (jusqu’à 30 secondes)' : 'L’IA analyse les photos… (jusqu’à 60 secondes)'}
+          </p>
+        )}
+        {current.isError && <p role="alert" className="mt-3 text-sm text-red-600">{errorMessage(current.error)}</p>}
       </Modal>
     );
   }
@@ -106,7 +245,7 @@ export function DevisIaModal({ devisId, description: initial, onClose }: { devis
       footer={
         <>
           <Button variant="ghost" icon={<ArrowLeft className="size-4" />} onClick={() => setProposition(null)} className="mr-auto">
-            Modifier la description
+            {proposition.analysePhoto ? 'Changer les photos' : 'Modifier la description'}
           </Button>
           <Button variant="outline" onClick={onClose}>Annuler</Button>
           <Button disabled={!kept.length || invalid} loading={appliquer.isPending} onClick={apply}>
@@ -116,6 +255,7 @@ export function DevisIaModal({ devisId, description: initial, onClose }: { devis
       }
     >
       <div className="space-y-4">
+        {proposition.analysePhoto && <AnalyseCard a={proposition.analysePhoto} />}
         {proposition.avertissement && (
           <p className="flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900 dark:border-orange-900 dark:bg-orange-950/40 dark:text-orange-200">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" /> {proposition.avertissement}

@@ -1,6 +1,9 @@
 import {
   BookOpen,
   Bot,
+  CalendarDays,
+  CalendarRange,
+  Clock,
   Boxes,
   ClipboardList,
   Factory,
@@ -13,6 +16,7 @@ import {
   MonitorPlay,
   NotebookPen,
   Receipt,
+  Settings,
   ShieldCheck,
   Truck,
   UserCog,
@@ -45,6 +49,8 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
     items: [
       { to: '/tableau-de-bord', label: 'Tableau de bord', description: 'Vue générale', icon: LayoutDashboard, roles: ['ADMIN'] },
       { to: '/chantiers', label: 'Chantiers', description: 'Suivi des chantiers', icon: HardHat, roles: STAFF },
+      { to: '/planning', label: 'Planning', description: 'Calendrier des équipes', icon: CalendarRange, roles: STAFF },
+      { to: '/pointages', label: 'Pointages', description: 'Heures des sous-traitants', icon: Clock, roles: STAFF },
       { to: '/commandes', label: 'Commandes fournisseur', description: 'Commandes et réceptions', icon: Truck, roles: STAFF },
       { to: '/sav', label: 'SAV', description: 'Tickets et interventions', icon: Wrench, roles: STAFF },
     ],
@@ -54,7 +60,7 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
     items: [
       { to: '/clients', label: 'Clients', description: 'Fiches clients', icon: Users, roles: STAFF },
       { to: '/demandes', label: 'Demandes', description: 'Demandes de devis', icon: ClipboardList, roles: BUREAU },
-      { to: '/assistant', label: 'Assistant IA', description: 'Prospects du chatbot', icon: Bot, roles: BUREAU },
+      { to: '/assistant', label: 'Assistant IA', description: 'Prospects chatbot et emails', icon: Bot, roles: BUREAU },
       { to: '/devis', label: 'Devis', description: 'Création et suivi', icon: FileText, roles: STAFF },
       { to: '/factures', label: 'Factures', description: 'Facturation et paiements', icon: Receipt, roles: STAFF },
       { to: '/demandes-demo', label: 'Demandes de démo', description: 'Demandes reçues', icon: MonitorPlay, roles: ['ADMIN', 'TECHNICO'] },
@@ -74,6 +80,7 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
     items: [
       { to: '/utilisateurs', label: 'Utilisateurs', description: 'Comptes et rôles', icon: UserCog, roles: ['ADMIN'] },
       { to: '/audit', label: 'Audit', description: 'Journal des activités', icon: ShieldCheck, roles: ['ADMIN'] },
+      { to: '/parametres', label: 'Paramètres', description: 'Entreprise et chiffrage', icon: Settings, roles: ['ADMIN'] },
     ],
   },
   // External accounts (Step 11)
@@ -84,6 +91,8 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
       { to: '/portail/chantiers', label: 'Mes chantiers', description: 'Tâches et documents', icon: HardHat, roles: ['SOUS_TRAITANT'] },
       { to: '/portail/rapports', label: 'Mes rapports', description: 'Comptes rendus et photos', icon: NotebookPen, roles: ['SOUS_TRAITANT'] },
       { to: '/portail/dossier', label: 'Mon dossier', description: 'Assurances et contrats', icon: FolderOpen, roles: ['SOUS_TRAITANT'] },
+      { to: '/portail/heures', label: 'Mes heures', description: 'Pointage par jour et chantier', icon: Clock, roles: ['SOUS_TRAITANT'] },
+      { to: '/portail/disponibilites', label: 'Mes disponibilités', description: 'Périodes libres ou occupées', icon: CalendarDays, roles: ['SOUS_TRAITANT'] },
       { to: '/portail/commandes', label: 'Mes commandes', description: 'À confirmer et expédier', icon: Truck, roles: ['FOURNISSEUR'] },
     ],
   },

@@ -6,7 +6,7 @@ import { Badge, Button, Card, DataTable, ErrorState, Input, PageHeader, Paginati
 import { errorMessage } from '@/lib/api';
 import { formatEuros, formatNumber, formatUnite } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
-import { useCategories, useCreateSousCategorie, useMateriaux, usePrestations, useServicesMo, type ListQuery, type Materiau, type ServiceMo } from './api';
+import { useCategories, useCreateSousCategorie, useMateriaux, usePrestations, useServicesMo, type ListQuery, type Materiau, type Prestation, type ServiceMo } from './api';
 import { CategorieModal, MateriauModal, PrestationModal, ServiceModal } from './CatalogueForms';
 
 type Tab = 'prestations' | 'materiaux' | 'services' | 'categories';
@@ -38,7 +38,7 @@ function Filters({ query, setQuery, withCategory }: { query: ListQuery; setQuery
   );
 }
 
-function PrestationsTab({ isAdmin }: { isAdmin: boolean }) {
+function PrestationsTab({ isAdmin, seesCosts }: { isAdmin: boolean; seesCosts: boolean }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState<ListQuery>({ page: 1, search: '', categorieId: '', actif: 'true' });
   const [creating, setCreating] = useState(false);
@@ -57,7 +57,7 @@ function PrestationsTab({ isAdmin }: { isAdmin: boolean }) {
           columns={[
             { key: 'nom', header: 'Prestation', cell: (p) => <span className="font-medium">{p.nom}</span> },
             { key: 'cat', header: 'Catégorie', cell: (p) => <span className="text-slate-600 dark:text-slate-400">{p.categorie.nom}{p.sousCategorie && ` › ${p.sousCategorie.nom}`}</span> },
-            { key: 'prix', header: 'Prix de vente HT', align: 'right', cell: (p) => <span className="tabular-nums">{formatEuros(p.prixVenteMin)} – {formatEuros(p.prixVenteMax)} / {formatUnite(p.unite)}</span> },
+            ...(seesCosts ? [{ key: 'prix', header: 'Prix de vente HT', align: 'right' as const, cell: (p: Prestation) => <span className="tabular-nums">{formatEuros(p.prixVenteMin)} – {formatEuros(p.prixVenteMax)} / {formatUnite(p.unite)}</span> }] : []),
             { key: 'compo', header: 'Composition', cell: (p) => (p._count?.compositions ? <Badge tone="green">{p._count.compositions} élément(s)</Badge> : <Badge tone="amber">à compléter</Badge>) },
             { key: 'actif', header: 'Statut', cell: (p) => <StatusBadge kind="actif" value={p.actif} /> },
           ]}
@@ -69,13 +69,13 @@ function PrestationsTab({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-function MateriauxTab({ isAdmin }: { isAdmin: boolean }) {
+function MateriauxTab({ isAdmin, seesCosts }: { isAdmin: boolean; seesCosts: boolean }) {
   const [query, setQuery] = useState<ListQuery>({ page: 1, search: '', actif: 'true' });
   const [editing, setEditing] = useState<Materiau | 'new' | null>(null);
   const data = useMateriaux(query);
   const columns: Column<Materiau>[] = [
     { key: 'nom', header: 'Matériau', cell: (m) => <span className="font-medium">{m.nom}{m.couleur && <span className="text-slate-500"> · {m.couleur}</span>}</span> },
-    { key: 'prix', header: 'Prix d’achat HT', align: 'right', cell: (m) => <span className="tabular-nums">{formatEuros(m.prixAchatFixe)} / {formatUnite(m.unite)}</span> },
+    ...(seesCosts ? [{ key: 'prix', header: 'Prix d’achat HT', align: 'right' as const, cell: (m: Materiau) => <span className="tabular-nums">{formatEuros(m.prixAchatFixe)} / {formatUnite(m.unite)}</span> }] : [{ key: 'unite', header: 'Unité', cell: (m: Materiau) => formatUnite(m.unite) }]),
     { key: 'fourn', header: 'Fournisseur', cell: (m) => m.fournisseur?.nom ?? <Badge tone="amber">aucun</Badge> },
     { key: 'stock', header: 'Stock', align: 'right', cell: (m) => <span className={m.stockActuel <= m.stockMinimum ? 'font-semibold text-amber-700' : ''}>{formatNumber(m.stockActuel)}</span> },
     { key: 'actif', header: 'Statut', cell: (m) => <StatusBadge kind="actif" value={m.actif} /> },
@@ -96,13 +96,13 @@ function MateriauxTab({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-function ServicesTab({ isAdmin }: { isAdmin: boolean }) {
+function ServicesTab({ isAdmin, seesCosts }: { isAdmin: boolean; seesCosts: boolean }) {
   const [query, setQuery] = useState<ListQuery>({ page: 1, search: '', actif: 'true' });
   const [editing, setEditing] = useState<ServiceMo | 'new' | null>(null);
   const data = useServicesMo(query);
   const columns: Column<ServiceMo>[] = [
     { key: 'nom', header: 'Service', cell: (s) => <span className="font-medium">{s.nom}</span> },
-    { key: 'prix', header: 'Coût HT', align: 'right', cell: (s) => <span className="tabular-nums">{formatEuros(s.prixUnitaire)} / {formatUnite(s.unite)}</span> },
+    ...(seesCosts ? [{ key: 'prix', header: 'Coût HT', align: 'right' as const, cell: (s: ServiceMo) => <span className="tabular-nums">{formatEuros(s.prixUnitaire)} / {formatUnite(s.unite)}</span> }] : [{ key: 'unite', header: 'Unité', cell: (s: ServiceMo) => formatUnite(s.unite) }]),
     { key: 'prod', header: 'Productivité / jour', align: 'right', cell: (s) => (s.productiviteJour ? `${formatNumber(s.productiviteJour)} ${formatUnite(s.unite)}` : '—') },
     { key: 'actif', header: 'Statut', cell: (s) => <StatusBadge kind="actif" value={s.actif} /> },
   ];
@@ -170,6 +170,7 @@ function CategoriesTab({ isAdmin }: { isAdmin: boolean }) {
 export function CataloguePage() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole('ADMIN');
+  const seesCosts = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
   const [tab, setTab] = useState<Tab>('prestations');
   return (
     <>
@@ -184,9 +185,9 @@ export function CataloguePage() {
           { value: 'categories', label: 'Catégories' },
         ]}
       />
-      {tab === 'prestations' && <PrestationsTab isAdmin={isAdmin} />}
-      {tab === 'materiaux' && <MateriauxTab isAdmin={isAdmin} />}
-      {tab === 'services' && <ServicesTab isAdmin={isAdmin} />}
+      {tab === 'prestations' && <PrestationsTab isAdmin={isAdmin} seesCosts={seesCosts} />}
+      {tab === 'materiaux' && <MateriauxTab isAdmin={isAdmin} seesCosts={seesCosts} />}
+      {tab === 'services' && <ServicesTab isAdmin={isAdmin} seesCosts={seesCosts} />}
       {tab === 'categories' && <CategoriesTab isAdmin={isAdmin} />}
     </>
   );

@@ -1,10 +1,10 @@
-import { AlertTriangle, Boxes, ClipboardList, Euro, HardHat, Percent, Receipt, Send, TrendingUp, Truck, Wrench, XCircle } from 'lucide-react';
+import { AlertTriangle, BellRing, Boxes, ClipboardList, Euro, HardHat, Percent, Receipt, Send, TrendingUp, Truck, Wrench, XCircle } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, ErrorState, Loading, Select, Stat, WelcomeBanner } from '@/components/ui';
+import { Card, CardHeader, ErrorState, Loading, Select, Stat, StatusBadge, WelcomeBanner } from '@/components/ui';
 import { useAuth } from '../auth/auth-context';
 import { BRAND } from '@/lib/brand';
-import { formatDate, formatEuros, formatNumber, formatPercent } from '@/lib/format';
+import { formatDate, formatEuros, formatNumber, formatPercent, fullName } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import { useDashboard } from './api';
 import { DevisChart } from './DevisChart';
@@ -86,9 +86,69 @@ export function DashboardPage() {
             <Alerte to="/commandes" icon={<Truck className="size-4" />} label="Commandes en attente" count={d.commandesEnAttente} detail="à envoyer ou à réceptionner" />
             <Alerte to="/stock" icon={<Boxes className="size-4" />} label="Matériaux sous le seuil" count={d.stockAlertes} />
             <Alerte to="/demandes" icon={<ClipboardList className="size-4" />} label="Demandes de devis" count={d.prospects.demandesActives} />
+            {/* Information, not a to-do: the reminders already went out (C3 of 21/10) */}
+            <p className="flex items-center gap-2 px-1 pt-1 text-xs text-slate-500">
+              <BellRing className="size-3.5" aria-hidden />
+              {d.relancesSemaine ? `${d.relancesSemaine} relance(s) client envoyée(s) ces 7 derniers jours` : 'Aucune relance client ces 7 derniers jours'}
+            </p>
           </div>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader
+          title="Marge par chantier"
+          description={`Marge prévue des devis signés · chantiers en cours et terminés · les plus faibles d’abord${
+            d.margesChantiers.margeMoyennePonderee !== null ? ` · moyenne pondérée ${formatPercent(d.margesChantiers.margeMoyennePonderee)}` : ''
+          }`}
+          actions={
+            d.margesChantiers.sousSeuil > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                <AlertTriangle className="size-3.5" aria-hidden /> {d.margesChantiers.sousSeuil} sous {formatPercent(d.margesChantiers.seuil)}
+              </span>
+            )
+          }
+        />
+        {d.margesChantiers.liste.length === 0 ? (
+          <p className="flex items-center gap-2 px-5 py-4 text-sm text-slate-500"><Percent className="size-4" /> Aucun chantier avec un devis signé.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs font-semibold text-slate-500 dark:border-slate-800">
+                  <th className="px-5 py-2.5">Chantier</th>
+                  <th className="px-5 py-2.5">Statut</th>
+                  <th className="px-5 py-2.5 text-right">Total HT</th>
+                  <th className="px-5 py-2.5 text-right">Marge prévue</th>
+                  <th className="px-5 py-2.5 text-right">Marge %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {d.margesChantiers.liste.map((c) => (
+                  <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className="px-5 py-2.5">
+                      <Link to={`/chantiers/${c.id}`} className="font-medium text-brand-700 hover:underline dark:text-blue-300">{c.reference}</Link>
+                      <span className="text-slate-500"> · {fullName(c.client)}</span>
+                    </td>
+                    <td className="px-5 py-2.5"><StatusBadge kind="chantier" value={c.statut} /></td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">{formatEuros(c.totalHT)}</td>
+                    <td className="px-5 py-2.5 text-right tabular-nums">{formatEuros(c.profit)}</td>
+                    <td className={cn('px-5 py-2.5 text-right font-semibold tabular-nums', c.alerte ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400')}>
+                      {c.alerte && <AlertTriangle className="mr-1 inline size-3.5 align-[-2px]" aria-label="Sous le seuil" />}
+                      {c.margePourcent === null ? '—' : formatPercent(c.margePourcent)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {d.margesChantiers.nombre > d.margesChantiers.liste.length && (
+              <p className="border-t border-slate-100 px-5 py-2.5 text-xs text-slate-500 dark:border-slate-800">
+                {d.margesChantiers.liste.length} chantiers les moins rentables sur {d.margesChantiers.nombre}.
+              </p>
+            )}
+          </div>
+        )}
+      </Card>
 
       <Card className="mt-6">
         <CardHeader title="Chantiers en retard" description="Date de fin prévue dépassée" />

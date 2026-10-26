@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../../common';
+import { type AuthUser, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
 import { CatalogueOverviewService } from './catalogue-overview.service';
 
@@ -14,7 +14,7 @@ export class CatalogueController {
   @Get('tree')
   @ApiOperation({ summary: 'Catalogue actif en arbre (catégories → sous-catégories → prestations → options → choix)' })
   tree(@CurrentUser() user: AuthUser) {
-    return this.overview.tree(user);
+    return costsFor(user, this.overview.tree(user));
   }
 
   @Roles(Role.ADMIN)

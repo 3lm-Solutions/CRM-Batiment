@@ -1,5 +1,6 @@
-import { ClipboardCopy, Globe, Send } from 'lucide-react';
+import { ClipboardCopy, Eye, Globe, Send } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Badge, Button, Card, CardHeader, ConfirmDialog } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
@@ -41,7 +42,9 @@ export function EspaceClientCard({ clientId, hasEmail }: { clientId: number; has
               envoyer.mutate(undefined, {
                 onSuccess: (r) => {
                   setLastUrl(r.url);
-                  if (r.emailSent) toast.success(`Lien envoyé à ${r.destinataire}`);
+                  // Copied at once: ready to paste in an SMS / WhatsApp
+                  void navigator.clipboard?.writeText(r.url).catch(() => undefined);
+                  if (r.emailSent) toast.success(`Lien envoyé à ${r.destinataire} (et copié)`);
                   else toast.warning('Lien créé, mais l’email n’est pas parti : copiez-le pour le transmettre.');
                 },
                 onError: (e) => toast.error(errorMessage(e)),
@@ -50,6 +53,12 @@ export function EspaceClientCard({ clientId, hasEmail }: { clientId: number; has
           >
             {actif ? 'Renvoyer un nouveau lien' : 'Envoyer le lien'}
           </Button>
+          <Link
+            to={`/clients/${clientId}/espace-client`}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            <Eye className="size-4" /> Voir son espace
+          </Link>
           {actif && <Button size="sm" variant="ghost" className="text-red-600" onClick={() => setConfirm(true)}>Désactiver</Button>}
         </div>
         {lastUrl && (

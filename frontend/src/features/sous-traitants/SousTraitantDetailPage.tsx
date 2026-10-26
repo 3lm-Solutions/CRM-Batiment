@@ -6,13 +6,14 @@ import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Loading, Pa
 import { errorMessage } from '@/lib/api';
 import { fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
+import { HeuresSection } from '../pointages/PointagesPage';
 import { useUserOptions } from '../users/api';
 import { useDeleteSousTraitant, useLierCompte, useSousTraitant, type SousTraitant } from './api';
 import { AssurancesSection, ContratsSection, DisponibilitesSection, NotationsSection, PaiementsSection } from './DossierSections';
 import { Note } from './SousTraitantsPage';
 import { SousTraitantFormModal } from './SousTraitantFormModal';
 
-type Tab = 'assurances' | 'contrats' | 'paiements' | 'disponibilites' | 'notations';
+type Tab = 'assurances' | 'contrats' | 'paiements' | 'heures' | 'disponibilites' | 'notations';
 
 /** Links the company record to a SOUS_TRAITANT login: that account then sees this dossier's job sites in its portal. */
 function CompteCard({ st, canWrite }: { st: SousTraitant; canWrite: boolean }) {
@@ -62,6 +63,7 @@ export function SousTraitantDetailPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const isAdmin = hasRole('ADMIN');
+  const seesAmounts = hasRole('ADMIN', 'ASSISTANTE');
   const st = useSousTraitant(id);
   const remove = useDeleteSousTraitant();
   const [tab, setTab] = useState<Tab>('assurances');
@@ -122,14 +124,17 @@ export function SousTraitantDetailPage() {
             tabs={[
               { value: 'assurances', label: `Assurances (${s.assurances.length})` },
               { value: 'contrats', label: `Contrats (${s.contrats.length})` },
-              { value: 'paiements', label: 'Paiements' },
+              // The chef never sees what a sous-traitant costs (B2): no payments tab
+              ...(seesAmounts ? [{ value: 'paiements' as const, label: 'Paiements' }] : []),
+              { value: 'heures', label: 'Heures' },
               { value: 'disponibilites', label: 'Disponibilités' },
               { value: 'notations', label: `Évaluations (${s.notations.length})` },
             ]}
           />
           {tab === 'assurances' && <AssurancesSection st={s} canWrite={isAdmin} />}
-          {tab === 'contrats' && <ContratsSection st={s} canWrite={isAdmin} />}
-          {tab === 'paiements' && <PaiementsSection st={s} canWrite={isAdmin} />}
+          {tab === 'contrats' && <ContratsSection st={s} canWrite={isAdmin} showAmounts={seesAmounts} />}
+          {tab === 'paiements' && seesAmounts && <PaiementsSection st={s} canWrite={isAdmin} />}
+          {tab === 'heures' && <HeuresSection sousTraitantId={s.id} />}
           {tab === 'disponibilites' && <DisponibilitesSection st={s} canWrite={isAdmin} />}
           {tab === 'notations' && <NotationsSection st={s} canRate={hasRole('ADMIN', 'CHEF_CHANTIER')} canDelete={isAdmin} />}
         </div>

@@ -29,12 +29,19 @@ export const NormalizeEmail = () =>
     typeof value === 'string' ? value.trim().toLowerCase() || undefined : value,
   );
 
-/** "true"/"1" → true, "false"/"0" → false. Anything else is left for @IsBoolean to reject. */
+/**
+ * "true"/"1" → true, "false"/"0" → false. Anything else is left for @IsBoolean to reject.
+ *
+ * Reads the RAW value (`obj[key]`), not `value`: the global ValidationPipe runs with
+ * `enableImplicitConversion`, which has already turned "false" into `true` for a
+ * `boolean` property before this transform runs (catalogue « Inactifs » filter bug, 20/10).
+ */
 export const ToBoolean = () =>
-  Transform(({ value }: { value: unknown }) => {
-    if (value === 'true' || value === '1' || value === true) return true;
-    if (value === 'false' || value === '0' || value === false) return false;
-    return value;
+  Transform(({ value, obj, key }: { value: unknown; obj: Record<string, unknown>; key: string }) => {
+    const raw = obj && typeof obj === 'object' && key in obj ? obj[key] : value;
+    if (raw === 'true' || raw === '1' || raw === true) return true;
+    if (raw === 'false' || raw === '0' || raw === false) return false;
+    return raw;
   });
 
 /** "1,2,3" or ["1","2"] → [1, 2, 3] (query strings and bodies alike). */

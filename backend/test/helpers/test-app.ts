@@ -9,7 +9,7 @@ import { buildJwtPayload } from '../../src/common';
 import { MAIL_TRANSPORT, type MailMessage, type MailTransport } from '../../src/modules/core/mail/mail.transport';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
-/** Seeded demo accounts (prisma/seed.ts). */
+/** Seeded demo accounts (prisma/seed/index.ts). */
 export const SEED = {
   admin: 'admin@batiment-pro.fr',
   technico: 'technico@batiment-pro.fr',

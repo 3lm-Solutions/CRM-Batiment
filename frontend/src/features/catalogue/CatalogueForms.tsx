@@ -39,21 +39,39 @@ const materiauSchema = z.object({
   actif: z.boolean(),
 });
 
-export function MateriauModal({ open, onClose, materiau }: { open: boolean; onClose: () => void; materiau?: Materiau }) {
+export function MateriauModal({
+  open,
+  onClose,
+  materiau,
+  onSaved,
+  defaultFournisseurId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  materiau?: Materiau;
+  /** Called with the saved material (e.g. the supplier form selects a material just created) */
+  onSaved?: (m: Materiau) => void;
+  /** Supplier preselected on creation */
+  defaultFournisseurId?: number;
+}) {
   const save = useSaveCatalogue('materiaux');
   const fournisseurs = useFournisseurOptions(open);
   const form = useForm<z.input<typeof materiauSchema>, unknown, z.output<typeof materiauSchema>>({
     resolver: zodResolver(materiauSchema),
     values: {
       nom: materiau?.nom ?? '', unite: materiau?.unite ?? 'PIECE', prixAchatFixe: materiau?.prixAchatFixe ?? 0,
-      fournisseurId: materiau?.fournisseur?.id ?? '', couleur: materiau?.couleur ?? '', finition: materiau?.finition ?? '',
+      fournisseurId: materiau?.fournisseur?.id ?? defaultFournisseurId ?? '', couleur: materiau?.couleur ?? '', finition: materiau?.finition ?? '',
       stockMinimum: materiau?.stockMinimum ?? 0, actif: materiau?.actif ?? true,
     },
   });
   const e = form.formState.errors;
   const submit = form.handleSubmit((v) =>
     save.mutate({ id: materiau?.id, ...v, couleur: v.couleur || null, finition: v.finition || null }, {
-      onSuccess: () => { toast.success(materiau ? 'Matériau modifié (prix historisé)' : 'Matériau créé'); onClose(); },
+      onSuccess: (saved) => {
+        toast.success(materiau ? 'Matériau modifié (prix historisé)' : 'Matériau créé');
+        onSaved?.(saved as Materiau);
+        onClose();
+      },
     }),
   );
   return (

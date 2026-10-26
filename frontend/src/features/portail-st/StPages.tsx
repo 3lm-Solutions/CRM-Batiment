@@ -8,7 +8,7 @@ import { formatDate, formatEuros, fullName } from '@/lib/format';
 import { openFichier } from '@/lib/files';
 import { RapportItem } from '../rapports/RapportItem';
 import { TYPE_ASSURANCE } from '../sous-traitants/api';
-import { useAvancerTache, useStChantier, useStChantiers, useStDashboard, useStProfil, useStRapports, type StTache } from './api';
+import { useAvancerTache, useCocherChecklist, useStChantier, useStChantiers, useStDashboard, useStProfil, useStRapports, type StTache } from './api';
 import { RapportForm } from './RapportForm';
 
 // ── tableau de bord ───────────────────────────────────────────────────────
@@ -101,6 +101,8 @@ export function StChantiersPage() {
 
 function TacheRow({ tache, chantierId, editable, onReport }: { tache: StTache; chantierId: number; editable: boolean; onReport: () => void }) {
   const avancer = useAvancerTache(chantierId);
+  const cocher = useCocherChecklist(chantierId);
+  const checklist = tache.checklist ?? [];
   const [value, setValue] = useState(tache.avancement);
   useEffect(() => {
     setValue(tache.avancement);
@@ -119,8 +121,29 @@ function TacheRow({ tache, chantierId, editable, onReport }: { tache: StTache; c
       </div>
       {tache.description && <p className="text-sm text-slate-600 dark:text-slate-400">{tache.description}</p>}
       <p className="text-xs text-slate-500">{formatDate(tache.dateDebut)} → {formatDate(tache.dateFin)}</p>
+      {checklist.length > 0 && (
+        <ul className="space-y-1 rounded-lg bg-slate-50 p-2.5 dark:bg-slate-800/50" aria-label={`Checklist de ${tache.libelle}`}>
+          {checklist.map((i) => (
+            <li key={i.id}>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-brand-700"
+                  checked={i.fait}
+                  disabled={!(editable && tache.affecteeAMoi) || cocher.isPending}
+                  onChange={(e) => cocher.mutate({ tacheId: tache.id, itemId: i.id, fait: e.target.checked }, { onError: (err) => toast.error(errorMessage(err)) })}
+                />
+                <span className={i.fait ? 'text-slate-400 line-through' : undefined}>{i.libelle}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
       {editable && tache.affecteeAMoi ? (
         <div className="flex flex-wrap items-center gap-3">
+          {checklist.length > 0 ? (
+            <div className="flex w-60 items-center gap-2"><Progress value={tache.avancement} className="flex-1" /><span className="text-xs text-slate-500">suit la checklist</span></div>
+          ) : (
           <input
             type="range"
             min={0}
@@ -131,7 +154,8 @@ function TacheRow({ tache, chantierId, editable, onReport }: { tache: StTache; c
             aria-label={`Avancement de ${tache.libelle}`}
             className="w-48 accent-brand-700"
           />
-          <span className="w-12 text-sm font-semibold tabular-nums">{value} %</span>
+          )}
+          {checklist.length === 0 && <span className="w-12 text-sm font-semibold tabular-nums">{value} %</span>}
           {dirty && <Button size="sm" loading={avancer.isPending} onClick={() => save({ avancement: value })}>Enregistrer</Button>}
           {tache.statut !== 'BLOQUEE' && tache.statut !== 'TERMINEE' && (
             <Button size="sm" variant="ghost" icon={<MessageSquareWarning className="size-4" />} onClick={() => save({ statut: 'BLOQUEE' })}>Signaler un blocage</Button>

@@ -14,6 +14,8 @@ const PROFILE_SELECT = {
   telephone: true,
   email: true,
   logo: true,
+  iban: true,
+  bic: true,
 } satisfies Prisma.CompanySelect;
 
 const SETTINGS_SELECT = {

@@ -42,7 +42,10 @@ export function useRevoquerEspace(clientId: number) {
 export interface EspaceClient {
   entreprise: { nom: string; email: string | null; telephone: string | null; adresse: string | null; logo: string | null };
   client: { nom: string; prenom: string | null };
-  expiresAt: string;
+  /** null in the office preview when the client has no active link */
+  expiresAt: string | null;
+  /** true: the office is looking at the client's space (read only) */
+  apercu?: boolean;
   devis: { id: number; reference: string; statut: DevisStatut; versionCourante: number; dateEnvoi: string | null; totalTTC: number }[];
   factures: { id: number; reference: string; typeFacture: FactureType; statut: FactureStatut; dateEmission: string | null; dateEcheance: string | null; montantTTC: number }[];
   chantiers: {
@@ -62,8 +65,14 @@ export interface EspaceClient {
     titre: string;
     statut: SavStatut;
     createdAt: string;
+    dateResolution: string | null;
     chantier: { reference: string } | null;
-    messages: { id: number; contenu: string; createdAt: string }[];
+    /** the client's messages and the team's replies to him (internal notes are never sent) */
+    messages: { id: number; contenu: string; createdAt: string; auteur: 'CLIENT' | 'EQUIPE'; auteurPrenom: string | null }[];
+    /** status timeline */
+    historique: { statut: SavStatut; createdAt: string }[];
+    /** photos sent by the client or added by the team (C42 of 21/10) */
+    photos?: { id: number; nom: string; auteur: 'CLIENT' | 'EQUIPE' }[];
   }[];
 }
 
@@ -95,6 +104,10 @@ export interface EspaceFacture {
   companyTelephone: string | null;
   companyAdresse: string | null;
   companySiret: string | null;
+  /** Bank details at issue time + « view online » token (QR codes, 21/10) */
+  companyIban?: string | null;
+  companyBic?: string | null;
+  lienPublicToken?: string | null;
   conditionsPaiement: string | null;
   communicationPaiement: string | null;
   notesLegales: string | null;
@@ -102,22 +115,45 @@ export interface EspaceFacture {
   lignes: { id: number; description: string; quantite: number; unite: string; prixUnitaireHT: number; montantHT: number }[];
 }
 
+/**
+ * Where the space is read from: the client's personal link (public), or the office preview
+ * of a client (E1 of 20/10 — same screens, read only, no link needed).
+ */
+export type EspaceSource = { token: string } | { clientId: number };
+
 const base = (token: string) => `/public/espace-client/${encodeURIComponent(token)}`;
+const sourceBase = (s: EspaceSource) => ('token' in s ? base(s.token) : `/clients/${s.clientId}/espace/apercu`);
+const sourceKey = (s: EspaceSource) => ('token' in s ? ['espace', s.token] : ['espace', 'apercu', s.clientId]);
 
-export const useEspaceClient = (token: string) =>
-  useQuery({ queryKey: ['espace', token], retry: false, queryFn: async () => (await api.get<EspaceClient>(base(token))).data });
+/** A ticket photo: by the client's token, or through the office preview. */
+export const espacePhotoPath = (s: EspaceSource, fichierId: number) =>
+  'token' in s ? `${base(s.token)}/photos/${fichierId}` : `/clients/${s.clientId}/espace/apercu/photos/${fichierId}`;
 
-export const useEspaceDevis = (token: string, id: number | null) =>
-  useQuery({ queryKey: ['espace', token, 'devis', id], enabled: id !== null, queryFn: async () => (await api.get<EspaceDevis>(`${base(token)}/devis/${id}`)).data });
+/** Same limits as the API (5 photos, 10 Mo each) */
+export const MAX_PHOTOS_CLIENT = 5;
 
-export const useEspaceFacture = (token: string, id: number | null) =>
-  useQuery({ queryKey: ['espace', token, 'facture', id], enabled: id !== null, queryFn: async () => (await api.get<EspaceFacture>(`${base(token)}/factures/${id}`)).data });
+export const useEspaceClient = (s: EspaceSource) =>
+  useQuery({ queryKey: sourceKey(s), retry: false, queryFn: async () => (await api.get<EspaceClient>(sourceBase(s))).data });
+
+export const useEspaceDevis = (s: EspaceSource, id: number | null) =>
+  useQuery({ queryKey: [...sourceKey(s), 'devis', id], enabled: id !== null, queryFn: async () => (await api.get<EspaceDevis>(`${sourceBase(s)}/devis/${id}`)).data });
+
+export const useEspaceFacture = (s: EspaceSource, id: number | null) =>
+  useQuery({ queryKey: [...sourceKey(s), 'facture', id], enabled: id !== null, queryFn: async () => (await api.get<EspaceFacture>(`${sourceBase(s)}/factures/${id}`)).data });
 
 export function useEspaceSav(token: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (body: { titre: string; description: string; chantierId?: number; categorie?: SavCategorie }) =>
-      (await api.post<{ reference: string; message: string }>(`${base(token)}/sav`, body)).data,
+    // multipart: the photos travel with the request (C42 of 21/10)
+    mutationFn: async (input: { titre: string; description: string; chantierId?: number; categorie?: SavCategorie; photos: File[] }) => {
+      const body = new FormData();
+      body.append('titre', input.titre);
+      body.append('description', input.description);
+      if (input.chantierId) body.append('chantierId', String(input.chantierId));
+      if (input.categorie) body.append('categorie', input.categorie);
+      input.photos.forEach((p) => body.append('photos', p));
+      return (await api.post<{ reference: string; message: string }>(`${base(token)}/sav`, body, { timeout: 180_000 })).data;
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['espace', token] }),
   });
 }

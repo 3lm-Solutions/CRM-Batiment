@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../../common';
+import { type AuthUser, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
 import { CreateMateriauDto, QueryMateriauxDto, UpdateMateriauDto } from './materiaux.dto';
 import { MateriauxService } from './materiaux.service';
@@ -15,13 +15,13 @@ export class MateriauxController {
   @Roles(...STAFF)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryMateriauxDto) {
-    return this.materiaux.findAll(user, query);
+    return costsFor(user, this.materiaux.findAll(user, query));
   }
 
   @Roles(...STAFF)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
-    return this.materiaux.findOne(user, id);
+    return costsFor(user, this.materiaux.findOne(user, id));
   }
 
   @Post()

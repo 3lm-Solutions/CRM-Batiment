@@ -18,7 +18,7 @@ export interface Prestation {
   _count?: { compositions: number; options: number };
 }
 
-interface Component {
+export interface Component {
   id: number;
   quantiteParUnite: number;
   materiau: { id: number; nom: string; unite: Unite; prixAchatFixe: number; actif: boolean } | null;
@@ -27,12 +27,26 @@ interface Component {
 
 export interface PrestationDetail extends Prestation {
   compositions: Component[];
-  options: {
-    id: number;
-    nom: string;
-    obligatoire: boolean;
-    choix: { id: number; nom: string; impactPrix: number; actif: boolean; compositions: Component[] }[];
-  }[];
+  options: OptionPrestation[];
+}
+
+export interface ChoixOption {
+  id: number;
+  nom: string;
+  description?: string | null;
+  impactPrix: number;
+  actif: boolean;
+  ordre?: number;
+  compositions: Component[];
+}
+
+export interface OptionPrestation {
+  id: number;
+  nom: string;
+  description?: string | null;
+  obligatoire: boolean;
+  ordre?: number;
+  choix: ChoixOption[];
 }
 
 export interface PricingResult {
@@ -91,6 +105,8 @@ export interface ListQuery {
   categorieId?: number | '';
   actif?: '' | 'true' | 'false';
   limit?: number;
+  /** Materials of one supplier (manual supplier order) */
+  fournisseurId?: number;
 }
 
 const clean = (q: ListQuery) => ({ ...q, categorieId: q.categorieId || undefined, actif: q.actif || undefined });
@@ -159,3 +175,49 @@ export function useCreateSousCategorie() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['catalogue', 'categories'] }),
   });
 }
+
+/** Replace the whole base composition of a prestation (one atomic call; ADMIN). */
+export type CompositionItem = { materiauId?: number; serviceMainOeuvreId?: number; quantiteParUnite: number };
+
+/** Base composition of a prestation, or (choixId) the composition of one choice — an empty list removes it. */
+export function useSaveCompositions(prestationId: number, choixId?: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (items: CompositionItem[]) =>
+      (await api.put(choixId ? `/catalogue/choix/${choixId}/compositions` : `/catalogue/prestations/${prestationId}/compositions`, { items })).data as unknown,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['catalogue'] }),
+  });
+}
+
+// ── options and choices of a prestation (ADMIN, E1 of 20/10) ─────────────────
+
+function useCatalogueWrite<TVars, TResult>(fn: (v: TVars) => Promise<TResult>) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ['catalogue'] }) });
+}
+
+export interface OptionInput {
+  nom: string;
+  description?: string | null;
+  obligatoire?: boolean;
+  ordre?: number;
+}
+export const useSaveOption = (prestationId: number) =>
+  useCatalogueWrite(async ({ id, ...body }: OptionInput & { id?: number }) =>
+    (id ? await api.patch(`/catalogue/options/${id}`, body) : await api.post(`/catalogue/prestations/${prestationId}/options`, body)).data,
+  );
+export const useDeleteOption = () => useCatalogueWrite(async (id: number) => api.delete(`/catalogue/options/${id}`));
+
+export interface ChoixInput {
+  nom: string;
+  description?: string | null;
+  impactPrix?: number;
+  ordre?: number;
+  /** update only (the API refuses it on creation) */
+  actif?: boolean;
+}
+export const useSaveChoix = () =>
+  useCatalogueWrite(async ({ id, optionId, ...body }: ChoixInput & { id?: number; optionId: number }) =>
+    (id ? await api.patch(`/catalogue/choix/${id}`, body) : await api.post(`/catalogue/options/${optionId}/choix`, body)).data,
+  );
+export const useDeleteChoix = () => useCatalogueWrite(async (id: number) => api.delete(`/catalogue/choix/${id}`));

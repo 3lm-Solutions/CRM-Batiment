@@ -85,6 +85,9 @@ export async function seedUsers(prisma: PrismaClient, companyId: number) {
   return byRole;
 }
 
+/** Supplier of the demo FOURNISSEUR account (exists in data/fournisseurs.json, supplies paint materials). */
+export const DEMO_SUPPLIER = 'Parexlanko';
+
 /** Links the portal accounts to their business records (SousTraitant / Fournisseur). */
 export async function seedPortalProfiles(prisma: PrismaClient, companyId: number, users: Map<Role, number>) {
   const sousTraitantUserId = users.get(Role.SOUS_TRAITANT)!;
@@ -103,21 +106,33 @@ export async function seedPortalProfiles(prisma: PrismaClient, companyId: number
     },
   });
 
+  // The demo supplier account is linked to a supplier that really supplies catalogue
+  // materials, so accepted quotes create orders it can see in its portal (20/10: the old
+  // « Matériaux Durand » supplied nothing, and the portal stayed empty).
   const fournisseurUserId = users.get(Role.FOURNISSEUR)!;
-  await prisma.fournisseur.upsert({
-    where: { userId: fournisseurUserId },
-    update: {},
-    create: {
-      companyId,
-      userId: fournisseurUserId,
-      nom: 'Matériaux Durand',
-      contact: 'Claire Durand',
-      email: 'fournisseur@batiment-pro.fr',
-      telephone: '0144556677',
-      typesMateriaux: 'Carrelage, colles, joints, plâtrerie',
-      delaiLivraison: 3,
-    },
+  await prisma.fournisseur.updateMany({
+    where: { userId: fournisseurUserId, NOT: { companyId, nom: DEMO_SUPPLIER } },
+    data: { userId: null },
   });
+  const existing = await prisma.fournisseur.findFirst({ where: { companyId, nom: DEMO_SUPPLIER } });
+  if (existing) {
+    if (existing.userId !== fournisseurUserId) {
+      await prisma.fournisseur.update({ where: { id: existing.id }, data: { userId: fournisseurUserId } });
+    }
+  } else {
+    // Same values as data/fournisseurs.json: the catalogue seed then finds it by name
+    await prisma.fournisseur.create({
+      data: {
+        companyId,
+        userId: fournisseurUserId,
+        nom: DEMO_SUPPLIER,
+        contact: 'Alain Giraud',
+        email: 'commercial@parexlanko.fr',
+        telephone: '04 78 90 11 22',
+        delaiLivraison: 4,
+      },
+    });
+  }
 }
 
 export async function seedTypesProjet(prisma: PrismaClient, companyId: number) {

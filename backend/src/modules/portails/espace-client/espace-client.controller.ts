@@ -1,7 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { type AuthUser, BUREAU, CurrentUser, Public, Roles } from '../../../common';
+import type { UploadedBinary } from '../../core/storage/upload.config';
+import { MAX_PHOTOS_CLIENT } from '../../pilotage/sav/sav.service';
 import { CreateSavClientDto, NoteSavClientDto } from './espace-client.dto';
 import { EspaceClientService } from './espace-client.service';
 
@@ -24,6 +27,27 @@ export class EspaceClientAdminController {
   @Get('liens')
   liens(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number) {
     return this.espace.liens(user, clientId);
+  }
+
+  @Get('apercu')
+  @ApiOperation({ summary: 'Voir l’espace du client tel qu’il le voit (lecture seule, sans lien)' })
+  apercu(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number) {
+    return this.espace.apercu(user, clientId);
+  }
+
+  @Get('apercu/devis/:id')
+  apercuDevis(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number, @Param('id', ParseIntPipe) id: number) {
+    return this.espace.apercuDevis(user, clientId, id);
+  }
+
+  @Get('apercu/factures/:id')
+  apercuFacture(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number, @Param('id', ParseIntPipe) id: number) {
+    return this.espace.apercuFacture(user, clientId, id);
+  }
+
+  @Get('apercu/photos/:fichierId')
+  apercuPhoto(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number, @Param('fichierId', ParseIntPipe) fichierId: number) {
+    return this.espace.apercuPhoto(user, clientId, fichierId);
   }
 
   @Delete('liens') @HttpCode(HttpStatus.OK)
@@ -60,9 +84,31 @@ export class EspaceClientPublicController {
 
   @Throttle(WRITE)
   @Post('sav')
-  @ApiOperation({ summary: 'Signaler un problème (ouvre un ticket SAV)' })
-  ouvrirSav(@Param('token') token: string, @Body() dto: CreateSavClientDto) {
-    return this.espace.ouvrirSav(token, dto);
+  @UseInterceptors(FilesInterceptor('photos', MAX_PHOTOS_CLIENT))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['titre', 'description'],
+      properties: {
+        titre: { type: 'string' },
+        description: { type: 'string' },
+        chantierId: { type: 'integer' },
+        categorie: { type: 'string' },
+        photos: { type: 'array', items: { type: 'string', format: 'binary' }, maxItems: MAX_PHOTOS_CLIENT },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Signaler un problème, avec photos si besoin (ouvre un ticket SAV)' })
+  ouvrirSav(@Param('token') token: string, @Body() dto: CreateSavClientDto, @UploadedFiles() photos: UploadedBinary[] | undefined) {
+    return this.espace.ouvrirSav(token, dto, photos ?? []);
+  }
+
+  @Throttle(READ)
+  @Get('photos/:fichierId')
+  @ApiOperation({ summary: 'Une photo d’un de vos tickets SAV' })
+  photo(@Param('token') token: string, @Param('fichierId', ParseIntPipe) fichierId: number) {
+    return this.espace.photo(token, fichierId);
   }
 
   @Throttle(WRITE)

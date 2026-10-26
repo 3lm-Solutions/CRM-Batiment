@@ -27,12 +27,13 @@ export class CreatePrestationDto {
   @ApiProperty({ example: 65 })
   @IsNumber({ maxDecimalPlaces: 2 }) @Min(0)
   prixVenteMax: number;
-}
 
-export class UpdatePrestationDto extends PartialType(CreatePrestationDto) {
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  /** Sent by the create form too (default true). Was accepted on update only: every creation failed with 400. */
+  @ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean()
   actif?: boolean;
 }
+
+export class UpdatePrestationDto extends PartialType(CreatePrestationDto) {}
 
 export class QueryPrestationsDto extends PaginationQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)

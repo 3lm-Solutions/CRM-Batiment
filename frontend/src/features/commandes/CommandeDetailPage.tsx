@@ -198,8 +198,18 @@ export function CommandeDetailPage() {
           <span className="flex flex-wrap items-center gap-2">
             <StatusBadge kind="commande" value={s} />
             <span>{c.fournisseur.nom}</span>
-            <span>· devis <Link to={`/devis/${c.devis.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{c.devis.reference}</Link></span>
-            {c.devis.chantierId && <span>· <Link to={`/chantiers/${c.devis.chantierId}`} className="text-brand-700 hover:underline dark:text-blue-300">chantier</Link></span>}
+            {c.devis ? (
+              <span>· devis <Link to={`/devis/${c.devis.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{c.devis.reference}</Link></span>
+            ) : (
+              <span>· commande manuelle</span>
+            )}
+            {c.chantier ? (
+              <span>· chantier <Link to={`/chantiers/${c.chantier.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{c.chantier.reference}</Link></span>
+            ) : c.devis?.chantierId ? (
+              <span>· <Link to={`/chantiers/${c.devis.chantierId}`} className="text-brand-700 hover:underline dark:text-blue-300">chantier</Link></span>
+            ) : (
+              !c.devis && <span>· réapprovisionnement du stock</span>
+            )}
           </span>
         }
         actions={
@@ -240,8 +250,9 @@ export function CommandeDetailPage() {
                   <th className="px-4 py-3">Matériau</th>
                   <th className="px-4 py-3 text-right">Commandé</th>
                   <th className="px-4 py-3 text-right">Reçu</th>
-                  <th className="px-4 py-3 text-right">PU HT</th>
-                  <th className="px-4 py-3 text-right">Total HT</th>
+                  {/* The chef receives the deliveries, he never sees the prices (B2) */}
+                  {isBureau && <th className="px-4 py-3 text-right">PU HT</th>}
+                  {isBureau && <th className="px-4 py-3 text-right">Total HT</th>}
                 </tr>
               </thead>
               <tbody>
@@ -250,17 +261,19 @@ export function CommandeDetailPage() {
                     <td className="px-4 py-3">{l.materiauNom}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{formatNumber(l.quantite)} {formatUnite(l.unite)}</td>
                     <td className={`px-4 py-3 text-right tabular-nums ${l.quantiteRecue >= l.quantite ? 'text-emerald-600' : l.quantiteRecue > 0 ? 'text-amber-600' : ''}`}>{formatNumber(l.quantiteRecue)}</td>
-                    <td className="px-4 py-3 text-right tabular-nums">{formatEuros(l.prixUnitaire)}</td>
-                    <td className="px-4 py-3 text-right font-medium tabular-nums">{formatEuros(l.totalHT)}</td>
+                    {isBureau && <td className="px-4 py-3 text-right tabular-nums">{formatEuros(l.prixUnitaire)}</td>}
+                    {isBureau && <td className="px-4 py-3 text-right font-medium tabular-nums">{formatEuros(l.totalHT)}</td>}
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr>
-                  <td colSpan={4} className="px-4 py-3 text-right font-semibold">Total HT</td>
-                  <td className="px-4 py-3 text-right font-bold tabular-nums">{formatEuros(c.totalHT)}</td>
-                </tr>
-              </tfoot>
+              {isBureau && (
+                <tfoot>
+                  <tr>
+                    <td colSpan={4} className="px-4 py-3 text-right font-semibold">Total HT</td>
+                    <td className="px-4 py-3 text-right font-bold tabular-nums">{formatEuros(c.totalHT)}</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
           {c.notes && <p className="whitespace-pre-line border-t border-slate-100 px-5 py-4 text-sm dark:border-slate-800">{c.notes}</p>}

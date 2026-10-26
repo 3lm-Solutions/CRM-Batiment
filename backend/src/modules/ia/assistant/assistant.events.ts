@@ -11,4 +11,6 @@ export interface ProspectEvent {
   nom: string | null;
   typeProjet: string | null;
   doublon: boolean;
+  /** Where it came from (22/10): the chatbot (default) or an email */
+  source?: 'CHATBOT' | 'EMAIL';
 }

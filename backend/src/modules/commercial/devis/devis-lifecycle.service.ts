@@ -5,7 +5,7 @@ import { DevisStatut, ModeValidation, Prisma } from '../../../generated/prisma/c
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { MailService } from '../../core/mail/mail.service';
-import { devisSignatureMail, devisValidationMail } from '../../core/mail/templates/devis.templates';
+import { devisRelanceMail, devisSignatureMail, devisValidationMail } from '../../core/mail/templates/devis.templates';
 import { type DevisEvent, DevisEvents } from './devis.events';
 import { DevisHooks } from './devis-hooks';
 import { type DevisRow, DevisService } from './devis.service';
@@ -70,6 +70,28 @@ export class DevisLifecycleService {
       devisValidationMail({ ...this.mailContext(devis), url: lien.url, expiresAt: lien.expiresAt }),
     );
     return { lien, emailSent };
+  }
+
+  /**
+   * Reminder of a quote still waiting for the client (C3 of 21/10): a NEW validation link
+   * (the previous one is cancelled, so an expired first link is not a dead end) and a reminder
+   * email. Used by the daily job (no user) and by « Relancer maintenant ».
+   */
+  async relancer(companyId: number, id: number, niveau: number): Promise<{ destinataire: string; emailSent: boolean }> {
+    const { devis, lien } = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(companyId, id, tx);
+      if (!AWAITING_CLIENT_STATUTS.includes(devis.statut)) {
+        throw new BusinessException('DEVIS_NON_ENVOYE', 'Seul un devis envoyé et en attente de réponse peut être relancé.');
+      }
+      if (!devis.client.email) throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
+      return { devis, lien: await this.liens.create(tx, devis, 'VALIDATION', devis.client.email) };
+    });
+    const joursDepuisEnvoi = devis.dateEnvoi ? Math.max(0, Math.floor((Date.now() - devis.dateEnvoi.getTime()) / 86_400_000)) : 0;
+    const emailSent = await this.mail.send(
+      devis.client.email!,
+      devisRelanceMail({ ...this.mailContext(devis), url: lien.url, expiresAt: lien.expiresAt, niveau, joursDepuisEnvoi }),
+    );
+    return { destinataire: devis.client.email!, emailSent };
   }
 
   /** ENVOYE / RENVOYE / REFUSE → REVISE: new version number, every link already sent is cancelled. */

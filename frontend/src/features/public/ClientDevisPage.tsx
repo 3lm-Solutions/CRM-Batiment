@@ -19,7 +19,11 @@ function Shell({ company, children }: { company?: PublicDevis['devis']['company'
     <main className="min-h-screen pb-16">
       <header className="sidebar-gradient text-white">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-5">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-white/15"><HardHat className="size-5" aria-hidden /></div>
+          {company?.logo ? (
+            <div className="flex h-10 max-w-32 items-center justify-center rounded-xl bg-white px-2"><img src={company.logo} alt={`Logo ${company.nom}`} className="max-h-8 max-w-full object-contain" /></div>
+          ) : (
+            <div className="flex size-10 items-center justify-center rounded-xl bg-white/15"><HardHat className="size-5" aria-hidden /></div>
+          )}
           <div>
             <p className="text-lg font-bold">{company?.nom ?? 'Votre devis'}</p>
             {company && <p className="text-xs text-cyan-50/80">{[company.telephone, company.email].filter(Boolean).join(' · ')}</p>}

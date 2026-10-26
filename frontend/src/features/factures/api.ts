@@ -58,6 +58,10 @@ export interface Facture extends FactureListItem {
   companyTelephone: string | null;
   companyAdresse: string | null;
   companySiret: string | null;
+  /** Bank details at issue time + « view online » token (QR codes, 21/10) */
+  companyIban?: string | null;
+  companyBic?: string | null;
+  lienPublicToken?: string | null;
   conditionsPaiement: string | null;
   communicationPaiement: string | null;
   notesLegales: string | null;
@@ -140,8 +144,14 @@ export function useEmettreFacture(id: number) {
   });
 }
 
-export const useEnvoyerFacture = (id: number) =>
-  useMutation({ mutationFn: async () => (await api.post<{ emailSent: boolean }>(`/factures/${id}/envoyer`)).data });
+export function useEnvoyerFacture(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post<{ emailSent: boolean }>(`/factures/${id}/envoyer`)).data,
+    // « Envoyée le … » is updated on the invoice
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['factures', id] }),
+  });
+}
 
 export function useAnnulerFacture(id: number) {
   const qc = useQueryClient();

@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
+import { ArrayMaxSize, IsArray, IsBoolean, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { NormalizeEmail, PaginationQueryDto, ToBoolean, Trim, TrimOrNull, IsPhone } from '../../../../common';
 
 export class CreateFournisseurDto {
@@ -21,8 +21,12 @@ export class CreateFournisseurDto {
   @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(300)
   adresse?: string | null;
 
-  @ApiPropertyOptional({ example: 'Carrelage, Faïence' }) @IsOptional() @TrimOrNull() @IsString() @MaxLength(300)
-  typesMateriaux?: string | null;
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'Matériaux du catalogue fournis (remplace la liste ; un matériau déjà chez un autre fournisseur lui est retiré)',
+  })
+  @IsOptional() @IsArray() @ArrayMaxSize(1000) @IsInt({ each: true }) @Min(1, { each: true })
+  materiauIds?: number[];
 
   @ApiPropertyOptional({ example: 3, description: 'Délai de livraison en jours' })
   @IsOptional() @IsInt() @Min(0) @Max(365)
@@ -31,9 +35,14 @@ export class CreateFournisseurDto {
   @ApiPropertyOptional({ example: 'Franco 300 € HT — paiement 30 jours' })
   @IsOptional() @TrimOrNull() @IsString() @MaxLength(500)
   conditions?: string | null;
+
+  @ApiPropertyOptional({ description: 'Compte FOURNISSEUR existant à rattacher dès la création (portail)' })
+  @IsOptional() @IsInt() @Min(1)
+  userId?: number | null;
 }
 
-export class UpdateFournisseurDto extends PartialType(CreateFournisseurDto) {
+/** The portal account changes through PUT /fournisseurs/:id/compte only. */
+export class UpdateFournisseurDto extends PartialType(OmitType(CreateFournisseurDto, ['userId'] as const)) {
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
   actif?: boolean;
 }
@@ -41,6 +50,13 @@ export class UpdateFournisseurDto extends PartialType(CreateFournisseurDto) {
 export class QueryFournisseursDto extends PaginationQueryDto {
   @ApiPropertyOptional() @IsOptional() @ToBoolean() @IsBoolean()
   actif?: boolean;
+}
+
+/** « Rattacher des matériaux » (fiche fournisseur, ou depuis une nouvelle commande). */
+export class MateriauxFournisseurDto {
+  @ApiProperty({ type: [Number] })
+  @IsArray() @ArrayMaxSize(1000) @IsInt({ each: true }) @Min(1, { each: true })
+  materiauIds: number[];
 }
 
 export class LierCompteFournisseurDto {

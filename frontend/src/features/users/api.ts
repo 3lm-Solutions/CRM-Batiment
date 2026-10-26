@@ -20,6 +20,7 @@ export interface UsersQuery {
   search?: string;
   role?: Role | '';
   actif?: '' | 'true' | 'false';
+  limit?: number;
 }
 
 export const useUsers = (q: UsersQuery) =>
@@ -67,6 +68,17 @@ export interface UserOption {
   prenom: string;
   role: Role;
 }
+
+/**
+ * Portal accounts (role SOUS_TRAITANT or FOURNISSEUR) with their email and phone, to create or
+ * link a sous-traitant / supplier record from an existing account (admin only, decision F1 of 20/10).
+ */
+export const usePortalAccounts = (role: 'SOUS_TRAITANT' | 'FOURNISSEUR', enabled = true) =>
+  useQuery({
+    queryKey: ['users', 'portal-accounts', role],
+    enabled,
+    queryFn: async () => (await api.get<PaginatedResponse<User>>('/users', { params: { role, actif: true, limit: 100 } })).data.data,
+  });
 
 /** Light list of active users for pickers (chef de chantier, assignee…). */
 export const useUserOptions = (roles?: Role[], enabled = true) =>

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsIn, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
-import { NormalizeEmail, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import { IsBic, IsIban, NormalizeEmail, Trim, TrimOrNull, IsPhone } from '../../../../common';
 
 export class UpdateCompanyDto {
   @ApiPropertyOptional() @IsOptional() @Trim() @IsString() @MaxLength(150)
@@ -19,6 +19,26 @@ export class UpdateCompanyDto {
 
   @ApiPropertyOptional() @IsOptional() @NormalizeEmail() @IsEmail()
   email?: string;
+
+  /**
+   * Logo shown in the client space and on the quote link (B3 of 20/10). Stored as a data URL,
+   * like the signatures: the public pages show it without a login. null = remove it.
+   */
+  @ApiPropertyOptional({ nullable: true, description: 'Logo PNG, JPEG ou WebP en base64 (data:image/…;base64,…), 300 Ko max' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(420_000, { message: 'Logo trop volumineux (300 Ko max)' })
+  @Matches(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/, { message: 'Le logo doit être une image PNG, JPEG ou WebP.' })
+  logo?: string | null;
+
+  /** Printed on invoices with a payment QR code (SEPA EPC) — 21/10. null = remove. */
+  @ApiPropertyOptional({ nullable: true, example: 'FR76 3000 6000 0112 3456 7890 189' })
+  @IsOptional() @IsIban()
+  iban?: string | null;
+
+  @ApiPropertyOptional({ nullable: true, example: 'BNPAFRPPXXX' })
+  @IsOptional() @IsBic()
+  bic?: string | null;
 }
 
 const MONEY = { maxDecimalPlaces: 2 };

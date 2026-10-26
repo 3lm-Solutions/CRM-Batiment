@@ -6,7 +6,11 @@ import { FichiersService } from '../../core/storage/fichiers.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { ChantierMachine } from './chantier-status';
 import { AccesSousTraitantsDto, CreateChantierDto, CreateDocumentDto, QueryChantiersDto, UpdateChantierDto } from './dto/chantiers.dto';
+import { CHECKLIST_SELECT } from './checklist/checklist-rules';
 import { assertDateRange, chantierProgress } from './tache-rules';
+
+/** Frozen job sites: no more changes to tasks, documents, notes or access. */
+export const CHANTIER_FERME: ChantierStatut[] = ['CLOTURE', 'ANNULE'];
 
 const LIST_SELECT = {
   id: true,
@@ -87,7 +91,10 @@ export class ChantiersService {
         },
         taches: {
           orderBy: { ordre: 'asc' },
-          include: { affectations: { include: { user: { select: { id: true, nom: true, prenom: true, role: true } } } } },
+          include: {
+            affectations: { include: { user: { select: { id: true, nom: true, prenom: true, role: true } } } },
+            checklist: CHECKLIST_SELECT,
+          },
         },
         documents: { orderBy: { createdAt: 'desc' } },
         ...(internal && {
@@ -104,6 +111,21 @@ export class ChantiersService {
     const chantier = await db.chantier.findFirst({ where: { id, ...this.scope(user) } });
     if (!chantier) await this.notVisible(user, id, db);
     return chantier!;
+  }
+
+  /**
+   * Same as assertAccess, and the job site must still be open. A CLOTURE / ANNULE job site is frozen:
+   * the screens already hid the buttons, but the API accepted task, document, note and access changes.
+   */
+  async assertWritable(user: AuthUser, id: number, db: DbClient = this.prisma) {
+    const chantier = await this.assertAccess(user, id, db);
+    if (CHANTIER_FERME.includes(chantier.statut)) {
+      throw new BusinessException(
+        'CHANTIER_FERME',
+        chantier.statut === 'ANNULE' ? 'Ce chantier est annulé : il ne peut plus être modifié.' : 'Ce chantier est clôturé : il ne peut plus être modifié.',
+      );
+    }
+    return chantier;
   }
 
   // ── write ───────────────────────────────────────────────────────────────
@@ -156,7 +178,7 @@ export class ChantiersService {
   }
 
   async update(user: AuthUser, id: number, dto: UpdateChantierDto) {
-    const chantier = await this.assertAccess(user, id);
+    const chantier = await this.assertWritable(user, id);
     if (dto.chefChantierId !== undefined && user.role === Role.CHEF_CHANTIER) {
       throw new BusinessException('CHEF_NON_MODIFIABLE', 'Seul le bureau peut changer le chef de chantier.');
     }
@@ -185,7 +207,7 @@ export class ChantiersService {
 
   /** Which sous-traitant ACCOUNTS see this job site in their portal (full list replace). */
   async setAccesSousTraitants(user: AuthUser, id: number, dto: AccesSousTraitantsDto) {
-    await this.assertAccess(user, id);
+    await this.assertWritable(user, id);
     const valid = await this.prisma.user.count({
       where: { id: { in: dto.userIds }, companyId: user.companyId, role: Role.SOUS_TRAITANT, actif: true },
     });
@@ -200,19 +222,19 @@ export class ChantiersService {
   }
 
   async savePlan2d(user: AuthUser, id: number, plan: Record<string, unknown>) {
-    await this.assertAccess(user, id);
+    await this.assertWritable(user, id);
     await this.prisma.chantier.update({ where: { id }, data: { plan2d: plan as Prisma.InputJsonValue } });
     return { saved: true };
   }
 
   async removePlan2d(user: AuthUser, id: number) {
-    await this.assertAccess(user, id);
+    await this.assertWritable(user, id);
     await this.prisma.chantier.update({ where: { id }, data: { plan2d: Prisma.JsonNull } });
   }
 
   /** A document is either an external link or an uploaded file (Step 11). */
   async addDocument(user: AuthUser, id: number, dto: CreateDocumentDto) {
-    await this.assertAccess(user, id);
+    await this.assertWritable(user, id);
     if (!dto.url === !dto.fichierId) {
       throw new BusinessException('DOCUMENT_SOURCE', 'Indiquez soit un lien, soit un fichier déposé.');
     }
@@ -233,7 +255,7 @@ export class ChantiersService {
 
   /** Removing an uploaded document also deletes its file. */
   async removeDocument(user: AuthUser, id: number, documentId: number) {
-    await this.assertAccess(user, id);
+    await this.assertWritable(user, id);
     const document = await this.prisma.documentChantier.findFirst({ where: { id: documentId, chantierId: id } });
     if (!document) throw new NotFoundException(`Document #${documentId} introuvable`);
     await this.prisma.documentChantier.delete({ where: { id: documentId } });

@@ -158,13 +158,21 @@ describe('Référentiel (e2e)', () => {
       const mat = await request(http)
         .post('/api/v1/catalogue/materiaux')
         .set(auth(admin))
-        .send({ nom: `${tag} Mat`, unite: 'KG', prixAchatFixe: 12.5 })
+        // exact payload of the web form, "actif" included (was refused on create: 400)
+        .send({ nom: `${tag} Mat`, unite: 'KG', prixAchatFixe: 12.5, fournisseurId: null, couleur: null, finition: null, stockMinimum: 0, actif: true })
         .expect(201);
       const prest = await request(http)
         .post('/api/v1/catalogue/prestations')
         .set(auth(admin))
-        .send({ categorieId: cat.body.id, nom: `${tag} Prest`, prixVenteMin: 40, prixVenteMax: 60 })
+        .send({ categorieId: cat.body.id, sousCategorieId: null, nom: `${tag} Prest`, description: null, unite: 'M2', prixVenteMin: 40, prixVenteMax: 60, actif: true })
         .expect(201);
+
+      const service = await request(http)
+        .post('/api/v1/catalogue/services-mo')
+        .set(auth(admin))
+        .send({ nom: `${tag} Pose`, unite: 'M2', prixUnitaire: 18, productiviteJour: null, coutJournalier: null, actif: false })
+        .expect(201);
+      expect(service.body.actif).toBe(false);
 
       const composed = await request(http)
         .put(`/api/v1/catalogue/prestations/${prest.body.id}/compositions`)

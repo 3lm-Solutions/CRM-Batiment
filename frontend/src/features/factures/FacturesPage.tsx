@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge, Card, DataTable, ErrorState, PageHeader, Pagination, SearchInput, Select, statusOptions, StatusBadge, Tabs } from '@/components/ui';
 import { formatDate, formatEuros, fullName } from '@/lib/format';
+import { useAuth } from '../auth/auth-context';
 import { factureLabel, isOverdue, useFactures, type FacturesQuery, type FactureStatut, type FactureType } from './api';
 
 const TABS: { value: string; label: string; statuts?: FactureStatut[] }[] = [
@@ -14,6 +15,10 @@ const TABS: { value: string; label: string; statuts?: FactureStatut[] }[] = [
 
 export function FacturesPage() {
   const navigate = useNavigate();
+  const { hasRole } = useAuth();
+  const isBureau = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  // The chef only sees issued invoices of his job sites: no « Brouillons » tab for him
+  const tabs = isBureau ? TABS : TABS.filter((t) => t.value !== 'draft');
   const [tab, setTab] = useState('unpaid');
   const [query, setQuery] = useState<FacturesQuery>({ page: 1, search: '', type: '', statuts: TABS[0].statuts });
   const factures = useFactures(query);
@@ -22,7 +27,7 @@ export function FacturesPage() {
     <>
       <PageHeader
         title="Factures"
-        description="Acomptes, situations de travaux, factures finales et avoirs. Les factures se créent depuis un devis signé."
+        description={isBureau ? 'Acomptes, situations de travaux, factures finales et avoirs. Les factures se créent depuis un devis signé.' : 'Factures émises pour vos chantiers (consultation).'}
       />
       <Tabs
         value={tab}
@@ -30,7 +35,7 @@ export function FacturesPage() {
           setTab(v);
           setQuery((q) => ({ ...q, statuts: TABS.find((t) => t.value === v)?.statuts, page: 1 }));
         }}
-        tabs={TABS}
+        tabs={tabs}
       />
       <Card>
         <div className="flex flex-wrap gap-3 border-b border-gray-100 px-6 py-4 dark:border-slate-800">

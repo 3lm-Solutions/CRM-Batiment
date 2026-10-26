@@ -2,6 +2,11 @@
 export interface LlmMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  /**
+   * Photos sent with a user message, as data URLs (`data:image/jpeg;base64,…`) — quote from a
+   * photo, C37 of 21/10. The model must read images (gpt-4o-mini, gpt-4o… do).
+   */
+  images?: string[];
 }
 
 /** JSON schema the model must follow (OpenAI "structured outputs"). */
@@ -14,6 +19,8 @@ export interface LlmJsonSchema {
 export interface LlmOptions {
   /** Default 700 */
   maxTokens?: number;
+  /** Overrides OPENAI_TIMEOUT_MS for a slow call (image analysis) */
+  timeoutMs?: number;
 }
 
 /**
@@ -28,6 +35,12 @@ export interface LlmClient {
 
 /** null = no API key configured: the assistant runs in guided mode. */
 export const LLM_CLIENT = Symbol('LLM_CLIENT');
+
+/**
+ * Model that reads images (quote from a photo, C37 of 21/10). null = OPENAI_VISION_MODEL not set:
+ * the « Photo » tab says so. Separate from LLM_CLIENT because many text models (gpt-oss…) refuse images.
+ */
+export const LLM_VISION_CLIENT = Symbol('LLM_VISION_CLIENT');
 
 export class LlmError extends Error {
   constructor(

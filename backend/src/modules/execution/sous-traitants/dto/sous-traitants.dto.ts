@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import {
   IsDateString,
   IsEmail,
@@ -48,9 +48,14 @@ export class CreateSousTraitantDto {
 
   @ApiPropertyOptional({ example: 'Carrelage / Faïence' }) @IsOptional() @TrimOrNull() @IsString() @MaxLength(150)
   specialite?: string | null;
+
+  @ApiPropertyOptional({ description: 'Compte SOUS_TRAITANT existant à rattacher dès la création (portail)' })
+  @IsOptional() @IsInt() @Min(1)
+  userId?: number | null;
 }
 
-export class UpdateSousTraitantDto extends PartialType(CreateSousTraitantDto) {
+/** The portal account changes through PUT /sous-traitants/:id/compte only. */
+export class UpdateSousTraitantDto extends PartialType(OmitType(CreateSousTraitantDto, ['userId'] as const)) {
   @ApiPropertyOptional({ enum: SousTraitantStatut }) @IsOptional() @IsEnum(SousTraitantStatut)
   statut?: SousTraitantStatut;
 }
@@ -138,13 +143,8 @@ export class CreatePaiementDto {
   statut?: PaiementStatut;
 }
 
-export class UpdatePaiementDto {
-  @ApiPropertyOptional({ enum: PaiementStatut }) @IsOptional() @IsEnum(PaiementStatut)
-  statut?: PaiementStatut;
-
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
-  datePaiement?: string;
-}
+/** Every field of a payment can be corrected (report of 20/10). */
+export class UpdatePaiementDto extends PartialType(CreatePaiementDto) {}
 
 export class CreateDisponibiliteDto {
   @ApiProperty() @IsDateString()

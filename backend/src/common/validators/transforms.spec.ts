@@ -18,6 +18,17 @@ describe('DTO transforms', () => {
     expect(parse({ actif: 'maybe' }).actif).toBe('maybe'); // left for @IsBoolean to reject
   });
 
+  it('ToBoolean: "false" stays false with enableImplicitConversion on a boolean property (global pipe options)', () => {
+    class TypedProbe {
+      @ToBoolean() actif?: boolean;
+    }
+    const parseImplicit = (plain: Record<string, unknown>) => plainToInstance(TypedProbe, plain, { enableImplicitConversion: true });
+    expect(parseImplicit({ actif: 'false' }).actif).toBe(false);
+    expect(parseImplicit({ actif: '0' }).actif).toBe(false);
+    expect(parseImplicit({ actif: 'true' }).actif).toBe(true);
+    expect(parseImplicit({}).actif).toBeUndefined();
+  });
+
   it('Trim / TrimOrNull', () => {
     expect(parse({ nom: '  Dupont ' }).nom).toBe('Dupont');
     expect(parse({ nom: '   ' }).nom).toBeUndefined();

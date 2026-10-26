@@ -179,12 +179,40 @@ export class DevisService {
     return this.findOne(user, copy.id);
   }
 
-  /** Only a draft that was never sent can disappear; anything else is cancelled (history kept). */
+  /**
+   * Deleted for good: a draft that was never sent, or a CANCELLED quote that left nothing
+   * behind — no invoice, no supplier order, no job site (decision A of 20/10).
+   * Anything else stays cancelled so the history is kept.
+   */
   async remove(user: AuthUser, id: number): Promise<void> {
     const devis = await this.getForUpdate(user.companyId, id);
+
+    if (devis.statut === 'ANNULE') {
+      const [factures, commandes] = await Promise.all([
+        this.prisma.facture.count({ where: { devisId: id } }),
+        this.prisma.commandeFournisseur.count({ where: { devisId: id } }),
+      ]);
+      const reasons = [
+        factures && `${factures} facture(s)`,
+        commandes && `${commandes} commande(s) fournisseur`,
+        devis.chantierId && 'un chantier',
+      ].filter(Boolean);
+      if (reasons.length) {
+        throw new BusinessException(
+          'DEVIS_NON_SUPPRIMABLE',
+          `Ce devis annulé est lié à ${reasons.join(', ')} : il reste annulé pour garder l’historique.`,
+        );
+      }
+      await this.prisma.devis.delete({ where: { id } });
+      return;
+    }
+
     const versions = await this.prisma.versionDevis.count({ where: { devisId: id } });
     if (devis.statut !== 'BROUILLON' || versions > 0) {
-      throw new BusinessException('DEVIS_NON_SUPPRIMABLE', 'Seul un brouillon jamais envoyé peut être supprimé. Annulez ce devis à la place.');
+      throw new BusinessException(
+        'DEVIS_NON_SUPPRIMABLE',
+        'Seuls un brouillon jamais envoyé ou un devis annulé peuvent être supprimés. Annulez d’abord ce devis.',
+      );
     }
     await this.prisma.devis.delete({ where: { id } });
   }

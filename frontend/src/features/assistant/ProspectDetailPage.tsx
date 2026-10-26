@@ -1,4 +1,4 @@
-import { ArrowLeft, Bot, CheckCircle2, RotateCcw, Save, User, XCircle } from 'lucide-react';
+import { ArrowLeft, Bot, CheckCircle2, Mail, RotateCcw, Save, User, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -90,7 +90,16 @@ export function ProspectDetailPage() {
       </Link>
       <PageHeader
         title={nom}
-        description={<span className="flex flex-wrap items-center gap-2"><StatusBadge kind="prospect" value={p.statut} /> Conversation du {formatDateTime(p.createdAt)}</span>}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <StatusBadge kind="prospect" value={p.statut} />
+            {p.source === 'EMAIL' ? (
+              <><Badge tone="violet"><Mail className="mr-1 inline size-3" />Email</Badge> Reçu le {formatDateTime(p.createdAt)}{p.emailSujet && <> · « {p.emailSujet} »</>}</>
+            ) : (
+              <>Conversation du {formatDateTime(p.createdAt)}</>
+            )}
+          </span>
+        }
         actions={
           <>
             {(p.statut === 'A_QUALIFIER' || p.statut === 'NOUVEAU') && (
@@ -134,12 +143,12 @@ export function ProspectDetailPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Fiche p={p} />
         <Card className="flex max-h-[720px] flex-col">
-          <CardHeader title="Conversation" description={`${p.messages.length} message(s)${p.feedbacks.length ? ` · avis : ${p.feedbacks.map((f) => (f.rating === 'UTILE' ? '👍' : '👎')).join(' ')}` : ''}`} />
+          <CardHeader title={p.source === 'EMAIL' ? 'Emails reçus' : 'Conversation'} description={`${p.messages.length} message(s)${p.feedbacks.length ? ` · avis : ${p.feedbacks.map((f) => (f.rating === 'UTILE' ? '👍' : '👎')).join(' ')}` : ''}`} />
           <ol className="flex-1 space-y-3 overflow-y-auto bg-gray-50 p-4 dark:bg-slate-950">
             {p.messages.map((m) => (
               <li key={m.id} className={cn('flex gap-2', m.role === 'user' ? 'flex-row-reverse' : '')}>
                 <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-full', m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600')} aria-hidden>
-                  {m.role === 'user' ? <User className="size-4" /> : <Bot className="size-4" />}
+                  {m.role === 'user' ? (p.source === 'EMAIL' ? <Mail className="size-4" /> : <User className="size-4" />) : <Bot className="size-4" />}
                 </span>
                 <div className={cn('max-w-[80%] rounded-xl px-3 py-2 text-sm', m.role === 'user' ? 'bg-blue-600 text-white' : 'border border-gray-100 bg-white text-gray-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100')}>
                   <p className="whitespace-pre-line">{m.contenu}</p>

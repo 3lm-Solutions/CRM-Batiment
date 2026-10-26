@@ -33,6 +33,17 @@ export interface Tache {
   commentaire: string | null;
   ordre: number;
   affectations: { id: number; userId: number | null; user: (Person & { role: Role }) | null }[];
+  /** Sub-tasks to tick (21/10); when present, the task progress follows them */
+  checklist?: ChecklistItem[];
+}
+
+export interface ChecklistItem {
+  id: number;
+  libelle: string;
+  fait: boolean;
+  ordre: number;
+  faitLe: string | null;
+  faitPar: Person | null;
 }
 
 export interface DocumentChantier {
@@ -83,6 +94,17 @@ function useChantierMutation<TVars, TResult>(fn: (vars: TVars) => Promise<TResul
   const qc = useQueryClient();
   return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ['chantiers'] }) });
 }
+
+// ── checklist of a task (21/10) ──
+export const useAddChecklistItem = (chantierId: number, tacheId: number) =>
+  useChantierMutation(async (libelle: string) => (await api.post(`/chantiers/${chantierId}/taches/${tacheId}/checklist`, { libelle })).data as unknown);
+
+export const useUpdateChecklistItem = (chantierId: number, tacheId: number) =>
+  useChantierMutation(async ({ id, ...body }: { id: number; fait?: boolean; libelle?: string }) =>
+    (await api.patch(`/chantiers/${chantierId}/taches/${tacheId}/checklist/${id}`, body)).data as unknown);
+
+export const useDeleteChecklistItem = (chantierId: number, tacheId: number) =>
+  useChantierMutation(async (id: number) => (await api.delete(`/chantiers/${chantierId}/taches/${tacheId}/checklist/${id}`)).data as unknown);
 
 export interface ChantierInput {
   clientId?: number;

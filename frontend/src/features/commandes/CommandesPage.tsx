@@ -1,8 +1,11 @@
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card, DataTable, ErrorState, PageHeader, Pagination, SearchInput, StatusBadge, Tabs } from '@/components/ui';
+import { Button, Card, DataTable, ErrorState, PageHeader, Pagination, SearchInput, StatusBadge, Tabs } from '@/components/ui';
 import { formatDate, formatEuros } from '@/lib/format';
-import { useCommandes, type CommandesQuery, type CommandeStatut } from './api';
+import { useAuth } from '../auth/auth-context';
+import { useCommandes, type CommandeListItem, type CommandesQuery, type CommandeStatut } from './api';
+import { NouvelleCommandeModal } from './NouvelleCommandeModal';
 
 const TABS: { value: string; label: string; statuts?: CommandeStatut[] }[] = [
   { value: 'todo', label: 'À envoyer', statuts: ['CREEE'] },
@@ -14,13 +17,21 @@ const TABS: { value: string; label: string; statuts?: CommandeStatut[] }[] = [
 
 export function CommandesPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('todo');
-  const [query, setQuery] = useState<CommandesQuery>({ page: 1, search: '', statuts: TABS[0].statuts });
+  const { hasRole } = useAuth();
+  const isBureau = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  const [creating, setCreating] = useState(false);
+  // « Toutes » by default: a sent order no longer shows in « À envoyer » (report of 20/10)
+  const [tab, setTab] = useState('all');
+  const [query, setQuery] = useState<CommandesQuery>({ page: 1, search: '' });
   const commandes = useCommandes(query);
 
   return (
     <>
-      <PageHeader title="Commandes fournisseur" description="Créées automatiquement à l’acceptation d’un devis, une par fournisseur." />
+      <PageHeader
+        title="Commandes fournisseur"
+        description="Créées automatiquement à l’acceptation d’un devis (une par fournisseur), ou saisies à la main."
+        actions={isBureau && <Button icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nouvelle commande</Button>}
+      />
       <Tabs
         value={tab}
         onChange={(v) => {
@@ -47,22 +58,26 @@ export function CommandesPage() {
               { key: 'fournisseur', header: 'Fournisseur', cell: (c) => c.fournisseur.nom },
               {
                 key: 'devis',
-                header: 'Devis',
-                cell: (c) => (
-                  <Link to={`/devis/${c.devis.id}`} onClick={(e) => e.stopPropagation()} className="text-brand-700 hover:underline dark:text-blue-300">
-                    {c.devis.reference}
-                  </Link>
-                ),
+                header: 'Origine',
+                cell: (c) =>
+                  c.devis ? (
+                    <Link to={`/devis/${c.devis.id}`} onClick={(e) => e.stopPropagation()} className="text-brand-700 hover:underline dark:text-blue-300">
+                      {c.devis.reference}
+                    </Link>
+                  ) : (
+                    <span className="text-slate-500">Manuelle{c.chantier ? ` · ${c.chantier.reference}` : ' · stock'}</span>
+                  ),
               },
               { key: 'date', header: 'Créée le', cell: (c) => formatDate(c.date) },
               { key: 'livraison', header: 'Livraison prévue', cell: (c) => formatDate(c.dateLivraisonPrevue) },
-              { key: 'total', header: 'Total HT', align: 'right', cell: (c) => <span className="tabular-nums">{formatEuros(c.totalHT)}</span> },
+              ...(isBureau ? [{ key: 'total', header: 'Total HT', align: 'right' as const, cell: (c: CommandeListItem) => <span className="tabular-nums">{formatEuros(c.totalHT)}</span> }] : []),
               { key: 'statut', header: 'Statut', cell: (c) => <StatusBadge kind="commande" value={c.statutLivraison} /> },
             ]}
           />
         )}
         <Pagination meta={commandes.data?.meta} onPage={(page) => setQuery((q) => ({ ...q, page }))} />
       </Card>
+      {isBureau && <NouvelleCommandeModal open={creating} onClose={() => setCreating(false)} />}
     </>
   );
 }

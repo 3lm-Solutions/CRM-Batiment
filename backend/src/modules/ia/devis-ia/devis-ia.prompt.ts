@@ -103,3 +103,90 @@ export function parseProposition(value: unknown, allowedIds: ReadonlySet<number>
 
   return { lignes, nonCouverts: shortTexts(v.nonCouverts, 10), hypotheses: shortTexts(v.hypotheses, 10) };
 }
+
+// ── quote from photos (C37 of 21/10) ────────────────────────────────────
+
+/** 1 to 3 photos of the same job (several angles of one room / façade). */
+export const MAX_PHOTOS_IA = 3;
+
+export type QualitePhoto = 'BONNE' | 'MOYENNE' | 'INSUFFISANTE';
+
+/** What the model saw, shown to the technician above the proposed lines. */
+export interface AnalysePhoto {
+  /** e.g. « Salle de bain », « Façade », « Toiture » */
+  piece: string;
+  /** Estimated floor (or façade) surface, null when it cannot be judged */
+  surfaceEstimeeM2: number | null;
+  /** Whether a reference object (door, tile, person…) helped estimate dimensions */
+  objetReference: boolean;
+  elementsVisibles: string[];
+  etat: string;
+  qualitePhoto: QualitePhoto;
+}
+
+const PHOTO_SYSTEM = `${SYSTEM}
+
+PHOTOS
+- Tu reçois 1 à 3 photos d'un même chantier (et parfois une courte description du technicien, prioritaire sur ce que tu crois voir).
+- Identifie la pièce ou l'ouvrage (salle de bain, cuisine, façade, toiture…), les éléments visibles (revêtements, équipements, menuiseries…) et leur état.
+- Estime la surface au sol (ou de la façade) en m² en t'appuyant sur des objets de taille connue (porte ≈ 0,83 × 2,04 m, carreau, prise, marche, personne…). Indique "objetReference" à true seulement si un tel objet t'a servi. Si tu ne peux pas estimer, mets null.
+- Toute dimension tirée d'une photo est APPROXIMATIVE : écris-la dans "hypotheses" (ex. « Surface sol estimée ≈ 6 m² d'après la porte »).
+- Propose les travaux que la photo et la description rendent nécessaires (rénovation de ce qui est visible et dégradé, ou ce que demande la description). Pas de travaux spéculatifs.
+- "qualitePhoto" : INSUFFISANTE si la photo est floue, trop sombre, trop serrée ou ne montre pas de chantier ; dans ce cas propose peu ou pas de lignes.`;
+
+export function buildPhotoMessages(images: string[], description: string, candidates: CatalogueEntry[]): LlmMessage[] {
+  const catalogue = candidates
+    .map((c) => `${c.id} | ${c.nom} | ${c.unite} | ${c.categorie}${c.sousCategorie ? ` > ${c.sousCategorie}` : ''}`)
+    .join('\n');
+  return [
+    { role: 'system', content: PHOTO_SYSTEM },
+    {
+      role: 'user',
+      content: `CATALOGUE (id | prestation | unité | catégorie)\n${catalogue}\n\nDESCRIPTION DU TECHNICIEN\n<<<\n${description || '(aucune — analyse les photos)'}\n>>>\n\n${images.length} photo(s) jointe(s).`,
+      images,
+    },
+  ];
+}
+
+const PROPOSITION_PROPS = (PROPOSITION_SCHEMA.schema as { properties: Record<string, unknown> }).properties;
+
+export const PHOTO_SCHEMA: LlmJsonSchema = {
+  name: 'proposition_devis_photo',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['analyse', 'lignes', 'nonCouverts', 'hypotheses'],
+    properties: {
+      analyse: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['piece', 'surfaceEstimeeM2', 'objetReference', 'elementsVisibles', 'etat', 'qualitePhoto'],
+        properties: {
+          piece: { type: 'string' },
+          surfaceEstimeeM2: { type: ['number', 'null'] },
+          objetReference: { type: 'boolean' },
+          elementsVisibles: { type: 'array', items: { type: 'string' } },
+          etat: { type: 'string' },
+          qualitePhoto: { type: 'string', enum: ['BONNE', 'MOYENNE', 'INSUFFISANTE'] },
+        },
+      },
+      ...PROPOSITION_PROPS,
+    },
+  },
+};
+
+/** The model's description of the photos; anything malformed becomes « unknown », never trusted. */
+export function parseAnalysePhoto(value: unknown): AnalysePhoto {
+  const a = (value && typeof value === 'object' ? (value as { analyse?: unknown }).analyse : null) as Record<string, unknown> | null | undefined;
+  const text = (v: unknown, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  const surface = Number(a?.surfaceEstimeeM2);
+  const qualite = a?.qualitePhoto;
+  return {
+    piece: text(a?.piece) || 'Non identifiée',
+    surfaceEstimeeM2: a?.surfaceEstimeeM2 !== null && Number.isFinite(surface) && surface > 0 && surface <= 5000 ? Math.round(surface * 10) / 10 : null,
+    objetReference: a?.objetReference === true,
+    elementsVisibles: shortTexts(a?.elementsVisibles, 12).map((t) => t.slice(0, 120)),
+    etat: text(a?.etat, 300),
+    qualitePhoto: qualite === 'BONNE' || qualite === 'MOYENNE' || qualite === 'INSUFFISANTE' ? qualite : 'MOYENNE',
+  };
+}

@@ -15,6 +15,25 @@ export interface Dashboard {
   commandesEnAttente: number;
   sav: { ouverts: number; urgents: number };
   stockAlertes: number;
+  /** Reminder emails sent to clients over the last 7 days (C3 of 21/10) */
+  relancesSemaine: number;
+  /** Planned margin per job site (signed quotes), worst first — C9 of 20/10 */
+  margesChantiers: {
+    seuil: number;
+    nombre: number;
+    sousSeuil: number;
+    margeMoyennePonderee: number | null;
+    liste: {
+      id: number;
+      reference: string;
+      statut: string;
+      client: { nom: string; prenom: string | null };
+      totalHT: number;
+      profit: number;
+      margePourcent: number | null;
+      alerte: boolean;
+    }[];
+  };
   /** Last 12 weeks, oldest first; `semaine` is the Monday (ISO date) */
   serieDevis: { semaine: string; envoyes: number; acceptes: number; refuses: number }[];
 }

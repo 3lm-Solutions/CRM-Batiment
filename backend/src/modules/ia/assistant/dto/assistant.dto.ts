@@ -62,6 +62,10 @@ export class QueryProspectsDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: ProspectStatut, isArray: true })
   @IsOptional() @ToStringArray() @IsArray() @IsEnum(ProspectStatut, { each: true })
   statuts?: ProspectStatut[];
+
+  @ApiPropertyOptional({ enum: ['CHATBOT', 'EMAIL'], description: 'Chatbot du site ou email reçu (22/10)' })
+  @IsOptional() @IsIn(['CHATBOT', 'EMAIL'])
+  source?: 'CHATBOT' | 'EMAIL';
 }
 
 export class UpdateProspectDto {

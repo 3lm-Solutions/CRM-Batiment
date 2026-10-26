@@ -77,7 +77,8 @@ export class ChatbotService {
     const count = await this.prisma.messageChat.count({ where: { sessionId: s.id, role: 'user' } });
     await this.prisma.messageChat.create({ data: { sessionId: s.id, role: 'user', contenu } });
 
-    if (s.statut === 'QUALIFIE' || s.statut === 'REJETE' || s.terminee) {
+    // A qualified or rejected conversation is over (the old `terminee` flag was never set: removed 20/10)
+    if (s.statut === 'QUALIFIE' || s.statut === 'REJETE') {
       return this.save(s, { ...(await this.contactReply(s.companyId)), reponse: 'Votre demande a bien été transmise à notre équipe. Pour toute autre question, contactez-nous directement.' });
     }
     if (count >= MAX_MESSAGES) {

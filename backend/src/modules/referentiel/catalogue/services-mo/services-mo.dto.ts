@@ -21,12 +21,13 @@ export class CreateServiceMoDto {
 
   @ApiPropertyOptional({ example: 250 }) @IsOptional() @IsNumber({ maxDecimalPlaces: 2 }) @Min(0)
   coutJournalier?: number | null;
-}
 
-export class UpdateServiceMoDto extends PartialType(CreateServiceMoDto) {
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  /** Sent by the create form too (default true). Was accepted on update only: every creation failed with 400. */
+  @ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean()
   actif?: boolean;
 }
+
+export class UpdateServiceMoDto extends PartialType(CreateServiceMoDto) {}
 
 export class QueryServicesMoDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: Unite }) @IsOptional() @IsEnum(Unite)

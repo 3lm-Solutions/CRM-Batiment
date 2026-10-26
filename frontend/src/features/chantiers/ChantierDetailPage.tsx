@@ -7,6 +7,7 @@ import { errorMessage } from '@/lib/api';
 import { formatDate, formatEuros, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import { RapportsCard } from '../rapports/RapportsCard';
+import { ChecklistTache } from './ChecklistTache';
 import { useUserOptions } from '../users/api';
 import {
   useChantier,
@@ -104,6 +105,7 @@ function TachesCard({ chantier, canEdit }: { chantier: ChantierDetail; canEdit: 
                 {t.affectations.length > 0 && ` · ${t.affectations.map((a) => fullName(a.user)).join(', ')}`}
               </p>
               {t.commentaire && <p className="mt-1 text-xs italic text-slate-600 dark:text-slate-400">{t.commentaire}</p>}
+              <ChecklistTache chantierId={chantier.id} tache={t} canEdit={canEdit && !locked} />
             </div>
             <Progress value={t.avancement} />
             {canEdit && !locked && (

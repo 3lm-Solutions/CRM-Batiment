@@ -115,8 +115,8 @@ export class NotificationsListener {
   @OnEvent(AssistantEvents.PROSPECT_A_QUALIFIER, ASYNC)
   async prospect(e: ProspectEvent) {
     await this.notifications.notifyRoles(e.companyId, [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE], {
-      type: 'PROSPECT_CHATBOT',
-      titre: `Nouveau prospect chatbot${e.nom ? ` : ${e.nom}` : ''}`,
+      type: e.source === 'EMAIL' ? 'PROSPECT_EMAIL' : 'PROSPECT_CHATBOT',
+      titre: `Nouveau prospect ${e.source === 'EMAIL' ? 'par email' : 'chatbot'}${e.nom ? ` : ${e.nom}` : ''}`,
       message: `${e.typeProjet ?? 'Projet à préciser'}${e.doublon ? ' — a déjà écrit récemment (doublon possible)' : ''}. À qualifier.`,
       lien: `/assistant/prospects/${e.sessionId}`,
     });

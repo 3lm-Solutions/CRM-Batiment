@@ -64,3 +64,63 @@ export function factureMail(p: {
   }.`;
   return { subject, html, text };
 }
+
+/**
+ * Reminder for an unpaid invoice past its due date (C3 of 21/10). The tone gets firmer with
+ * each level; no penalty amount is computed here (the legal mentions are on the invoice).
+ */
+export function factureRelanceMail(p: {
+  clientNom: string;
+  entreprise: string;
+  entrepriseEmail: string | null;
+  entrepriseTelephone: string | null;
+  reference: string;
+  type: string;
+  montantTTC: number;
+  dateEcheance: Date;
+  joursRetard: number;
+  niveau: number;
+  communicationPaiement: string | null;
+}): RenderedMail {
+  const ton =
+    p.joursRetard <= 0
+      ? 'Nous vous rappelons simplement cette échéance.'
+      : p.niveau >= 3
+      ? 'Malgré nos précédents rappels, nous n’avons toujours pas reçu votre règlement. Merci de régulariser la situation sans délai.'
+      : p.niveau === 2
+        ? 'Sauf erreur de notre part, ce règlement ne nous est toujours pas parvenu. Merci d’y procéder dans les meilleurs délais.'
+        : 'Sauf erreur de notre part, nous n’avons pas encore reçu ce règlement. S’il s’agit d’un oubli, merci d’y procéder dès que possible.';
+  const subject =
+    p.joursRetard <= 0
+      ? `Rappel d’échéance : ${p.type.toLowerCase()} ${p.reference}`
+      : `${p.niveau >= 3 ? 'Dernière relance' : 'Relance'} : ${p.type.toLowerCase()} ${p.reference} échue`;
+  const contact = [p.entrepriseTelephone, p.entrepriseEmail].filter(Boolean).join(' · ');
+  const html = layout(
+    `${p.type} ${p.reference}`,
+    `<p>Bonjour ${escapeHtml(p.clientNom)},</p>
+     <p>Votre ${escapeHtml(p.type.toLowerCase())} <strong>${escapeHtml(p.reference)}</strong> d'un montant de
+        <strong>${escapeHtml(formatEuros(p.montantTTC))} TTC</strong> ${
+          p.joursRetard > 0
+            ? `était à régler le ${escapeHtml(formatDate(p.dateEcheance))} (${p.joursRetard} jour${p.joursRetard > 1 ? 's' : ''} de retard)`
+            : `est à régler avant le ${escapeHtml(formatDate(p.dateEcheance))}`
+        }.</p>
+     <p>${escapeHtml(ton)}</p>
+     ${p.communicationPaiement ? `<p>Référence à indiquer sur votre virement : <strong>${escapeHtml(p.communicationPaiement)}</strong></p>` : ''}
+     <p>Si votre paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.${contact ? ` Pour toute question : ${escapeHtml(contact)}.` : ''}</p>
+     <p>Cordialement,<br/>${escapeHtml(p.entreprise)}</p>`,
+  );
+  const text = [
+    `Bonjour ${p.clientNom},`,
+    '',
+    p.joursRetard > 0
+      ? `${p.type} ${p.reference} : ${formatEuros(p.montantTTC)} TTC, à régler le ${formatDate(p.dateEcheance)} (${p.joursRetard} jour(s) de retard).`
+      : `${p.type} ${p.reference} : ${formatEuros(p.montantTTC)} TTC, à régler avant le ${formatDate(p.dateEcheance)}.`,
+    ton,
+    ...(p.communicationPaiement ? [`Référence à indiquer sur votre virement : ${p.communicationPaiement}`] : []),
+    'Si votre paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.',
+    ...(contact ? [`Pour toute question : ${contact}.`] : []),
+    '',
+    p.entreprise,
+  ].join('\n');
+  return { subject, html, text };
+}

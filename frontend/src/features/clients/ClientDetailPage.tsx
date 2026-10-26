@@ -1,4 +1,4 @@
-import { Archive, ArchiveRestore, FilePlus2, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, FilePlus2, Globe, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -55,6 +55,8 @@ export function ClientDetailPage() {
                   Nouveau devis
                 </Button>
               )}
+              {/* E1 of 20/10: one click to see the client's space as he sees it */}
+              <Button variant="outline" icon={<Globe className="size-4" />} onClick={() => navigate(`/clients/${id}/espace-client`)}>Espace client</Button>
               <Button variant="outline" icon={<Pencil className="size-4" />} onClick={() => setEditing(true)}>Modifier</Button>
               <Button variant="outline" icon={c.archivedAt ? <ArchiveRestore className="size-4" /> : <Archive className="size-4" />} onClick={() => run(c.archivedAt ? 'unarchive' : 'archive')}>
                 {c.archivedAt ? 'Réactiver' : 'Archiver'}

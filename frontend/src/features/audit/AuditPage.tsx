@@ -15,6 +15,8 @@ const ACTIONS: Record<string, [string, Tone]> = {
   FACTURE_EMISE: ['Facture émise', 'blue'],
   FACTURE_PAYEE: ['Facture payée', 'green'],
   FACTURE_ANNULEE: ['Facture annulée (avoir)', 'red'],
+  RELANCE_DEVIS: ['Relance devis', 'amber'],
+  RELANCE_FACTURE: ['Relance facture', 'amber'],
 };
 
 const ENTITES: Record<string, { label: string; link?: (id: number) => string }> = {
@@ -35,6 +37,10 @@ const LABELS: Record<string, string> = {
   montantTTC: 'Montant TTC',
   statut: 'Statut',
   reference: 'Référence',
+  niveau: 'Relance n°',
+  par: 'Par',
+  destinataire: 'Destinataire',
+  emailEnvoye: 'Email envoyé',
 };
 
 /** Before → after, one line per changed field. */

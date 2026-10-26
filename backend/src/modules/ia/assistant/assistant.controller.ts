@@ -16,6 +16,7 @@ import {
   StartSessionDto,
   UpdateProspectDto,
 } from './dto/assistant.dto';
+import { EmailProspectsService } from './email/email-prospects.service';
 import { ProspectsService } from './prospects.service';
 
 const TOKEN = 'x-chat-token';
@@ -70,7 +71,10 @@ const COMMERCIAL = [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE];
 @Roles(...COMMERCIAL)
 @Controller('assistant/prospects')
 export class ProspectsController {
-  constructor(private readonly prospects: ProspectsService) {}
+  constructor(
+    private readonly prospects: ProspectsService,
+    private readonly emails: EmailProspectsService,
+  ) {}
 
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryProspectsDto) {
@@ -80,6 +84,19 @@ export class ProspectsController {
   @Get('statistiques')
   stats(@CurrentUser() user: AuthUser) {
     return this.prospects.stats(user);
+  }
+
+  @Get('emails/statut')
+  @ApiOperation({ summary: 'Boîte mail des prospects : configurée ?, dernier relevé (22/10)' })
+  emailStatut() {
+    return this.emails.statut();
+  }
+
+  @Roles(Role.ADMIN)
+  @Post('emails/relever') @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Lire maintenant les emails non lus de la boîte (sinon automatique)' })
+  releverEmails() {
+    return this.emails.relever();
   }
 
   @Roles(Role.ADMIN)

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles } from '../../../common';
+import { amountsFor, type AuthUser, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { DossierService } from './dossier.service';
 import { CreateAssuranceDto, CreateDisponibiliteDto, CreateNotationDto, CreatePaiementDto, CreateSousTraitantDto, LierCompteDto, QuerySousTraitantsDto, UpdateAssuranceDto, UpdatePaiementDto, UpdateSousTraitantDto } from './dto/sous-traitants.dto';
@@ -22,14 +22,14 @@ export class SousTraitantsController {
   @Roles(...READERS)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QuerySousTraitantsDto) {
-    return this.sousTraitants.findAll(user, query);
+    return amountsFor(user, this.sousTraitants.findAll(user, query));
   }
 
   @Roles(...READERS)
   @Get(':id')
   @ApiOperation({ summary: 'Fiche complète : contrats, assurances, paiements, disponibilités, notes' })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
-    return this.sousTraitants.findOne(user, id);
+    return amountsFor(user, this.sousTraitants.findOne(user, id));
   }
 
   @Post()
@@ -89,6 +89,12 @@ export class SousTraitantsController {
     @Body() dto: UpdatePaiementDto,
   ) {
     return this.dossier.updatePaiement(user, id, pid, dto);
+  }
+
+  @Delete(':id/paiements/:pid') @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Supprimer un paiement saisi par erreur (un paiement effectué : statut ANNULE)' })
+  removePaiement(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('pid', ParseIntPipe) pid: number) {
+    return this.dossier.removePaiement(user, id, pid);
   }
 
   // ── disponibilités ──

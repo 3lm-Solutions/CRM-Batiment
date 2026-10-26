@@ -58,7 +58,7 @@ export class DevisController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Supprimer un brouillon jamais envoyé (sinon : annuler)' })
+  @ApiOperation({ summary: 'Supprimer un brouillon jamais envoyé, ou un devis annulé sans facture / commande / chantier' })
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.devis.remove(user, id);
   }

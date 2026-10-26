@@ -97,9 +97,10 @@ export interface SousTraitant extends SousTraitantBase {
   notations: Notation[];
 }
 
-export const useSousTraitants = (q: { page: number; search?: string; statut?: SousTraitantStatut | '' }) =>
+export const useSousTraitants = (q: { page: number; search?: string; statut?: SousTraitantStatut | ''; limit?: number }, enabled = true) =>
   useQuery({
     queryKey: ['sous-traitants', 'list', q],
+    enabled,
     placeholderData: keepPreviousData,
     queryFn: async () =>
       (await api.get<PaginatedResponse<SousTraitantListItem>>('/sous-traitants', { params: { ...q, statut: q.statut || undefined } })).data,
@@ -114,7 +115,10 @@ function useStWrite<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>) {
   return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ['sous-traitants'] }) });
 }
 
-export type SousTraitantInput = Partial<Pick<SousTraitantBase, 'nom' | 'contact' | 'siret' | 'email' | 'telephone' | 'adresse' | 'specialite' | 'statut'>>;
+/** `userId` only on creation (existing portal account); afterwards PUT /sous-traitants/:id/compte. */
+export type SousTraitantInput = Partial<Pick<SousTraitantBase, 'nom' | 'contact' | 'siret' | 'email' | 'telephone' | 'adresse' | 'specialite' | 'statut'>> & {
+  userId?: number | null;
+};
 
 export const useSaveSousTraitant = () =>
   useStWrite(async ({ id, ...body }: SousTraitantInput & { id?: number }) =>
@@ -144,8 +148,18 @@ export const useAddPaiement = (stId: number) =>
   useStWrite(async (body: { contratId?: number | null; montantHT: number; montantTTC: number; datePaiement: string; modePaiement: ModePaiement; statut?: PaiementStatut }) =>
     (await api.post(`/sous-traitants/${stId}/paiements`, body)).data,
   );
+export interface PaiementInput {
+  contratId?: number | null;
+  montantHT?: number;
+  montantTTC?: number;
+  datePaiement?: string;
+  modePaiement?: ModePaiement;
+  statut?: PaiementStatut;
+}
+/** Every field can be corrected (report of 20/10). */
 export const useUpdatePaiement = (stId: number) =>
-  useStWrite(async ({ id, ...body }: { id: number; statut?: PaiementStatut }) => (await api.patch(`/sous-traitants/${stId}/paiements/${id}`, body)).data);
+  useStWrite(async ({ id, ...body }: PaiementInput & { id: number }) => (await api.patch(`/sous-traitants/${stId}/paiements/${id}`, body)).data);
+export const useDeletePaiement = (stId: number) => useStWrite(async (id: number) => api.delete(`/sous-traitants/${stId}/paiements/${id}`));
 
 export const useAddDisponibilite = (stId: number) =>
   useStWrite(async (body: { dateDebut: string; dateFin: string; disponible: boolean; notes?: string | null }) =>

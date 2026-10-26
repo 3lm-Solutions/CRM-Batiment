@@ -14,6 +14,7 @@ import { DemandesDevisModule } from './modules/commercial/demandes-devis/demande
 import { DevisModule } from './modules/commercial/devis/devis.module';
 import { ChantiersModule } from './modules/execution/chantiers/chantiers.module';
 import { SousTraitantsModule } from './modules/execution/sous-traitants/sous-traitants.module';
+import { PointagesModule } from './modules/execution/pointages/pointages.module';
 import { CommandesModule } from './modules/finance/commandes-fournisseur/commandes.module';
 import { FacturesModule } from './modules/finance/factures/factures.module';
 import { StockModule } from './modules/finance/stock/stock.module';
@@ -26,6 +27,7 @@ import { DashboardModule } from './modules/pilotage/dashboard/dashboard.module';
 import { DemoRequestsModule } from './modules/pilotage/demo-requests/demo-requests.module';
 import { SandboxModule } from './modules/pilotage/sandbox/sandbox.module';
 import { NotificationsModule } from './modules/pilotage/notifications/notifications.module';
+import { RelancesModule } from './modules/pilotage/relances/relances.module';
 import { SavModule } from './modules/pilotage/sav/sav.module';
 import { AssistantModule } from './modules/ia/assistant/assistant.module';
 import { DevisIaModule } from './modules/ia/devis-ia/devis-ia.module';
@@ -73,6 +75,7 @@ import { PrismaModule } from './prisma/prisma.module';
     // ── execution & finance ──
     ChantiersModule,
     SousTraitantsModule,
+    PointagesModule,
     StockModule,
     CommandesModule,
     FacturesModule,
@@ -83,6 +86,7 @@ import { PrismaModule } from './prisma/prisma.module';
     // ── pilotage (mostly listen to the events above; SavModule is also used by the client space) ──
     AuditModule,
     NotificationsModule,
+    RelancesModule,
     SavModule,
     DashboardModule,
     DemoRequestsModule,

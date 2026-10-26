@@ -152,6 +152,25 @@ describe('Portails — fichiers, sous-traitant, fournisseur, espace client (e2e)
       const refused = await request(http).post(api(`/rapports/${r.body.id}/rejeter`)).set(auth(admin)).send({}).expect(422);
       expect(refused.body.code).toBe('COMMENTAIRE_REQUIS');
     });
+
+    it('validating an old report never lowers progress (the task moved on since)', async () => {
+      const r = await request(http)
+        .post(api('/portail/sous-traitant/rapports'))
+        .set(auth(st))
+        .field('chantierId', String(chantierId))
+        .field('tacheId', String(tacheId))
+        .field('contenu', 'Point du matin')
+        .field('avancement', '80')
+        .expect(201);
+      await request(http).patch(api(`/portail/sous-traitant/taches/${tacheId}`)).set(auth(st)).send({ avancement: 95 }).expect(200);
+      await request(http).post(api(`/rapports/${r.body.id}/valider`)).set(auth(admin)).send({}).expect(200);
+      expect((await t.prisma.tache.findUniqueOrThrow({ where: { id: tacheId } })).avancement).toBe(95);
+    });
+
+    it('cannot use the staff job site routes (client phone, internal notes)', async () => {
+      await request(http).get(api('/chantiers')).set(auth(st)).expect(403);
+      await request(http).get(api(`/chantiers/${chantierId}`)).set(auth(st)).expect(403);
+    });
   });
 
   describe('portail fournisseur', () => {

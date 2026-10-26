@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import type { AuthUser } from '../../../common';
 import type { DevisStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { chantierMargins } from './chantier-margins';
 import { rate, weeklySeries } from './weekly-series';
 
 const OPEN_CHANTIER = ['PLANIFIE', 'EN_COURS', 'SUSPENDU'] as const;
+/** Job sites shown in « Marge par chantier »: not yet closed (TERMINE = works done, invoicing may go on) */
+const MARGIN_CHANTIER = ['PLANIFIE', 'EN_COURS', 'SUSPENDU', 'TERMINE'] as const;
 const PENDING_ORDERS = ['CREEE', 'ENVOYEE', 'EXPEDIEE', 'PARTIELLE'] as const;
 
 /** Admin dashboard (spec "Dashboard Admin" P0 + MUST "Dashboard dirigeant"). One call, all KPIs. */
@@ -34,6 +37,9 @@ export class DashboardService {
       savUrgents,
       stockAlertes,
       seriesRows,
+      chantiersMarge,
+      company,
+      relancesSemaine,
     ] = await Promise.all([
       this.prisma.demandeDevis.count({ where: { companyId, statut: { in: ['NOUVEAU', 'EN_COURS', 'QUALIFIE'] }, createdAt: { gte: since } } }),
       this.prisma.client.count({ where: { companyId, createdAt: { gte: since } } }),
@@ -59,6 +65,19 @@ export class DashboardService {
         where: { companyId, dateEnvoi: { gte: seriesSince } },
         select: { dateEnvoi: true, statut: true },
       }),
+      this.prisma.chantier.findMany({
+        where: { companyId, statut: { in: [...MARGIN_CHANTIER] }, devis: { some: { statut: 'SIGNE' } } },
+        select: {
+          id: true,
+          reference: true,
+          statut: true,
+          client: { select: { nom: true, prenom: true } },
+          devis: { where: { statut: 'SIGNE' }, select: { totalHT: true, profit: true } },
+        },
+      }),
+      this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { seuilAlerteMargePourcent: true } }),
+      // C3: reminders sent in the last 7 days (automatic + manual)
+      this.prisma.relance.count({ where: { companyId, createdAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } } }),
     ]);
 
     const byStatut = (statuts: string[]) =>
@@ -87,6 +106,8 @@ export class DashboardService {
       commandesEnAttente,
       sav: { ouverts: savOuverts, urgents: savUrgents },
       stockAlertes,
+      relancesSemaine,
+      margesChantiers: chantierMargins(chantiersMarge, company.seuilAlerteMargePourcent.toNumber()),
       serieDevis: weeklySeries(
         seriesRows.filter((r): r is { dateEnvoi: Date; statut: DevisStatut } => r.dateEnvoi !== null),
         now,

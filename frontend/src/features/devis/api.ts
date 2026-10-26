@@ -193,13 +193,39 @@ export interface PropositionIa {
   hypotheses: string[];
   totalHT: number;
   avertissement: string | null;
+  /** Quote from photos (C37 of 21/10): what the AI saw */
+  analysePhoto?: AnalysePhoto | null;
 }
+
+export interface AnalysePhoto {
+  piece: string;
+  /** Approximate — to measure on site */
+  surfaceEstimeeM2: number | null;
+  objetReference: boolean;
+  elementsVisibles: string[];
+  etat: string;
+  qualitePhoto: 'BONNE' | 'MOYENNE' | 'INSUFFISANTE';
+}
+
+/** Same limit as the API */
+export const MAX_PHOTOS_IA = 3;
 
 /** Nothing is saved: the proposal is shown for review. */
 export const useProposerIa = (id: number) =>
   useMutation({
     mutationFn: async (description: string) =>
       (await api.post<PropositionIa>(`/devis/${id}/ia/proposer`, { description }, { timeout: 90_000 })).data,
+  });
+
+/** 1 to 3 photos (already shrunk) + optional text; the photos are not stored by the API. */
+export const useProposerPhotoIa = (id: number) =>
+  useMutation({
+    mutationFn: async ({ photos, description }: { photos: File[]; description: string }) => {
+      const body = new FormData();
+      if (description.trim()) body.append('description', description.trim());
+      photos.forEach((p) => body.append('photos', p));
+      return (await api.post<PropositionIa>(`/devis/${id}/ia/proposer-photo`, body, { timeout: 120_000 })).data;
+    },
   });
 
 /** Adds the kept lines in one transaction. */
@@ -243,6 +269,11 @@ export interface Company {
   adresse: string | null;
   telephone: string | null;
   email: string | null;
+  /** data URL (PNG, JPEG, WebP), shown in the client space and on the quote link */
+  logo?: string | null;
+  /** Printed on invoices with the payment QR code (21/10) */
+  iban?: string | null;
+  bic?: string | null;
 }
 
 export const useCompany = (enabled = true) =>

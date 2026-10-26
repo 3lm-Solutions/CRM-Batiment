@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { PaginationQueryDto, ToStringArray, Trim, TrimOrNull } from '../../../common';
 import { SavTicketCategorie, SavTicketPriorite, SavTicketStatut } from '../../../generated/prisma/client';
 
@@ -76,9 +76,17 @@ export class QuerySavDto extends PaginationQueryDto {
 export class SavNoteDto {
   @ApiProperty() @Trim() @IsString() @IsNotEmpty() @MaxLength(5000)
   contenu: string;
+
+  @ApiPropertyOptional({ description: 'Réponse visible par le client dans son espace (et envoyée par email). Défaut : note interne.' })
+  @IsOptional() @IsBoolean()
+  visibleClient?: boolean;
 }
 
 export class ResoudreSavDto {
   @ApiPropertyOptional({ description: 'Note de résolution (ajoutée au fil)' }) @IsOptional() @TrimOrNull() @IsString() @MaxLength(5000)
   note?: string | null;
+
+  @ApiPropertyOptional({ description: 'La note est aussi un message au client (espace client + email)' })
+  @IsOptional() @IsBoolean()
+  visibleClient?: boolean;
 }

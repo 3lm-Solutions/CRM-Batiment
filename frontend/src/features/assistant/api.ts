@@ -60,9 +60,14 @@ export const chatApi = {
 
 export type ProspectStatut = 'NOUVEAU' | 'A_QUALIFIER' | 'QUALIFIE' | 'REJETE';
 
+/** Chatbot of the website, or an email read in the mailbox (22/10) */
+export type ProspectSource = 'CHATBOT' | 'EMAIL';
+
 export interface ProspectListItem {
   id: number;
   statut: ProspectStatut;
+  source: ProspectSource;
+  emailSujet: string | null;
   clientNom: string | null;
   clientPrenom: string | null;
   clientEmail: string | null;
@@ -99,13 +104,44 @@ export interface AssistantStats {
   erreurs: Record<string, number>;
 }
 
-export const useProspects = (q: { page: number; search?: string; statuts?: ProspectStatut[] }) =>
+export const useProspects = (q: { page: number; search?: string; statuts?: ProspectStatut[]; source?: ProspectSource | '' }) =>
   useQuery({
     queryKey: ['assistant', 'prospects', q],
     placeholderData: keepPreviousData,
     queryFn: async () =>
-      (await api.get<PaginatedResponse<ProspectListItem>>('/assistant/prospects', { params: { ...q, statuts: q.statuts?.join(',') || undefined } })).data,
+      (await api.get<PaginatedResponse<ProspectListItem>>('/assistant/prospects', { params: { ...q, statuts: q.statuts?.join(',') || undefined, source: q.source || undefined } })).data,
   });
+
+// ── prospects by email (22/10) ──
+export interface BilanReleve {
+  date: string;
+  lus: number;
+  prospects: number;
+  rejetes: number;
+  suites: number;
+  ignores: number;
+  erreurs: number;
+  erreur?: string;
+}
+
+export interface EmailStatut {
+  active: boolean;
+  boite: string | null;
+  intervalleMinutes: number;
+  enCours: boolean;
+  dernier: BilanReleve | null;
+}
+
+export const useEmailStatut = () =>
+  useQuery({ queryKey: ['assistant', 'emails'], refetchInterval: 60_000, queryFn: async () => (await api.get<EmailStatut>('/assistant/prospects/emails/statut')).data });
+
+export function useReleverEmails() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post<BilanReleve>('/assistant/prospects/emails/relever', {}, { timeout: 120_000 })).data,
+    onSettled: () => qc.invalidateQueries({ queryKey: ['assistant'] }),
+  });
+}
 
 export const useProspect = (id: number) =>
   useQuery({ queryKey: ['assistant', 'prospect', id], queryFn: async () => (await api.get<Prospect>(`/assistant/prospects/${id}`)).data });

@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../../common';
+import { type AuthUser, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
 import { CreateServiceMoDto, QueryServicesMoDto, UpdateServiceMoDto } from './services-mo.dto';
 import { ServicesMoService } from './services-mo.service';
@@ -15,13 +15,13 @@ export class ServicesMoController {
   @Roles(...STAFF)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryServicesMoDto) {
-    return this.services.findAll(user, query);
+    return costsFor(user, this.services.findAll(user, query));
   }
 
   @Roles(...STAFF)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
-    return this.services.findOne(user, id);
+    return costsFor(user, this.services.findOne(user, id));
   }
 
   @Post()

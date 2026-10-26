@@ -8,10 +8,12 @@ import { MailService } from '../../core/mail/mail.service';
 import { factureMail } from '../../core/mail/templates/finance.templates';
 import { AnnulerFactureDto, CreateSituationDto, EmettreFactureDto, FactureLigneDto, PayerFactureDto, QueryFacturesDto, UpdateFactureDto } from './dto/factures.dto';
 import { type FactureEvent, FactureEvents } from './facture.events';
-import { acompteHT, buildLine, finaleHT, type InvoiceLine, invoiceTotals, negate, situationHT } from './facture.calculator';
+import { acompteHT, buildLine, finaleHT, type InvoiceLine, invoiceTotals, negate, situationAmounts } from './facture.calculator';
 import { FactureMachine } from './facture-status';
+import { completerQrFacture, FACTURE_CLIENT_SELECT, newPublicToken } from './facture.views';
 
 const ISSUED: FactureStatut[] = ['ENVOYEE', 'PAYEE'];
+
 const INCLUDE = {
   lignes: { orderBy: { ordre: 'asc' } },
   devis: { select: { id: true, reference: true, totalHT: true, client: { select: { id: true, nom: true, prenom: true } } } },
@@ -87,21 +89,49 @@ export class FacturesService {
       if (situations.some((f) => f.statut === 'BROUILLON')) {
         throw new BusinessException('SITUATION_EN_COURS', 'Émettez ou annulez d’abord la situation en brouillon.');
       }
+      // The deposit is repaid on progress invoices: it must be issued (or cancelled) first
+      const acomptes = factures.filter((f) => f.typeFacture === 'ACOMPTE');
+      if (acomptes.some((f) => f.statut === 'BROUILLON')) {
+        throw new BusinessException(
+          'ACOMPTE_EN_BROUILLON',
+          'La facture d’acompte est encore en brouillon : émettez-la ou annulez-la avant une situation de travaux.',
+        );
+      }
       const dernier = Math.max(0, ...situations.map((s) => s.avancementCumule?.toNumber() ?? 0));
       if (dto.avancementCumule <= dernier) {
         throw new BusinessException('AVANCEMENT_INVALIDE', `L’avancement cumulé doit dépasser ${dernier} %.`);
       }
 
       const numero = situations.length + 1;
-      const montant = situationHT(devis.totalHT, dto.avancementCumule, situations.map((s) => s.montantHT));
-      const line = buildLine({
-        description: `Situation n°${numero} — avancement cumulé ${dto.avancementCumule} % du devis ${devis.reference}`,
-        quantite: 1,
-        unite: 'FORFAIT',
-        prixUnitaireHT: montant,
-        tauxTVA: devis.tauxTVA,
+      const acomptesEmis = acomptes.filter((f) => ISSUED.includes(f.statut));
+      const montants = situationAmounts({
+        devisHT: devis.totalHT,
+        acomptesHT: acomptesEmis.map((f) => f.montantHT),
+        avancementPrecedent: dernier,
+        avancementCumule: dto.avancementCumule,
+        situationsDejaHT: situations.map((s) => s.montantHT),
       });
-      return (await this.createDraft(tx, devis, 'SITUATION', [line], { numeroSituation: numero, avancementCumule: dto.avancementCumule })).id;
+      const lines: InvoiceLine[] = [
+        buildLine({
+          description: `Situation n°${numero} — avancement cumulé ${dto.avancementCumule} % du devis ${devis.reference} (travaux de ${dernier} % à ${dto.avancementCumule} %)`,
+          quantite: 1,
+          unite: 'FORFAIT',
+          prixUnitaireHT: montants.brutHT,
+          tauxTVA: devis.tauxTVA,
+        }),
+      ];
+      if (montants.remboursementAcompteHT.gt(0)) {
+        lines.push(
+          buildLine({
+            description: `Remboursement de l’acompte ${acomptesEmis.map((f) => f.reference).filter(Boolean).join(', ')} au prorata de l’avancement`,
+            quantite: 1,
+            unite: 'FORFAIT',
+            prixUnitaireHT: montants.remboursementAcompteHT.negated(),
+            tauxTVA: devis.tauxTVA,
+          }),
+        );
+      }
+      return (await this.createDraft(tx, devis, 'SITUATION', lines, { numeroSituation: numero, avancementCumule: dto.avancementCumule })).id;
     });
     return this.findOne(user, id);
   }
@@ -189,7 +219,20 @@ export class FacturesService {
   async findOne(user: AuthUser, id: number) {
     const facture = await this.prisma.facture.findFirst({ where: { id, ...this.scope(user) }, include: INCLUDE });
     if (!facture) throw new NotFoundException(`Facture #${id} introuvable`);
+    if (await completerQrFacture(this.prisma, facture)) return this.prisma.facture.findUniqueOrThrow({ where: { id }, include: INCLUDE });
     return facture;
+  }
+
+  /** « View this invoice » link / QR code: the issued invoice, read only, without an account (21/10). */
+  async findPublic(token: string) {
+    if (!token || token.length > 100) throw new NotFoundException('Facture introuvable');
+    const facture = await this.prisma.facture.findFirst({
+      where: { lienPublicToken: token, statut: { in: ['ENVOYEE', 'PAYEE', 'ANNULEE'] }, reference: { not: null } },
+      select: { ...FACTURE_CLIENT_SELECT, company: { select: { logo: true } } },
+    });
+    if (!facture) throw new NotFoundException('Facture introuvable');
+    const { company, ...rest } = facture;
+    return { ...rest, logo: company.logo };
   }
 
   // ── draft edition ───────────────────────────────────────────────────────
@@ -253,7 +296,8 @@ export class FacturesService {
     const facture = await this.findOne(user, id);
     this.emit(FactureEvents.EMISE, user, facture);
     const emailSent = dto.envoyerEmail === false ? false : await this.envoyerEmail(user, id);
-    return { facture, emailSent };
+    // Re-read when the email went out: the answer then carries « envoyée le … »
+    return { facture: emailSent ? await this.findOne(user, id) : facture, emailSent };
   }
 
   /** Email the client (again) about an issued invoice. */
@@ -263,7 +307,7 @@ export class FacturesService {
       throw new BusinessException('FACTURE_NON_EMISE', 'Seule une facture émise peut être envoyée.');
     }
     if (!facture.emailClient) return false;
-    return this.mail.send(
+    const sent = await this.mail.send(
       facture.emailClient,
       factureMail({
         clientNom: [facture.prenomClient, facture.nomClient].filter(Boolean).join(' '),
@@ -274,6 +318,11 @@ export class FacturesService {
         dateEcheance: facture.dateEcheance,
       }),
     );
+    // Shown on the invoice (« Envoyée le … à … »): was never recorded before 20/10 (bug B1)
+    if (sent) {
+      await this.prisma.facture.update({ where: { id }, data: { dateEnvoiClient: new Date(), emailEnvoiClient: facture.emailClient } });
+    }
+    return sent;
   }
 
   async marquerPayee(user: AuthUser, id: number, dto: PayerFactureDto) {
@@ -382,6 +431,10 @@ export class FacturesService {
       companyTelephone: company.telephone,
       companyAdresse: company.adresse,
       companySiret: company.siret,
+      // Payment QR code (SEPA EPC) and « view online » QR code — 21/10
+      companyIban: company.iban,
+      companyBic: company.bic,
+      lienPublicToken: newPublicToken(),
     });
   }
 
@@ -417,10 +470,13 @@ export class FacturesService {
     return devis;
   }
 
-  /** Chef de chantier: invoices of his job sites (read only). */
+  /**
+   * Chef de chantier: ISSUED invoices of his job sites, read only (decision C2 of 20/10:
+   * drafts are office work in progress and stay invisible to him).
+   */
   private scope(user: AuthUser): Prisma.FactureWhereInput {
     return user.role === Role.CHEF_CHANTIER
-      ? { companyId: user.companyId, devis: { chantier: { chefChantierId: user.id } } }
+      ? { companyId: user.companyId, statut: { not: 'BROUILLON' }, devis: { chantier: { chefChantierId: user.id } } }
       : { companyId: user.companyId };
   }
 }

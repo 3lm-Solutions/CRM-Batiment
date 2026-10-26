@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Button, Input, Modal, Select, statusOptions, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { fromDateInput, fullName, toDateInput } from '@/lib/format';
+import { useAuth } from '../auth/auth-context';
 import { useUserOptions } from '../users/api';
 import { useSaveTache, type Tache, type TacheStatut } from './api';
 
@@ -10,6 +11,13 @@ export function TacheModal({ open, onClose, chantierId, tache }: { open: boolean
   const save = useSaveTache(chantierId);
   // Sous-traitant and chef accounts can be assigned (the API used to drop sous-traitants from this list)
   const people = useUserOptions(['CHEF_CHANTIER', 'SOUS_TRAITANT'], open);
+  // A chef de chantier assigns sous-traitants or himself, never another chef (the API refuses it);
+  // chefs already assigned by the office stay listed so the task can still be saved.
+  const { user, hasRole } = useAuth();
+  const isChef = hasRole('CHEF_CHANTIER');
+  const initialAssignees = tache?.affectations.map((a) => a.userId) ?? [];
+  const visible = (u: { id: number; role: string }) =>
+    !isChef || u.role !== 'CHEF_CHANTIER' || u.id === user?.id || initialAssignees.includes(u.id);
 
   const [libelle, setLibelle] = useState('');
   const [description, setDescription] = useState('');
@@ -94,6 +102,9 @@ export function TacheModal({ open, onClose, chantierId, tache }: { open: boolean
               step={5}
               value={avancement}
               className="accent-brand-700 px-0 shadow-none"
+              // With a checklist the progress follows the ticked items (21/10)
+              disabled={!!tache?.checklist?.length}
+              hint={tache?.checklist?.length ? 'Suit la checklist de la tâche' : undefined}
               onChange={(e) => setAvancement(Number(e.target.value))}
             />
           </div>
@@ -106,10 +117,10 @@ export function TacheModal({ open, onClose, chantierId, tache }: { open: boolean
             {(
               [
                 ['SOUS_TRAITANT', 'Sous-traitants', 'Aucun compte sous-traitant actif — l’administrateur peut en créer un (Utilisateurs).'],
-                ['CHEF_CHANTIER', 'Chefs de chantier', 'Aucun chef de chantier actif.'],
+                ['CHEF_CHANTIER', isChef ? 'Moi' : 'Chefs de chantier', 'Aucun chef de chantier actif.'],
               ] as const
             ).map(([role, title, empty]) => {
-              const group = (people.data ?? []).filter((u) => u.role === role);
+              const group = (people.data ?? []).filter((u) => u.role === role && visible(u));
               return (
                 <div key={role}>
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</p>
@@ -118,7 +129,7 @@ export function TacheModal({ open, onClose, chantierId, tache }: { open: boolean
                     {group.map((u) => (
                       <label key={u.id} className="flex items-center gap-2 text-sm">
                         <input type="checkbox" className="size-4 rounded accent-brand-700" checked={assignees.includes(u.id)} onChange={() => toggle(u.id)} />
-                        {fullName(u)}
+                        {fullName(u)}{isChef && u.id === user?.id ? ' (moi)' : ''}
                       </label>
                     ))}
                   </div>

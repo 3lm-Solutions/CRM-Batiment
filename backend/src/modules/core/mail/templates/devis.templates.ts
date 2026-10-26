@@ -67,3 +67,31 @@ export function signatureOtpMail(p: { code: string; reference: string; validityM
   const text = `Votre code pour signer le devis ${p.reference} : ${p.code}\nIl expire dans ${p.validityMinutes} minutes.`;
   return { subject, html, text };
 }
+
+/**
+ * Reminder for a quote still waiting for an answer (C3 of 21/10). Carries a NEW link (the
+ * previous validation link is cancelled), so it always works even if the first one expired.
+ */
+export function devisRelanceMail(p: DevisMailBase & { niveau: number; joursDepuisEnvoi: number }): RenderedMail {
+  const subject = p.niveau >= 2 ? `Dernier rappel : votre devis ${p.reference}` : `Rappel : votre devis ${p.reference}`;
+  const intro =
+    p.niveau >= 2
+      ? `Nous revenons vers vous une dernière fois au sujet du devis <strong>${escapeHtml(p.reference)}</strong>`
+      : `Nous nous permettons de vous rappeler le devis <strong>${escapeHtml(p.reference)}</strong>`;
+  const html = layout(
+    `Devis ${p.reference}`,
+    `<p>Bonjour ${escapeHtml(p.clientNom)},</p>
+     <p>${intro} (${escapeHtml(formatEuros(p.totalTTC))} TTC), envoyé il y a ${p.joursDepuisEnvoi} jours.</p>
+     <p>Vous pouvez le consulter, puis l'accepter ou le refuser en ligne. Une question ? Contactez ${escapeHtml(p.conseiller)}, votre conseiller.</p>
+     ${button(p.url, 'Consulter mon devis')}
+     <p style="font-size:13px;color:#6b7280;">Lien valable jusqu'au ${escapeHtml(formatDate(p.expiresAt))}. Si vous avez déjà répondu, ne tenez pas compte de ce message.</p>`,
+  );
+  const text = [
+    `Bonjour ${p.clientNom},`,
+    '',
+    `${p.niveau >= 2 ? 'Dernier rappel' : 'Rappel'} : devis ${p.reference} (${formatEuros(p.totalTTC)} TTC), envoyé il y a ${p.joursDepuisEnvoi} jours.`,
+    `Consultez-le, puis acceptez-le ou refusez-le en ligne : ${p.url}`,
+    `Lien valable jusqu'au ${formatDate(p.expiresAt)}. Si vous avez déjà répondu, ne tenez pas compte de ce message.`,
+  ].join('\n');
+  return { subject, html, text };
+}

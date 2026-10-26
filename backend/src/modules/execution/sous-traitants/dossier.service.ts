@@ -47,34 +47,70 @@ export class DossierService {
 
   async addPaiement(user: AuthUser, stId: number, dto: CreatePaiementDto) {
     await this.sousTraitants.assertExists(user, stId);
-    if (dto.montantTTC < dto.montantHT) {
-      throw new BusinessException('MONTANTS_INCOHERENTS', 'Le montant TTC ne peut pas être inférieur au HT.');
-    }
-    if (dto.contratId) {
-      const contrat = await this.prisma.contratSousTraitant.findFirst({
-        where: { id: dto.contratId, sousTraitantId: stId, companyId: user.companyId },
-        include: { paiements: { where: { statut: { not: 'ANNULE' } }, select: { montantHT: true } } },
-      });
-      if (!contrat) throw new BusinessException('CONTRAT_INVALIDE', 'Ce contrat n’appartient pas à ce sous-traitant.');
-      const dejaPaye = sumMoney(contrat.paiements.map((p) => p.montantHT));
-      if (dejaPaye.plus(dto.montantHT).gt(contrat.montantHT)) {
-        throw new BusinessException(
-          'PAIEMENT_SUPERIEUR_AU_CONTRAT',
-          `Dépassement du contrat : ${dejaPaye.toString()} € HT déjà réglés sur ${contrat.montantHT.toString()} € HT.`,
-        );
-      }
-    }
+    await this.assertPaiement(user, stId, {
+      contratId: dto.contratId ?? null,
+      montantHT: dto.montantHT,
+      montantTTC: dto.montantTTC,
+      statut: dto.statut ?? 'REGLE',
+    });
     return this.prisma.paiementSousTraitant.create({
       data: { ...dto, datePaiement: new Date(dto.datePaiement), companyId: user.companyId, sousTraitantId: stId },
     });
   }
 
+  /** Every field can be corrected (report of 20/10); the same checks as a new payment apply. */
   async updatePaiement(user: AuthUser, stId: number, id: number, dto: UpdatePaiementDto) {
     await this.findChild('paiementSousTraitant', user, stId, id);
+    const current = await this.prisma.paiementSousTraitant.findUniqueOrThrow({ where: { id } });
+    await this.assertPaiement(
+      user,
+      stId,
+      {
+        contratId: dto.contratId !== undefined ? dto.contratId : current.contratId,
+        montantHT: dto.montantHT ?? current.montantHT.toNumber(),
+        montantTTC: dto.montantTTC ?? current.montantTTC.toNumber(),
+        statut: dto.statut ?? current.statut,
+      },
+      id,
+    );
     return this.prisma.paiementSousTraitant.update({
       where: { id },
       data: { ...dto, ...(dto.datePaiement && { datePaiement: new Date(dto.datePaiement) }) },
     });
+  }
+
+  /** A payment entered by mistake disappears (an executed payment is better marked ANNULE). */
+  async removePaiement(user: AuthUser, stId: number, id: number) {
+    await this.findChild('paiementSousTraitant', user, stId, id);
+    await this.prisma.paiementSousTraitant.delete({ where: { id } });
+  }
+
+  /** TTC ≥ HT, and the contract (if any) is never paid beyond its amount — `ignoreId` = the payment being edited. */
+  private async assertPaiement(
+    user: AuthUser,
+    stId: number,
+    p: { contratId: number | null; montantHT: number; montantTTC: number; statut: string },
+    ignoreId?: number,
+  ) {
+    if (p.montantTTC < p.montantHT) {
+      throw new BusinessException('MONTANTS_INCOHERENTS', 'Le montant TTC ne peut pas être inférieur au HT.');
+    }
+    if (!p.contratId) return;
+    const contrat = await this.prisma.contratSousTraitant.findFirst({
+      where: { id: p.contratId, sousTraitantId: stId, companyId: user.companyId },
+      include: {
+        paiements: { where: { statut: { not: 'ANNULE' }, ...(ignoreId ? { id: { not: ignoreId } } : {}) }, select: { montantHT: true } },
+      },
+    });
+    if (!contrat) throw new BusinessException('CONTRAT_INVALIDE', 'Ce contrat n’appartient pas à ce sous-traitant.');
+    if (p.statut === 'ANNULE') return;
+    const dejaPaye = sumMoney(contrat.paiements.map((x) => x.montantHT));
+    if (dejaPaye.plus(p.montantHT).gt(contrat.montantHT)) {
+      throw new BusinessException(
+        'PAIEMENT_SUPERIEUR_AU_CONTRAT',
+        `Dépassement du contrat : ${dejaPaye.toString()} € HT déjà réglés sur ${contrat.montantHT.toString()} € HT.`,
+      );
+    }
   }
 
   // ── disponibilités ──────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
-import { QueryCommandesDto, ReceptionDto, UpdateCommandeDto, UpdateLignesCommandeDto } from './commandes.dto';
+import { amountsFor, type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
+import { CreateCommandeDto, QueryCommandesDto, ReceptionDto, UpdateCommandeDto, UpdateLignesCommandeDto } from './commandes.dto';
 import { CommandesService } from './commandes.service';
 
 @ApiTags('Commandes fournisseur')
@@ -14,13 +14,19 @@ export class CommandesController {
   @Roles(...STAFF)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryCommandesDto) {
-    return this.commandes.findAll(user, query);
+    return amountsFor(user, this.commandes.findAll(user, query));
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Commande manuelle : un fournisseur et ses matériaux (prix du catalogue)' })
+  create(@CurrentUser() user: AuthUser, @Body() dto: CreateCommandeDto) {
+    return this.commandes.create(user, dto);
   }
 
   @Roles(...STAFF)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
-    return this.commandes.findOne(user, id);
+    return amountsFor(user, this.commandes.findOne(user, id));
   }
 
   @Patch(':id')
@@ -49,7 +55,7 @@ export class CommandesController {
   @Post(':id/receptions')
   @ApiOperation({ summary: 'Réceptionner une livraison (partielle ou totale) — met le stock à jour' })
   receptionner(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: ReceptionDto) {
-    return this.commandes.receptionner(user, id, dto);
+    return amountsFor(user, this.commandes.receptionner(user, id, dto));
   }
 
   @Post(':id/cloturer') @HttpCode(HttpStatus.OK)

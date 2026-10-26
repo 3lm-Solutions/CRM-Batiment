@@ -27,13 +27,14 @@ export class CreateMateriauDto {
   @ApiPropertyOptional({ example: 20, description: 'Seuil d’alerte de stock' })
   @IsOptional() @IsNumber({ maxDecimalPlaces: 3 }) @Min(0)
   stockMinimum?: number;
+
+  /** Sent by the create form too (default true). Was accepted on update only: every creation failed with 400. */
+  @ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean()
+  actif?: boolean;
 }
 
 /** stockActuel is NOT editable here: it only changes through stock movements (Step 8). */
-export class UpdateMateriauDto extends PartialType(CreateMateriauDto) {
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
-  actif?: boolean;
-}
+export class UpdateMateriauDto extends PartialType(CreateMateriauDto) {}
 
 export class QueryMateriauxDto extends PaginationQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)

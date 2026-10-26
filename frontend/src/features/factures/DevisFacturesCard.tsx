@@ -60,7 +60,7 @@ export function DevisFacturesCard({ devisId, canWrite }: { devisId: number; canW
         open={situation}
         onClose={() => setSituation(false)}
         title="Nouvelle situation de travaux"
-        message="Indiquez l’avancement CUMULÉ des travaux : la situation facture la différence avec ce qui a déjà été facturé (acompte déduit à la finale)."
+        message="Indiquez l’avancement CUMULÉ des travaux : la situation facture les travaux depuis la précédente, moins la part correspondante de l’acompte (remboursé au prorata de l’avancement). L’acompte doit être émis avant."
         confirmLabel="Créer le brouillon"
         loading={creer.isPending}
         onConfirm={() => {

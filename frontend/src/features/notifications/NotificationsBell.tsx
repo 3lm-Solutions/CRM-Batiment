@@ -7,7 +7,7 @@ import type { PaginatedResponse } from '@/shared';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime } from '@/lib/format';
-import { connectNotifications } from '@/lib/socket';
+import { subscribeNotifications } from '@/lib/socket';
 import { useAuth } from '../auth/auth-context';
 
 interface Notification {
@@ -50,14 +50,10 @@ export function NotificationsBell() {
 
   useEffect(() => {
     if (!token) return;
-    const socket = connectNotifications(token);
-    socket.on('notification', (n: Notification) => {
+    return subscribeNotifications<Notification>(token, (n) => {
       void qc.invalidateQueries({ queryKey: ['notifications'] });
       (n.niveau === 'ALERTE' ? toast.warning : toast.info)(n.titre, { description: n.message });
     });
-    return () => {
-      socket.close();
-    };
   }, [token, qc]);
 
   useEffect(() => {

@@ -1,22 +1,37 @@
-import { ArrowLeft, HardHat, CheckCircle2, LifeBuoy, Phone, Printer, Send, XCircle } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import { useParams } from 'react-router-dom';
+import { ArrowLeft, Camera, CheckCircle2, Eye, HardHat, LifeBuoy, Phone, Printer, Send, X, XCircle } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { AuthImage } from '@/components/files/AuthImage';
+import { Link, useParams } from 'react-router-dom';
 import { Button, Card, CardHeader, EmptyState, Input, Loading, Progress, Select, StatusBadge, Tabs, Textarea } from '@/components/ui';
 import { errorMessage, toProblem } from '@/lib/api';
-import { formatDate, formatEuros, formatNumber, formatPercent, formatUnite, fullName } from '@/lib/format';
+import { openFichier } from '@/lib/files';
+import { formatDate, formatDateTime, formatEuros, formatNumber, formatPercent, formatUnite, fullName } from '@/lib/format';
 import { FACTURE_TYPE_TITLE } from '../factures/api';
-import { SAV_CATEGORIES, type SavCategorie } from '../sav/api';
-import { useEspaceClient, useEspaceDevis, useEspaceFacture, useEspaceSav, useEspaceSavMessage, type EspaceClient } from './api';
+import { FactureQrCodes } from '../factures/FactureQrCodes';
+import { PHOTO_TYPES, SAV_CATEGORIES, type SavCategorie, type SavStatut } from '../sav/api';
+import { espacePhotoPath, MAX_PHOTOS_CLIENT, useEspaceClient, useEspaceDevis, useEspaceFacture, useEspaceSav, useEspaceSavMessage, type EspaceClient, type EspaceFacture, type EspaceSource } from './api';
 
 type Tab = 'chantiers' | 'devis' | 'factures' | 'sav';
 type View = { type: 'devis' | 'facture'; id: number } | null;
 
-function Shell({ entreprise, children }: { entreprise?: EspaceClient['entreprise']; children: ReactNode }) {
+function Shell({ entreprise, children, apercuClientId }: { entreprise?: EspaceClient['entreprise']; children: ReactNode; apercuClientId?: number }) {
   return (
     <main className="min-h-screen bg-slate-50 pb-16 dark:bg-slate-950">
+      {apercuClientId !== undefined && (
+        <div className="bg-amber-100 text-amber-950 print:hidden">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-2 text-sm">
+            <span className="inline-flex items-center gap-2"><Eye className="size-4" /> Aperçu : vous voyez l’espace de ce client exactement comme lui (lecture seule).</span>
+            <Link to={`/clients/${apercuClientId}`} className="font-semibold underline">Retour à la fiche client</Link>
+          </div>
+        </div>
+      )}
       <header className="sidebar-gradient text-white print:hidden">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-5">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-white/15"><HardHat className="size-5" aria-hidden /></div>
+          {entreprise?.logo ? (
+            <div className="flex h-10 max-w-32 items-center justify-center rounded-xl bg-white px-2"><img src={entreprise.logo} alt={`Logo ${entreprise.nom}`} className="max-h-8 max-w-full object-contain" /></div>
+          ) : (
+            <div className="flex size-10 items-center justify-center rounded-xl bg-white/15"><HardHat className="size-5" aria-hidden /></div>
+          )}
           <div>
             <p className="text-lg font-bold">{entreprise?.nom ?? 'Espace client'}</p>
             {entreprise && <p className="text-xs text-cyan-50/80">{[entreprise.telephone, entreprise.email].filter(Boolean).join(' · ')}</p>}
@@ -28,8 +43,8 @@ function Shell({ entreprise, children }: { entreprise?: EspaceClient['entreprise
   );
 }
 
-function DevisView({ token, id, onBack }: { token: string; id: number; onBack: () => void }) {
-  const q = useEspaceDevis(token, id);
+function DevisView({ source, id, onBack }: { source: EspaceSource; id: number; onBack: () => void }) {
+  const q = useEspaceDevis(source, id);
   if (q.isPending) return <Loading />;
   if (q.isError) return <p role="alert" className="text-sm text-red-600">{errorMessage(q.error)}</p>;
   const d = q.data;
@@ -81,17 +96,24 @@ function DevisView({ token, id, onBack }: { token: string; id: number; onBack: (
   );
 }
 
-function FactureView({ token, id, onBack }: { token: string; id: number; onBack: () => void }) {
-  const q = useEspaceFacture(token, id);
+function FactureView({ source, id, onBack }: { source: EspaceSource; id: number; onBack: () => void }) {
+  const q = useEspaceFacture(source, id);
   if (q.isPending) return <Loading />;
   if (q.isError) return <p role="alert" className="text-sm text-red-600">{errorMessage(q.error)}</p>;
-  const f = q.data;
   return (
     <>
       <div className="flex justify-between print:hidden">
         <Button variant="ghost" icon={<ArrowLeft className="size-4" />} onClick={onBack}>Retour</Button>
         <Button variant="outline" icon={<Printer className="size-4" />} onClick={() => window.print()}>Imprimer / PDF</Button>
       </div>
+      <FactureClientDocument f={q.data} />
+    </>
+  );
+}
+
+/** An issued invoice as the client sees it (client space, and the public link / QR code of 21/10). */
+export function FactureClientDocument({ f, showLien = true }: { f: EspaceFacture; showLien?: boolean }) {
+  return (
       <Card className="print-area p-6 sm:p-8">
         <div className="flex flex-wrap justify-between gap-4 text-sm">
           <div>
@@ -135,24 +157,142 @@ function FactureView({ token, id, onBack }: { token: string; id: number; onBack:
             {f.notesLegales && <p className="whitespace-pre-line">{f.notesLegales}</p>}
           </div>
         )}
+        <FactureQrCodes f={f} showLien={showLien} />
         {f.statut === 'PAYEE' && <p className="mt-6 text-center text-lg font-bold uppercase tracking-widest text-emerald-600">Payée le {formatDate(f.datePaiement)}</p>}
       </Card>
-    </>
   );
 }
 
-function SavSection({ token, data }: { token: string; data: EspaceClient }) {
-  const ouvrir = useEspaceSav(token);
-  const message = useEspaceSavMessage(token);
+const SAV_STEPS: { statut: SavStatut; label: string }[] = [
+  { statut: 'OUVERT', label: 'Demande enregistrée' },
+  { statut: 'EN_COURS', label: 'Prise en charge' },
+  { statut: 'EN_ATTENTE_CLIENT', label: 'En attente de votre réponse' },
+  { statut: 'RESOLU', label: 'Résolue' },
+  { statut: 'CLOTURE', label: 'Clôturée' },
+];
+const stepLabel = (statut: SavStatut) => SAV_STEPS.find((x) => x.statut === statut)?.label ?? statut;
+
+/** Follow-up of one request (G of 20/10): status timeline, then the conversation with the team. */
+function SavTicketSuivi({ t, source }: { t: EspaceClient['sav'][number]; source: EspaceSource }) {
+  const photos = t.photos ?? [];
+  return (
+    <div className="space-y-3">
+      {photos.length > 0 && (
+        <ul className="flex flex-wrap gap-2" aria-label={`Photos de ${t.reference}`}>
+          {photos.map((p) => (
+            <li key={p.id} className="text-center">
+              <AuthImage
+                path={espacePhotoPath(source, p.id)}
+                alt={p.nom}
+                className="size-16 rounded-lg"
+                onClick={() => void openFichier(p.id, espacePhotoPath(source, p.id))}
+              />
+              <span className="text-[10px] text-slate-500">{p.auteur === 'CLIENT' ? 'Vous' : 'Équipe'}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <ol className="relative ml-2 space-y-2 border-l border-slate-200 pl-4 dark:border-slate-700" aria-label={`Suivi de ${t.reference}`}>
+        {t.historique.map((h, i) => {
+          const last = i === t.historique.length - 1;
+          return (
+            <li key={`${h.statut}-${h.createdAt}`} className="relative text-xs">
+              <span className={`absolute -left-[21px] top-1 size-2.5 rounded-full ${last ? 'bg-brand-700 ring-4 ring-brand-100 dark:ring-brand-900' : 'bg-slate-300 dark:bg-slate-600'}`} aria-hidden />
+              <span className={last ? 'font-semibold' : 'text-slate-600 dark:text-slate-400'}>{stepLabel(h.statut)}</span>
+              <span className="ml-2 text-slate-500">{formatDateTime(h.createdAt)}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {t.messages.length > 0 && (
+        <div className="space-y-2">
+          {t.messages.map((m) =>
+            m.auteur === 'CLIENT' ? (
+              <div key={m.id} className="ml-8 rounded-lg bg-brand-100 p-2 text-xs dark:bg-slate-800">
+                <p className="mb-0.5 font-semibold text-brand-900 dark:text-blue-300">Vous · {formatDateTime(m.createdAt)}</p>
+                <p className="whitespace-pre-line">{m.contenu}</p>
+              </div>
+            ) : (
+              <div key={m.id} className="mr-8 rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900">
+                <p className="mb-0.5 font-semibold">Équipe{m.auteurPrenom ? ` (${m.auteurPrenom})` : ''} · {formatDateTime(m.createdAt)}</p>
+                <p className="whitespace-pre-line">{m.contenu}</p>
+              </div>
+            ),
+          )}
+        </div>
+      )}
+      {t.statut === 'EN_ATTENTE_CLIENT' && <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-900">Nous attendons votre réponse pour avancer.</p>}
+    </div>
+  );
+}
+
+/** Photos picked for a new request, previewed before sending (C42 of 21/10). */
+function PhotosPicker({ photos, onChange }: { photos: File[]; onChange: (photos: File[]) => void }) {
+  const input = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const u = photos.map((p) => URL.createObjectURL(p));
+    setUrls(u);
+    return () => u.forEach((x) => URL.revokeObjectURL(x));
+  }, [photos]);
+
+  const add = (list: FileList | null) => {
+    setError(null);
+    const files = [...(list ?? [])];
+    if (files.some((f) => !PHOTO_TYPES.includes(f.type))) return setError('Photos JPEG, PNG ou WebP uniquement.');
+    if (files.some((f) => f.size > 10 * 1024 * 1024)) return setError('10 Mo maximum par photo.');
+    if (photos.length + files.length > MAX_PHOTOS_CLIENT) return setError(`${MAX_PHOTOS_CLIENT} photos au maximum.`);
+    onChange([...photos, ...files]);
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Photos <span className="font-normal text-slate-500">(facultatif, {MAX_PHOTOS_CLIENT} max.)</span></p>
+      <div className="flex flex-wrap items-center gap-2">
+        {urls.map((u, i) => (
+          <div key={u} className="relative">
+            <img src={u} alt={photos[i]?.name ?? 'Photo'} className="size-16 rounded-lg object-cover" />
+            <button
+              type="button"
+              aria-label={`Retirer ${photos[i]?.name ?? 'la photo'}`}
+              className="absolute -right-1.5 -top-1.5 rounded-full bg-white p-0.5 text-slate-700 shadow ring-1 ring-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:ring-slate-700"
+              onClick={() => onChange(photos.filter((_, j) => j !== i))}
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ))}
+        {photos.length < MAX_PHOTOS_CLIENT && (
+          <>
+            <input ref={input} type="file" multiple accept={PHOTO_TYPES.join(',')} className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ''; }} />
+            <Button type="button" size="sm" variant="outline" icon={<Camera className="size-4" />} onClick={() => input.current?.click()}>
+              Ajouter des photos
+            </Button>
+          </>
+        )}
+      </div>
+      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+function SavSection({ token, source, data }: { token: string | null; source: EspaceSource; data: EspaceClient }) {
+  // token null = office preview: same view, no form
+  const ouvrir = useEspaceSav(token ?? '');
+  const message = useEspaceSavMessage(token ?? '');
+  const readOnly = token === null;
   const [titre, setTitre] = useState('');
   const [description, setDescription] = useState('');
   const [chantierId, setChantierId] = useState('');
   const [categorie, setCategorie] = useState<SavCategorie>('DEFAUT_TRAVAUX');
+  const [photos, setPhotos] = useState<File[]>([]);
   const [done, setDone] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<number, string>>({});
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
+      {!readOnly && (
       <Card>
         <CardHeader title="Signaler un problème" description="Après travaux : défaut, malfaçon, question… Nous vous recontactons." />
         <div className="space-y-4 p-5">
@@ -163,6 +303,7 @@ function SavSection({ token, data }: { token: string; data: EspaceClient }) {
             <Select label="Type" options={Object.entries(SAV_CATEGORIES).map(([value, label]) => ({ value, label }))} value={categorie} onChange={(e) => setCategorie(e.target.value as SavCategorie)} />
           </div>
           <Textarea label="Description" required rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <PhotosPicker photos={photos} onChange={setPhotos} />
           {ouvrir.isError && <p role="alert" className="text-sm text-red-600">{errorMessage(ouvrir.error)}</p>}
           <Button
             icon={<Send className="size-4" />}
@@ -170,33 +311,35 @@ function SavSection({ token, data }: { token: string; data: EspaceClient }) {
             loading={ouvrir.isPending}
             onClick={() =>
               ouvrir.mutate(
-                { titre: titre.trim(), description: description.trim(), chantierId: chantierId ? Number(chantierId) : undefined, categorie },
-                { onSuccess: (r) => { setDone(r.message); setTitre(''); setDescription(''); } },
+                { titre: titre.trim(), description: description.trim(), chantierId: chantierId ? Number(chantierId) : undefined, categorie, photos },
+                { onSuccess: (r) => { setDone(r.message); setTitre(''); setDescription(''); setPhotos([]); } },
               )
             }
           >
             Envoyer
           </Button>
+          <p className="text-xs text-slate-500">Vous recevez un email à chaque étape du traitement de votre demande.</p>
         </div>
       </Card>
-      <Card>
-        <CardHeader title="Mes demandes" />
+      )}
+      <Card className={readOnly ? 'lg:col-span-2' : undefined}>
+        <CardHeader title={readOnly ? 'Demandes du client' : 'Mes demandes'} description="Suivi étape par étape et échanges avec l’équipe" />
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {data.sav.length === 0 && <li className="px-5 py-4 text-sm text-slate-500">Aucune demande.</li>}
           {data.sav.map((t) => (
-            <li key={t.id} className="space-y-2 px-5 py-3 text-sm">
+            <li key={t.id} className="space-y-3 px-5 py-4 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span><span className="font-medium">{t.reference}</span> · {t.titre}</span>
                 <StatusBadge kind="sav" value={t.statut} />
               </div>
-              <p className="text-xs text-slate-500">Ouverte le {formatDate(t.createdAt)}{t.chantier && ` · ${t.chantier.reference}`}</p>
-              {t.messages.map((m) => <p key={m.id} className="rounded-lg bg-slate-50 p-2 text-xs dark:bg-slate-800">{m.contenu}</p>)}
-              {t.statut !== 'CLOTURE' && (
+              <p className="text-xs text-slate-500">Ouverte le {formatDate(t.createdAt)}{t.chantier && ` · ${t.chantier.reference}`}{t.dateResolution && ` · résolue le ${formatDate(t.dateResolution)}`}</p>
+              <SavTicketSuivi t={t} source={source} />
+              {!readOnly && t.statut !== 'CLOTURE' && (
                 <div className="flex gap-2">
                   <input
                     aria-label={`Message pour ${t.reference}`}
                     className="flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
-                    placeholder="Ajouter une précision…"
+                    placeholder={t.statut === 'EN_ATTENTE_CLIENT' ? 'Votre réponse…' : 'Ajouter une précision…'}
                     value={replies[t.id] ?? ''}
                     onChange={(e) => setReplies((r) => ({ ...r, [t.id]: e.target.value }))}
                   />
@@ -222,15 +365,27 @@ function SavSection({ token, data }: { token: string; data: EspaceClient }) {
 /** Client online space, opened from the emailed link (no account). */
 export function EspaceClientPage() {
   const token = useParams().token ?? '';
-  const espace = useEspaceClient(token);
+  return <EspaceClientView source={{ token }} />;
+}
+
+/** Office: the client's space exactly as he sees it, without sending a link (E1 of 20/10). */
+export function EspaceClientApercuPage() {
+  const clientId = Number(useParams().id);
+  return <EspaceClientView source={{ clientId }} />;
+}
+
+function EspaceClientView({ source }: { source: EspaceSource }) {
+  const espace = useEspaceClient(source);
+  const apercuClientId = 'clientId' in source ? source.clientId : undefined;
+  const token = 'token' in source ? source.token : null;
   const [tab, setTab] = useState<Tab | null>(null);
   const [view, setView] = useState<View>(null);
 
-  if (espace.isPending) return <Shell><Loading /></Shell>;
+  if (espace.isPending) return <Shell apercuClientId={apercuClientId}><Loading /></Shell>;
   if (espace.isError) {
     const p = toProblem(espace.error);
     return (
-      <Shell>
+      <Shell apercuClientId={apercuClientId}>
         <Card><EmptyState icon={<XCircle className="size-6" />} title={p.status === 410 ? 'Lien expiré ou désactivé' : 'Espace indisponible'} description={p.message} /></Card>
       </Shell>
     );
@@ -239,14 +394,18 @@ export function EspaceClientPage() {
   const current: Tab = tab ?? (d.chantiers.length ? 'chantiers' : 'devis');
 
   return (
-    <Shell entreprise={d.entreprise}>
+    <Shell entreprise={d.entreprise} apercuClientId={apercuClientId}>
       {view ? (
-        view.type === 'devis' ? <DevisView token={token} id={view.id} onBack={() => setView(null)} /> : <FactureView token={token} id={view.id} onBack={() => setView(null)} />
+        view.type === 'devis' ? <DevisView source={source} id={view.id} onBack={() => setView(null)} /> : <FactureView source={source} id={view.id} onBack={() => setView(null)} />
       ) : (
         <>
           <div>
             <h1 className="text-2xl font-bold">Bonjour {fullName(d.client)}</h1>
-            <p className="text-sm text-slate-500">Votre espace personnel, valable jusqu’au {formatDate(d.expiresAt)}.</p>
+            <p className="text-sm text-slate-500">
+              {d.expiresAt
+                ? `Votre espace personnel, valable jusqu’au ${formatDate(d.expiresAt)}.`
+                : 'Aucun lien actif : le client n’a pas accès à cet espace tant que vous ne lui avez pas envoyé le lien.'}
+            </p>
           </div>
           <Tabs
             value={current}
@@ -323,7 +482,7 @@ export function EspaceClientPage() {
               </ul>
             </Card>
           )}
-          {current === 'sav' && <SavSection token={token} data={d} />}
+          {current === 'sav' && <SavSection token={token} source={source} data={d} />}
           <p className="flex items-center justify-center gap-2 text-center text-xs text-slate-500"><LifeBuoy className="size-4" /> Une question ? {d.entreprise.telephone ?? d.entreprise.email}</p>
         </>
       )}

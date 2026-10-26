@@ -1,8 +1,8 @@
-import { FileText, Plus, Star, Trash2 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { FileText, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button, Card, CardHeader, ConfirmDialog, Input, Modal, Select, StatusBadge, Textarea } from '@/components/ui';
+import { Button, Card, CardHeader, ConfirmDialog, Input, Modal, Select, statusOptions, StatusBadge, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { formatDate, formatEuros, fromDateInput, fullName, toDateInput } from '@/lib/format';
 import { ACCEPTED_FILES, openFichier, useUploadFichier, validateFile } from '@/lib/files';
@@ -19,6 +19,7 @@ import {
   useDeleteContrat,
   useDeleteDisponibilite,
   useDeleteNotation,
+  useDeletePaiement,
   useSaveAssurance,
   useSaveContrat,
   useUpdatePaiement,
@@ -26,6 +27,8 @@ import {
   type Contrat,
   type ContratAction,
   type ModePaiement,
+  type Paiement,
+  type PaiementStatut,
   type SousTraitant,
   type TypeAssurance,
 } from './api';
@@ -211,7 +214,7 @@ function ContratModal({ open, onClose, st }: { open: boolean; onClose: () => voi
   );
 }
 
-export function ContratsSection({ st, canWrite }: { st: SousTraitant; canWrite: boolean }) {
+export function ContratsSection({ st, canWrite, showAmounts = true }: { st: SousTraitant; canWrite: boolean; showAmounts?: boolean }) {
   const action = useContratAction();
   const remove = useDeleteContrat();
   const [creating, setCreating] = useState(false);
@@ -222,12 +225,12 @@ export function ContratsSection({ st, canWrite }: { st: SousTraitant; canWrite: 
   return (
     <Card>
       <CardHeader title="Contrats" actions={canWrite && <Button size="sm" icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Nouveau contrat</Button>} />
-      <Table head={['Référence', 'Chantier', 'Montant HT', 'Période', 'Statut', '']} empty={st.contrats.length === 0}>
+      <Table head={['Référence', 'Chantier', ...(showAmounts ? ['Montant HT'] : []), 'Période', 'Statut', '']} empty={st.contrats.length === 0}>
         {st.contrats.map((c) => (
           <tr key={c.id}>
             <td className={`${td} font-medium`}>{c.reference}</td>
             <td className={td}><Link to={`/chantiers/${c.chantier.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{c.chantier.reference}</Link></td>
-            <td className={`${td} tabular-nums`}>{formatEuros(c.montantHT)}</td>
+            {showAmounts && <td className={`${td} tabular-nums`}>{formatEuros(c.montantHT)}</td>}
             <td className={td}>{formatDate(c.dateDebut)} → {formatDate(c.dateFin)}</td>
             <td className={td}><StatusBadge kind="contrat" value={c.statut} /></td>
             <td className={`${td} whitespace-nowrap text-right`}>
@@ -244,7 +247,18 @@ export function ContratsSection({ st, canWrite }: { st: SousTraitant; canWrite: 
                     {n.label}
                   </Button>
                 ))}
-              {canWrite && c.statut === 'BROUILLON' && <DeleteButton label="Supprimer le contrat" loading={remove.isPending} onConfirm={(done) => remove.mutate(c.id, { onSuccess: done, onError })} />}
+              {/* Draft or cancelled, without payments (21/10) — a paid contract is accounting history */}
+              {canWrite && (c.statut === 'BROUILLON' || c.statut === 'RESILIE') && (
+                (st.paiements ?? []).some((p) => p.contratId === c.id) ? (
+                  <span className="ml-2 text-xs text-slate-500" title="Supprimez d’abord ses paiements (onglet Paiements)">Payé : non supprimable</span>
+                ) : (
+                  <DeleteButton
+                    label="Supprimer le contrat"
+                    loading={remove.isPending}
+                    onConfirm={(done) => remove.mutate(c.id, { onSuccess: () => { toast.success('Contrat supprimé'); done(); }, onError })}
+                  />
+                )
+              )}
             </td>
           </tr>
         ))}
@@ -266,34 +280,49 @@ export function ContratsSection({ st, canWrite }: { st: SousTraitant; canWrite: 
 
 // ── paiements ─────────────────────────────────────────────────────────────
 
-function PaiementModal({ open, onClose, st }: { open: boolean; onClose: () => void; st: SousTraitant }) {
+function PaiementModal({ open, onClose, st, paiement }: { open: boolean; onClose: () => void; st: SousTraitant; paiement?: Paiement }) {
   const add = useAddPaiement(st.id);
+  const update = useUpdatePaiement(st.id);
   const [contratId, setContratId] = useState('');
   const [ht, setHt] = useState('');
   const [ttc, setTtc] = useState('');
   const [date, setDate] = useState(toDateInput(new Date()));
   const [mode, setMode] = useState<ModePaiement>('VIREMENT');
+  const [statut, setStatut] = useState<PaiementStatut>('REGLE');
+
+  useEffect(() => {
+    if (!open) return;
+    setContratId(paiement?.contratId ? String(paiement.contratId) : '');
+    setHt(paiement ? String(paiement.montantHT) : '');
+    setTtc(paiement ? String(paiement.montantTTC) : '');
+    setDate(toDateInput(paiement ? paiement.datePaiement : new Date()));
+    setMode(paiement?.modePaiement ?? 'VIREMENT');
+    setStatut(paiement?.statut ?? 'REGLE');
+  }, [open, paiement]);
+
   const ready = Number(ht) > 0 && Number(ttc) >= Number(ht) && date;
+  const body = {
+    contratId: contratId ? Number(contratId) : null,
+    montantHT: Number(ht),
+    montantTTC: Number(ttc),
+    datePaiement: fromDateInput(date)!,
+    modePaiement: mode,
+    statut,
+  };
+  const submit = () =>
+    paiement
+      ? update.mutate({ id: paiement.id, ...body }, { onSuccess: () => { toast.success('Paiement modifié'); onClose(); }, onError })
+      : add.mutate(body, { onSuccess: () => { toast.success('Paiement enregistré'); onClose(); }, onError });
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Nouveau paiement"
+      title={paiement ? 'Modifier le paiement' : 'Nouveau paiement'}
       footer={
         <>
           <Button variant="outline" onClick={onClose}>Annuler</Button>
-          <Button
-            disabled={!ready}
-            loading={add.isPending}
-            onClick={() =>
-              add.mutate(
-                { contratId: contratId ? Number(contratId) : null, montantHT: Number(ht), montantTTC: Number(ttc), datePaiement: fromDateInput(date)!, modePaiement: mode },
-                { onSuccess: () => { toast.success('Paiement enregistré'); onClose(); }, onError },
-              )
-            }
-          >
-            Enregistrer
-          </Button>
+          <Button disabled={!ready} loading={add.isPending || update.isPending} onClick={submit}>Enregistrer</Button>
         </>
       }
     >
@@ -304,6 +333,7 @@ function PaiementModal({ open, onClose, st }: { open: boolean; onClose: () => vo
           <Input label="Montant TTC" type="number" step="0.01" required value={ttc} error={ht && ttc && Number(ttc) < Number(ht) ? 'TTC ≥ HT' : undefined} onChange={(e) => setTtc(e.target.value)} />
           <Input label="Date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
           <Select label="Mode" options={toOptions(MODE_PAIEMENT)} value={mode} onChange={(e) => setMode(e.target.value as ModePaiement)} />
+          <Select label="Statut" options={statusOptions('paiement')} value={statut} onChange={(e) => setStatut(e.target.value as PaiementStatut)} />
         </div>
       </div>
     </Modal>
@@ -312,11 +342,12 @@ function PaiementModal({ open, onClose, st }: { open: boolean; onClose: () => vo
 
 export function PaiementsSection({ st, canWrite }: { st: SousTraitant; canWrite: boolean }) {
   const update = useUpdatePaiement(st.id);
-  const [creating, setCreating] = useState(false);
+  const remove = useDeletePaiement(st.id);
+  const [editing, setEditing] = useState<Paiement | 'new' | null>(null);
   const total = st.paiements.filter((p) => p.statut === 'REGLE').reduce((s, p) => s + p.montantTTC, 0);
   return (
     <Card>
-      <CardHeader title="Paiements" description={`Réglé : ${formatEuros(total)} TTC`} actions={canWrite && <Button size="sm" icon={<Plus className="size-4" />} onClick={() => setCreating(true)}>Ajouter</Button>} />
+      <CardHeader title="Paiements" description={`Réglé : ${formatEuros(total)} TTC`} actions={canWrite && <Button size="sm" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>Ajouter</Button>} />
       <Table head={['Date', 'Contrat', 'HT', 'TTC', 'Mode', 'Statut', '']} empty={st.paiements.length === 0}>
         {st.paiements.map((p) => (
           <tr key={p.id}>
@@ -327,14 +358,24 @@ export function PaiementsSection({ st, canWrite }: { st: SousTraitant; canWrite:
             <td className={td}>{MODE_PAIEMENT[p.modePaiement]}</td>
             <td className={td}><StatusBadge kind="paiement" value={p.statut} /></td>
             <td className={`${td} text-right`}>
-              {canWrite && p.statut === 'EN_ATTENTE' && (
-                <Button size="sm" variant="outline" onClick={() => update.mutate({ id: p.id, statut: 'REGLE' }, { onSuccess: () => toast.success('Paiement réglé'), onError })}>Marquer réglé</Button>
+              {canWrite && (
+                <span className="inline-flex items-center gap-1">
+                  {p.statut === 'EN_ATTENTE' && (
+                    <Button size="sm" variant="outline" onClick={() => update.mutate({ id: p.id, statut: 'REGLE' }, { onSuccess: () => toast.success('Paiement réglé'), onError })}>Marquer réglé</Button>
+                  )}
+                  <button type="button" onClick={() => setEditing(p)} className="rounded p-1 text-slate-400 hover:text-blue-600" aria-label={`Modifier le paiement du ${formatDate(p.datePaiement)}`}><Pencil className="size-4" /></button>
+                  <DeleteButton
+                    label="Supprimer le paiement"
+                    loading={remove.isPending}
+                    onConfirm={(done) => remove.mutate(p.id, { onSuccess: () => { toast.success('Paiement supprimé'); done(); }, onError })}
+                  />
+                </span>
               )}
             </td>
           </tr>
         ))}
       </Table>
-      <PaiementModal open={creating} onClose={() => setCreating(false)} st={st} />
+      <PaiementModal open={editing !== null} onClose={() => setEditing(null)} st={st} paiement={editing === 'new' ? undefined : (editing ?? undefined)} />
     </Card>
   );
 }

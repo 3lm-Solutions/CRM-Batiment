@@ -108,14 +108,18 @@ export class PortailFournisseurService {
           select: { id: true, materiauNom: true, quantite: true, quantiteRecue: true, unite: true, prixUnitaire: true, totalHT: true },
         },
         // Delivery address only — no client name, no quote amounts
+        chantier: { select: { adresse: true } },
         devis: { select: { chantier: { select: { adresse: true } }, client: { select: { adresseChantier: true, adresseClient: true } } } },
+        company: { select: { adresse: true } },
       },
     });
     if (!c) throw new NotFoundException(`Commande #${id} introuvable`);
-    const { devis, ...rest } = c;
+    const { devis, chantier, company, ...rest } = c;
     return {
       ...rest,
-      adresseLivraison: devis.chantier?.adresse ?? devis.client.adresseChantier ?? devis.client.adresseClient ?? null,
+      // Manual order without job site (restocking): delivered to the company
+      adresseLivraison:
+        chantier?.adresse ?? devis?.chantier?.adresse ?? devis?.client.adresseChantier ?? devis?.client.adresseClient ?? company.adresse ?? null,
       totalHT: sumMoney(c.lignes.map((l) => l.totalHT)),
     };
   }

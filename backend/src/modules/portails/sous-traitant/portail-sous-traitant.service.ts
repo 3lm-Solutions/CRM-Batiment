@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type AuthUser, BusinessException } from '../../../common';
 import { ChantierStatut, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { chantierProgress, normalizeTaskProgress } from '../../execution/chantiers/tache-rules';
+import { assertDateRange, chantierProgress, normalizeTaskProgress } from '../../execution/chantiers/tache-rules';
+import type { CreateDisponibiliteDto } from '../../execution/sous-traitants/dto/sous-traitants.dto';
 import { PortailEvents, type TacheAvanceeEvent } from '../portails.events';
 import { AvancementTacheDto } from './portail-sous-traitant.dto';
 
@@ -23,6 +24,43 @@ export class PortailSousTraitantService {
 
   private visible(user: AuthUser): Prisma.ChantierWhereInput {
     return { companyId: user.companyId, sousTraitantsVisibles: { some: { userId: user.id } } };
+  }
+
+  // ── availabilities (E7 of 20/10: entered by the sous-traitant himself) ──────
+
+  /** The sous-traitant record linked to this account (a portal account without record has no dossier). */
+  private async monDossier(user: AuthUser): Promise<number> {
+    const st = await this.prisma.sousTraitant.findFirst({ where: { userId: user.id, companyId: user.companyId }, select: { id: true } });
+    if (!st) throw new ForbiddenException('Votre compte n’est pas encore lié à une fiche sous-traitant. Contactez l’entreprise.');
+    return st.id;
+  }
+
+  /** Current and future periods (the past is not useful to plan). */
+  async disponibilites(user: AuthUser) {
+    const sousTraitantId = await this.monDossier(user);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.prisma.disponibiliteSousTraitant.findMany({
+      where: { sousTraitantId, dateFin: { gte: today } },
+      orderBy: { dateDebut: 'asc' },
+      select: { id: true, dateDebut: true, dateFin: true, disponible: true, notes: true },
+    });
+  }
+
+  async ajouterDisponibilite(user: AuthUser, dto: CreateDisponibiliteDto) {
+    const sousTraitantId = await this.monDossier(user);
+    assertDateRange(dto.dateDebut, dto.dateFin);
+    return this.prisma.disponibiliteSousTraitant.create({
+      data: { ...dto, dateDebut: new Date(dto.dateDebut), dateFin: new Date(dto.dateFin), companyId: user.companyId, sousTraitantId },
+      select: { id: true, dateDebut: true, dateFin: true, disponible: true, notes: true },
+    });
+  }
+
+  /** Only one of HIS periods (same 404 for someone else's: nothing to probe). */
+  async supprimerDisponibilite(user: AuthUser, id: number): Promise<void> {
+    const sousTraitantId = await this.monDossier(user);
+    const { count } = await this.prisma.disponibiliteSousTraitant.deleteMany({ where: { id, sousTraitantId } });
+    if (!count) throw new NotFoundException(`Disponibilité #${id} introuvable`);
   }
 
   /** His company record (insurance status, contracts) — his own amounts, nobody else's. */
@@ -118,6 +156,8 @@ export class PortailSousTraitantService {
             dateFin: true,
             commentaire: true,
             affectations: { select: { userId: true } },
+            // Sub-tasks to tick (21/10)
+            checklist: { orderBy: { ordre: 'asc' }, select: { id: true, libelle: true, fait: true } },
           },
         },
         documents: { orderBy: { createdAt: 'desc' }, select: { id: true, nom: true, type: true, url: true, fichierId: true, createdAt: true } },

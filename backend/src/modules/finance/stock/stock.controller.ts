@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, costsFor, CurrentUser, Roles, STAFF } from '../../../common';
 import { CreateMouvementDto, QueryMouvementsDto, QueryStockDto } from './stock.dto';
 import { StockService } from './stock.service';
 
@@ -14,7 +14,7 @@ export class StockController {
   @Get()
   @ApiOperation({ summary: 'Niveaux de stock (?alerte=true : sous le seuil)' })
   list(@CurrentUser() user: AuthUser, @Query() query: QueryStockDto) {
-    return this.stock.list(user, query);
+    return costsFor(user, this.stock.list(user, query));
   }
 
   @Get('mouvements')

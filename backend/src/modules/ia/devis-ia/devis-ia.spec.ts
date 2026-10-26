@@ -1,5 +1,5 @@
 import { type CatalogueEntry, extractLength, extractSurface, guessQuantity, keywords, sameWord, scoreCatalogue } from './catalogue-match';
-import { MAX_LIGNES, parseProposition } from './devis-ia.prompt';
+import { buildPhotoMessages, MAX_LIGNES, parseAnalysePhoto, parseProposition, PHOTO_SCHEMA } from './devis-ia.prompt';
 
 const entry = (id: number, nom: string, unite: string, categorie: string, sousCategorie: string | null = null): CatalogueEntry => ({
   id,
@@ -85,5 +85,33 @@ describe('Devis IA — validation de la réponse du modèle', () => {
     const many = new Set(Array.from({ length: 30 }, (_, i) => i + 1));
     const parsed = parseProposition({ lignes: [...many].map((id) => ({ prestationId: id, quantite: 1, justification: '' })) }, many);
     expect(parsed!.lignes).toHaveLength(MAX_LIGNES);
+  });
+});
+
+describe('Devis IA — photos (C37 du 21/10)', () => {
+  it('sends the photos with the user message and the catalogue in the text', () => {
+    const msgs = buildPhotoMessages(['data:image/jpeg;base64,AAAA'], '', CATALOGUE);
+    expect(msgs[0].role).toBe('system');
+    expect(msgs[1].images).toEqual(['data:image/jpeg;base64,AAAA']);
+    expect(msgs[1].content).toContain('3 | Pose carrelage sol | M2');
+    expect(msgs[1].content).toContain('aucune');
+  });
+
+  it('requires every field of the analysis (strict JSON schema)', () => {
+    const s = PHOTO_SCHEMA.schema as { required: string[]; properties: { analyse: { required: string[]; properties: Record<string, unknown> } } };
+    expect(s.required).toEqual(['analyse', 'lignes', 'nonCouverts', 'hypotheses']);
+    expect(s.properties.analyse.required.sort()).toEqual(Object.keys(s.properties.analyse.properties).sort());
+  });
+
+  it('reads the analysis, rounding the surface and distrusting odd values', () => {
+    const a = parseAnalysePhoto({
+      analyse: { piece: ' Salle de bain ', surfaceEstimeeM2: 6.04, objetReference: true, elementsVisibles: ['baignoire', '', 'faïence'], etat: 'joints noircis', qualitePhoto: 'BONNE' },
+    });
+    expect(a).toEqual({ piece: 'Salle de bain', surfaceEstimeeM2: 6, objetReference: true, elementsVisibles: ['baignoire', 'faïence'], etat: 'joints noircis', qualitePhoto: 'BONNE' });
+
+    const bad = parseAnalysePhoto({ analyse: { surfaceEstimeeM2: -3, qualitePhoto: 'SUPER' } });
+    expect(bad).toMatchObject({ piece: 'Non identifiée', surfaceEstimeeM2: null, objetReference: false, qualitePhoto: 'MOYENNE' });
+    expect(parseAnalysePhoto(null).surfaceEstimeeM2).toBeNull();
+    expect(parseAnalysePhoto({ analyse: { surfaceEstimeeM2: null } }).surfaceEstimeeM2).toBeNull();
   });
 });

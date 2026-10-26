@@ -55,6 +55,29 @@ export const envSchema = z.object({
   // Another OpenAI-compatible provider, e.g. xAI Grok: https://api.x.ai/v1 (empty = OpenAI)
   OPENAI_BASE_URL: z.string().optional().transform((v) => v?.trim() || undefined).pipe(z.string().url().optional()),
   OPENAI_TIMEOUT_MS: z.coerce.number().int().min(2000).max(120000).default(20000),
+  // Quote from a photo (C37 of 21/10) needs a model that READS IMAGES. Empty = the « Photo » tab is
+  // unavailable. Key and URL default to OPENAI_API_KEY / OPENAI_BASE_URL (same provider), e.g.
+  // Groq: qwen/qwen3.8-27b ; OpenAI: gpt-4o-mini (+ its own key and empty URL).
+  // Prospects by email (22/10): a dedicated mailbox read every few minutes (IMAP). Empty host =
+  // off. Gmail: imap.gmail.com, an « app password », IMAP enabled in the Gmail settings.
+  IMAP_HOST: z.string().optional().transform((v) => v?.trim() || undefined),
+  IMAP_PORT: z.preprocess((v) => (typeof v === 'string' && !v.trim() ? undefined : v), z.coerce.number().int().min(1).max(65535).default(993)),
+  IMAP_SECURE: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim().toLowerCase() !== 'false'),
+  IMAP_USER: z.string().optional().transform((v) => v?.trim() || undefined),
+  IMAP_PASS: z.string().optional().transform((v) => v?.replace(/\s+/g, '') || undefined),
+  IMAP_FOLDER: z.string().optional().transform((v) => v?.trim() || 'INBOX'),
+  IMAP_POLL_MINUTES: z.preprocess((v) => (typeof v === 'string' && !v.trim() ? undefined : v), z.coerce.number().int().min(1).max(1440).default(5)),
+  // Only the emails whose subject contains one of these words, comma separated (empty = all).
+  // The others stay unread and untouched. Ex: devis,demande
+  IMAP_SUBJECTS: z.string().optional().transform((v) => v?.trim() || undefined),
+  // Company the prospects belong to (needed only when the database holds several companies)
+  IMAP_COMPANY_ID: z.preprocess((v) => (typeof v === 'string' && !v.trim() ? undefined : v), z.coerce.number().int().min(1).optional()),
+  OPENAI_VISION_MODEL: z.string().optional().transform((v) => v?.trim() || undefined),
+  OPENAI_VISION_API_KEY: z.string().optional().transform((v) => v?.trim() || undefined),
+  OPENAI_VISION_BASE_URL: z.string().optional().transform((v) => v?.trim() || undefined).pipe(z.string().url().optional()),
 
   // Demo sandbox (Step 15): a SEPARATE instance where anyone can try the CRM without an account.
   // The WHOLE database is wiped and re-seeded every night (03:00 Paris) and emails are never sent.

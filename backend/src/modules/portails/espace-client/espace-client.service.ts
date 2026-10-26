@@ -3,13 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { type AuthUser, BusinessException } from '../../../common';
 import type { Env } from '../../../config/env.validation';
-import { DevisStatut, FactureStatut, Prisma } from '../../../generated/prisma/client';
+import { DevisStatut, FactureStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { DEVIS_CLIENT_SELECT } from '../../commercial/devis/devis.views';
 import { MailService } from '../../core/mail/mail.service';
 import { espaceClientMail } from '../../core/mail/templates/portails.templates';
 import { chantierProgress } from '../../execution/chantiers/tache-rules';
+import type { UploadedBinary } from '../../core/storage/upload.config';
 import { SavService } from '../../pilotage/sav/sav.service';
+import { completerQrFacture, FACTURE_CLIENT_SELECT } from '../../finance/factures/facture.views';
 import { CreateSavClientDto } from './espace-client.dto';
 
 const VALIDITY_DAYS = 90;
@@ -18,40 +20,6 @@ const sha256 = (value: string) => createHash('sha256').update(value).digest('hex
 /** What the client may see: quotes once sent, invoices once issued. Never drafts, costs or margins. */
 const DEVIS_VISIBLES: DevisStatut[] = ['ENVOYE', 'RENVOYE', 'ACCEPTE', 'SIGNE', 'REFUSE', 'REVISE'];
 const FACTURES_VISIBLES: FactureStatut[] = ['ENVOYEE', 'PAYEE', 'ANNULEE'];
-
-/** Snapshot fields of an issued invoice (legal content) — same as what the PDF would show. */
-const FACTURE_CLIENT_SELECT = {
-  id: true,
-  reference: true,
-  typeFacture: true,
-  statut: true,
-  numeroSituation: true,
-  avancementCumule: true,
-  date: true,
-  dateEmission: true,
-  dateEcheance: true,
-  datePaiement: true,
-  tauxTVA: true,
-  montantHT: true,
-  montantTVA: true,
-  montantTTC: true,
-  acomptePercent: true,
-  referenceDevis: true,
-  nomClient: true,
-  prenomClient: true,
-  emailClient: true,
-  adresseClient: true,
-  companyNom: true,
-  companyEmail: true,
-  companyTelephone: true,
-  companyAdresse: true,
-  companySiret: true,
-  conditionsPaiement: true,
-  communicationPaiement: true,
-  notesLegales: true,
-  factureOrigine: { select: { reference: true } },
-  lignes: { orderBy: { ordre: 'asc' }, select: { id: true, description: true, quantite: true, unite: true, prixUnitaireHT: true, montantHT: true } },
-} satisfies Prisma.FactureSelect;
 
 type ResolvedEspace = { id: number; companyId: number; clientId: number };
 
@@ -119,7 +87,37 @@ export class EspaceClientService {
   // ── client side (public, the token is the credential) ───────────────────
 
   async view(token: string) {
-    const lien = await this.resolve(token);
+    return this.buildView(await this.resolve(token));
+  }
+
+  // ── office preview (E1 of 20/10): the team sees exactly what the client sees ──
+
+  /** The client's space as he sees it, without a link (read only, nothing is recorded as a visit). */
+  async apercu(user: AuthUser, clientId: number) {
+    const espace = await this.resolveForStaff(user, clientId);
+    const actif = await this.prisma.clientEspaceLien.findFirst({
+      where: { clientId, companyId: user.companyId, revokedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+      select: { expiresAt: true },
+    });
+    return { ...(await this.buildView({ ...espace, expiresAt: actif?.expiresAt ?? null })), apercu: true };
+  }
+
+  async apercuDevis(user: AuthUser, clientId: number, id: number) {
+    return this.findDevis(await this.resolveForStaff(user, clientId), id);
+  }
+
+  async apercuFacture(user: AuthUser, clientId: number, id: number) {
+    return this.findFacture(await this.resolveForStaff(user, clientId), id);
+  }
+
+  private async resolveForStaff(user: AuthUser, clientId: number): Promise<ResolvedEspace> {
+    const client = await this.prisma.client.findFirst({ where: { id: clientId, companyId: user.companyId }, select: { id: true } });
+    if (!client) throw new NotFoundException(`Client #${clientId} introuvable`);
+    return { id: 0, companyId: user.companyId, clientId };
+  }
+
+  private async buildView(lien: ResolvedEspace & { expiresAt: Date | null }) {
     const { companyId, clientId } = lien;
     const [company, client, devis, factures, chantiers, tickets] = await Promise.all([
       this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { nom: true, email: true, telephone: true, adresse: true, logo: true } }),
@@ -158,9 +156,18 @@ export class EspaceClientService {
           titre: true,
           statut: true,
           createdAt: true,
+          dateResolution: true,
           chantier: { select: { reference: true } },
-          // Only the client's own messages: the team's follow-up notes are internal
-          notes: { where: { userId: null }, orderBy: { createdAt: 'asc' }, select: { id: true, contenu: true, createdAt: true } },
+          // The client's own messages and the team's REPLIES to him; internal notes stay internal
+          notes: {
+            where: { OR: [{ userId: null }, { visibleClient: true }] },
+            orderBy: { createdAt: 'asc' },
+            select: { id: true, contenu: true, createdAt: true, userId: true, user: { select: { prenom: true } } },
+          },
+          // Status timeline (G of 20/10)
+          historique: { orderBy: { createdAt: 'asc' }, select: { statut: true, createdAt: true } },
+          // Photos (C42 of 21/10): his own and the team's, streamed through his token
+          photos: { orderBy: { createdAt: 'asc' }, select: { id: true, nom: true, uploadedById: true } },
         },
       }),
     ]);
@@ -171,12 +178,32 @@ export class EspaceClientService {
       devis,
       factures,
       chantiers: chantiers.map((c) => ({ ...c, avancement: chantierProgress(c.taches) })),
-      sav: tickets.map(({ notes, ...t }) => ({ ...t, messages: notes })),
+      sav: tickets.map(({ notes, historique, photos, ...t }) => ({
+        ...t,
+        photos: photos.map((p) => ({ id: p.id, nom: p.nom, auteur: p.uploadedById === null ? ('CLIENT' as const) : ('EQUIPE' as const) })),
+        messages: notes.map((n) => ({
+          id: n.id,
+          contenu: n.contenu,
+          createdAt: n.createdAt,
+          // Who wrote it, without exposing the team member's account
+          auteur: n.userId === null ? ('CLIENT' as const) : ('EQUIPE' as const),
+          auteurPrenom: n.user?.prenom ?? null,
+        })),
+        // Tickets opened before the timeline existed: at least « opened » on their creation date
+        historique: historique.length ? historique : [{ statut: 'OUVERT' as const, createdAt: t.createdAt }],
+      })),
     };
   }
 
   async devis(token: string, id: number) {
-    const { companyId, clientId } = await this.resolve(token);
+    return this.findDevis(await this.resolve(token), id);
+  }
+
+  async facture(token: string, id: number) {
+    return this.findFacture(await this.resolve(token), id);
+  }
+
+  private async findDevis({ companyId, clientId }: ResolvedEspace, id: number) {
     const devis = await this.prisma.devis.findFirst({
       where: { id, companyId, clientId, statut: { in: DEVIS_VISIBLES } },
       select: DEVIS_CLIENT_SELECT,
@@ -185,19 +212,32 @@ export class EspaceClientService {
     return devis;
   }
 
-  async facture(token: string, id: number) {
-    const { companyId, clientId } = await this.resolve(token);
+  private async findFacture({ companyId, clientId }: ResolvedEspace, id: number) {
     const facture = await this.prisma.facture.findFirst({
       where: { id, companyId, devis: { clientId }, statut: { in: FACTURES_VISIBLES }, reference: { not: null } },
       select: FACTURE_CLIENT_SELECT,
     });
     if (!facture) throw new NotFoundException('Facture introuvable');
+    // QR codes of 21/10 on invoices issued before
+    if (await completerQrFacture(this.prisma, { ...facture, companyId })) {
+      return this.prisma.facture.findUniqueOrThrow({ where: { id }, select: FACTURE_CLIENT_SELECT });
+    }
     return facture;
   }
 
-  async ouvrirSav(token: string, dto: CreateSavClientDto) {
+  async photo(token: string, fichierId: number) {
     const { companyId, clientId } = await this.resolve(token);
-    const ticket = await this.sav.createFromClient(companyId, clientId, dto);
+    return this.sav.photoClient(companyId, clientId, fichierId);
+  }
+
+  async apercuPhoto(user: AuthUser, clientId: number, fichierId: number) {
+    const { companyId } = await this.resolveForStaff(user, clientId);
+    return this.sav.photoClient(companyId, clientId, fichierId);
+  }
+
+  async ouvrirSav(token: string, dto: CreateSavClientDto, photos: UploadedBinary[] = []) {
+    const { companyId, clientId } = await this.resolve(token);
+    const ticket = await this.sav.createFromClient(companyId, clientId, dto, photos);
     return { reference: ticket.reference, message: `Votre demande ${ticket.reference} a bien été transmise. Nous revenons vers vous rapidement.` };
   }
 

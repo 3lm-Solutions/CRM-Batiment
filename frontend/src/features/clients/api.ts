@@ -9,6 +9,7 @@ export const LEAD_SOURCES = {
   RECOMMANDATION: 'Recommandation',
   SITE_WEB: 'Site web',
   WHATSAPP: 'WhatsApp',
+  EMAIL: 'Email',
   AUTRE: 'Autre',
 } as const;
 export type LeadSource = keyof typeof LEAD_SOURCES;

@@ -75,9 +75,19 @@ export class ContratsService {
     return this.find(user, id);
   }
 
+  /**
+   * A draft or a cancelled contract, without payments (21/10): a paid contract stays — it is
+   * accounting history. Lets a sous-traitant created by mistake be deleted afterwards.
+   */
   async remove(user: AuthUser, id: number): Promise<void> {
     const contrat = await this.find(user, id);
-    if (contrat.statut !== 'BROUILLON') throw new BusinessException('CONTRAT_ACTIF', 'Seul un brouillon se supprime (résiliez sinon).');
+    if (contrat.statut !== 'BROUILLON' && contrat.statut !== 'RESILIE') {
+      throw new BusinessException('CONTRAT_ACTIF', 'Seul un contrat brouillon ou résilié se supprime (résiliez-le d’abord).');
+    }
+    const paiements = await this.prisma.paiementSousTraitant.count({ where: { contratId: id } });
+    if (paiements) {
+      throw new BusinessException('CONTRAT_AVEC_PAIEMENTS', `Ce contrat a ${paiements} paiement(s) : supprimez-les d’abord (onglet Paiements).`);
+    }
     await this.prisma.contratSousTraitant.delete({ where: { id } });
   }
 

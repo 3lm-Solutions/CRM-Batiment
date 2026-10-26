@@ -17,7 +17,10 @@ export interface CommandeListItem {
   notes: string | null;
   totalHT: number;
   fournisseur: { id: number; nom: string };
-  devis: { id: number; reference: string };
+  /** null for a manual order */
+  devis: { id: number; reference: string } | null;
+  /** job site of a manual order (generated orders use the quote's job site) */
+  chantier: { id: number; reference: string } | null;
 }
 
 export interface LigneCommande {
@@ -40,9 +43,10 @@ export interface Reception {
   lignes: { id: number; ligneCommandeId: number; quantite: number }[];
 }
 
-export interface Commande extends Omit<CommandeListItem, 'fournisseur' | 'devis'> {
+export interface Commande extends Omit<CommandeListItem, 'fournisseur' | 'devis' | 'chantier'> {
   fournisseur: { id: number; nom: string; email: string | null; telephone: string | null };
-  devis: { id: number; reference: string; chantierId: number | null };
+  devis: { id: number; reference: string; chantierId: number | null } | null;
+  chantier: { id: number; reference: string; adresse: string } | null;
   lignes: LigneCommande[];
   receptions: Reception[];
 }
@@ -77,6 +81,18 @@ function useCommandeWrite<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>)
     },
   });
 }
+
+export interface NouvelleCommande {
+  fournisseurId: number;
+  chantierId?: number | null;
+  dateLivraisonPrevue?: string | null;
+  notes?: string | null;
+  lignes: { materiauId: number; quantite: number }[];
+}
+
+/** Manual order: one supplier, its materials (catalogue purchase price). */
+export const useCreateCommande = () =>
+  useCommandeWrite(async (body: NouvelleCommande) => (await api.post<Commande>('/commandes-fournisseur', body)).data);
 
 export const useUpdateCommande = (id: number) =>
   useCommandeWrite(async (body: { dateLivraisonPrevue?: string | null; notes?: string | null }) => (await api.patch<Commande>(`/commandes-fournisseur/${id}`, body)).data);

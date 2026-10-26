@@ -15,8 +15,8 @@ generated/
 !.env.example
 
 # User uploads / runtime files (never in git)
-uploads/
-storage/
+/uploads/
+/storage/
 
 # Logs & OS
 *.log

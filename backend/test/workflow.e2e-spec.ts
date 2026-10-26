@@ -158,6 +158,29 @@ describe('Workflow, chantiers, factures, commandes, stock (e2e)', () => {
       expect(cancelled.body.avoir.montantTTC).toBeCloseTo(-finale.body.montantTTC, 2);
     });
 
+    it('progress invoices repay the deposit: deposit + progress invoices + final = the quote', async () => {
+      const id = await sentDevis();
+      await signVerbal(id).expect(200);
+      const devis = (await request(http).get(`/api/v1/devis/${id}`).set(auth(admin))).body;
+      const [acompte] = (await request(http).get(`/api/v1/factures?devisId=${id}`).set(auth(admin))).body.data;
+
+      // refused while the deposit is still a draft (it is repaid on progress invoices)
+      const blocked = await request(http).post(`/api/v1/devis/${id}/factures/situation`).set(auth(admin)).send({ avancementCumule: 30 }).expect(422);
+      expect(blocked.body.code).toBe('ACOMPTE_EN_BROUILLON');
+      await request(http).post(`/api/v1/factures/${acompte.id}/emettre`).set(auth(admin)).send({ envoyerEmail: false }).expect(200);
+
+      const montants: number[] = [acompte.montantHT];
+      for (const avancementCumule of [30, 70]) {
+        const s = await request(http).post(`/api/v1/devis/${id}/factures/situation`).set(auth(admin)).send({ avancementCumule }).expect(201);
+        expect(s.body.lignes.some((l: { montantHT: number }) => l.montantHT < 0)).toBe(true); // deposit repayment line
+        await request(http).post(`/api/v1/factures/${s.body.id}/emettre`).set(auth(admin)).send({ envoyerEmail: false }).expect(200);
+        montants.push(s.body.montantHT);
+      }
+      const finale = await request(http).post(`/api/v1/devis/${id}/factures/finale`).set(auth(admin)).expect(201);
+      montants.push(finale.body.montantHT);
+      expect(montants.reduce((a, b) => a + b, 0)).toBeCloseTo(devis.totalHT, 2);
+    });
+
     it('job site lifecycle and task progress', async () => {
       const devis = await request(http).get(`/api/v1/devis/${devisId}`).set(auth(admin));
       const chantierId = devis.body.chantier.id;
@@ -176,6 +199,15 @@ describe('Workflow, chantiers, factures, commandes, stock (e2e)', () => {
       const chantier = await request(http).get(`/api/v1/chantiers/${chantierId}`).set(auth(admin));
       expect(chantier.body.avancement).toBe(100);
       await request(http).delete(`/api/v1/chantiers/${chantierId}`).set(auth(admin)).expect(422); // comes from a quote
+
+      // A closed job site is frozen: no more tasks, notes or documents
+      await request(http).post(`/api/v1/chantiers/${chantierId}/terminer`).set(auth(admin)).expect(200);
+      await request(http).post(`/api/v1/chantiers/${chantierId}/cloturer`).set(auth(admin)).expect(200);
+      const frozen = await request(http).post(`/api/v1/chantiers/${chantierId}/taches`).set(auth(admin)).send({ libelle: 'Après clôture' }).expect(422);
+      expect(frozen.body.code).toBe('CHANTIER_FERME');
+      await request(http).patch(`/api/v1/chantiers/${chantierId}/taches/${tache.body.id}`).set(auth(admin)).send({ avancement: 50 }).expect(422);
+      await request(http).patch(`/api/v1/chantiers/${chantierId}`).set(auth(admin)).send({ notes: 'x' }).expect(422);
+      await request(http).get(`/api/v1/chantiers/${chantierId}`).set(auth(admin)).expect(200); // still readable
     });
 
     it('supplier order: send, partial then full reception, stock updated', async () => {
