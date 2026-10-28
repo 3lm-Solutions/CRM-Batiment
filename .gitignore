@@ -6,7 +6,7 @@ generated/
 .env
 .env.*
 !.env.example
-storage/
+/backend/storage/
 .claude/
 .agent/
 .agents/
