@@ -5,11 +5,14 @@ import { Throttle } from '@nestjs/throttler';
 import { type AuthUser, BUREAU, CurrentUser, Public, Roles } from '../../../common';
 import type { UploadedBinary } from '../../core/storage/upload.config';
 import { MAX_PHOTOS_CLIENT } from '../../pilotage/sav/sav.service';
+import { CreateRetourClientDto } from '../../pilotage/retours-client/retours-client.dto';
 import { CreateSavClientDto, NoteSavClientDto } from './espace-client.dto';
 import { EspaceClientService } from './espace-client.service';
 
 const READ = { default: { limit: 60, ttl: 60_000 } };
 const WRITE = { default: { limit: 5, ttl: 60_000 } };
+/** A gallery loads many thumbnails at once (26/10) */
+const IMAGES = { default: { limit: 300, ttl: 60_000 } };
 
 /** Office: send / list / revoke the link of a client's online space. */
 @ApiTags('Espace client')
@@ -48,6 +51,11 @@ export class EspaceClientAdminController {
   @Get('apercu/photos/:fichierId')
   apercuPhoto(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number, @Param('fichierId', ParseIntPipe) fichierId: number) {
     return this.espace.apercuPhoto(user, clientId, fichierId);
+  }
+
+  @Get('apercu/avancement/:photoId')
+  apercuPhotoAvancement(@CurrentUser() user: AuthUser, @Param('clientId', ParseIntPipe) clientId: number, @Param('photoId', ParseIntPipe) photoId: number) {
+    return this.espace.apercuPhotoAvancement(user, clientId, photoId);
   }
 
   @Delete('liens') @HttpCode(HttpStatus.OK)
@@ -89,7 +97,7 @@ export class EspaceClientPublicController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['titre', 'description'],
+      required: ['titre', 'description', 'chantierId'],
       properties: {
         titre: { type: 'string' },
         description: { type: 'string' },
@@ -102,6 +110,20 @@ export class EspaceClientPublicController {
   @ApiOperation({ summary: 'Signaler un problème, avec photos si besoin (ouvre un ticket SAV)' })
   ouvrirSav(@Param('token') token: string, @Body() dto: CreateSavClientDto, @UploadedFiles() photos: UploadedBinary[] | undefined) {
     return this.espace.ouvrirSav(token, dto, photos ?? []);
+  }
+
+  @Throttle(IMAGES)
+  @Get('avancement/:photoId')
+  @ApiOperation({ summary: 'Une photo avant / après validée d’un de vos chantiers' })
+  photoAvancement(@Param('token') token: string, @Param('photoId', ParseIntPipe) photoId: number) {
+    return this.espace.photoAvancement(token, photoId);
+  }
+
+  @Throttle(WRITE)
+  @Post('retours')
+  @ApiOperation({ summary: 'Commenter une tâche / une photo, ou signaler un problème (alerte) pendant les travaux' })
+  envoyerRetour(@Param('token') token: string, @Body() dto: CreateRetourClientDto) {
+    return this.espace.envoyerRetour(token, dto);
   }
 
   @Throttle(READ)

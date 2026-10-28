@@ -17,6 +17,14 @@ export interface Dashboard {
   stockAlertes: number;
   /** Reminder emails sent to clients over the last 7 days (C3 of 21/10) */
   relancesSemaine: number;
+  /** Étape 6 (26/10): client comments / alerts still open (optional: older API) */
+  retoursClient?: {
+    alertesOuvertes: number;
+    commentairesOuverts: number;
+    alertes: { id: number; message: string; createdAt: string; chantier: { id: number; reference: string }; client: { nom: string; prenom: string | null } }[];
+  };
+  /** Job sites in progress (with sous-traitants) without a photo for 2 days */
+  chantiersSansPhoto?: { nombre: number; liste: { id: number; reference: string; client: { nom: string; prenom: string | null }; dernierePhoto: string | null }[] };
   /** Planned margin per job site (signed quotes), worst first — C9 of 20/10 */
   margesChantiers: {
     seuil: number;

@@ -1,11 +1,13 @@
-import { ArrowLeft, Camera, CheckCircle2, Eye, HardHat, LifeBuoy, Phone, Printer, Send, X, XCircle } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle2, Eye, HardHat, LifeBuoy, Printer, Send, X, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AuthImage } from '@/components/files/AuthImage';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Card, CardHeader, EmptyState, Input, Loading, Progress, Select, StatusBadge, Tabs, Textarea } from '@/components/ui';
+import { Button, Card, CardHeader, EmptyState, Input, Loading, Select, StatusBadge, Tabs, Textarea } from '@/components/ui';
 import { errorMessage, toProblem } from '@/lib/api';
 import { openFichier } from '@/lib/files';
 import { formatDate, formatDateTime, formatEuros, formatNumber, formatPercent, formatUnite, fullName } from '@/lib/format';
+import { ClientMentionsPro } from '../clients/ClientMentionsPro';
+import { ChantierSuivi } from './ChantierSuivi';
 import { FACTURE_TYPE_TITLE } from '../factures/api';
 import { FactureQrCodes } from '../factures/FactureQrCodes';
 import { PHOTO_TYPES, SAV_CATEGORIES, type SavCategorie, type SavStatut } from '../sav/api';
@@ -124,6 +126,7 @@ export function FactureClientDocument({ f, showLien = true }: { f: EspaceFacture
           <div className="text-right">
             <p className="text-xs uppercase text-slate-500">Facturé à</p>
             <p className="font-semibold">{fullName({ nom: f.nomClient ?? '', prenom: f.prenomClient })}</p>
+            <ClientMentionsPro client={{ siret: f.clientSiret, tvaIntracom: f.clientTvaIntracom }} />
             {f.adresseClient && <p className="whitespace-pre-line text-slate-600">{f.adresseClient}</p>}
           </div>
         </div>
@@ -289,17 +292,47 @@ function SavSection({ token, source, data }: { token: string | null; source: Esp
   const [photos, setPhotos] = useState<File[]>([]);
   const [done, setDone] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<number, string>>({});
+  // Étape 2 (26/10): the SAV is for finished works, within the company's period
+  const eligibles = data.chantiers.filter((c) => c.sav?.possible);
+  const enCours = data.chantiers.filter((c) => !c.sav?.possible && c.sav?.motif && !['TERMINE', 'CLOTURE'].includes(c.statut));
+  useEffect(() => {
+    if (!chantierId && eligibles.length === 1) setChantierId(String(eligibles[0].id));
+  }, [chantierId, eligibles]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {!readOnly && (
+      {!readOnly && eligibles.length === 0 && (
+      <Card>
+        <CardHeader title="Service après-vente" />
+        <div className="space-y-3 p-5 text-sm">
+          <p>Le service après-vente s’ouvre <span className="font-semibold">à la fin des travaux</span>, pour un chantier terminé.</p>
+          {enCours.length > 0 && (
+            <p className="text-slate-600 dark:text-slate-400">
+              Votre chantier est en cours : pour toute question, contactez votre chef de chantier
+              {enCours[0].chefChantier?.telephone ? ` au ${enCours[0].chefChantier.telephone}` : ''} ou {data.entreprise.telephone ?? data.entreprise.email ?? 'l’entreprise'}.
+            </p>
+          )}
+          {data.chantiers.some((c) => ['TERMINE', 'CLOTURE'].includes(c.statut)) && (
+            <p className="text-slate-600 dark:text-slate-400">La période de service après-vente de vos chantiers terminés est écoulée : contactez {data.entreprise.telephone ?? data.entreprise.email ?? 'l’entreprise'}.</p>
+          )}
+        </div>
+      </Card>
+      )}
+      {!readOnly && eligibles.length > 0 && (
       <Card>
         <CardHeader title="Signaler un problème" description="Après travaux : défaut, malfaçon, question… Nous vous recontactons." />
         <div className="space-y-4 p-5">
           {done && <p role="status" className="flex items-start gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"><CheckCircle2 className="size-5 shrink-0" /> {done}</p>}
           <Input label="Objet" required value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : le joint de la douche fuit" />
           <div className="grid gap-4 sm:grid-cols-2">
-            <Select label="Chantier" placeholder="Non précisé" options={data.chantiers.map((c) => ({ value: c.id, label: `${c.reference} · ${c.adresse}` }))} value={chantierId} onChange={(e) => setChantierId(e.target.value)} />
+            <Select
+              label="Chantier"
+              required
+              placeholder="Choisir…"
+              options={eligibles.map((c) => ({ value: c.id, label: `${c.reference} · ${c.adresse}${c.sav?.jusquau ? ` (SAV jusqu’au ${formatDate(c.sav.jusquau)})` : ''}` }))}
+              value={chantierId}
+              onChange={(e) => setChantierId(e.target.value)}
+            />
             <Select label="Type" options={Object.entries(SAV_CATEGORIES).map(([value, label]) => ({ value, label }))} value={categorie} onChange={(e) => setCategorie(e.target.value as SavCategorie)} />
           </div>
           <Textarea label="Description" required rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
@@ -307,11 +340,11 @@ function SavSection({ token, source, data }: { token: string | null; source: Esp
           {ouvrir.isError && <p role="alert" className="text-sm text-red-600">{errorMessage(ouvrir.error)}</p>}
           <Button
             icon={<Send className="size-4" />}
-            disabled={!titre.trim() || !description.trim()}
+            disabled={!titre.trim() || !description.trim() || !chantierId}
             loading={ouvrir.isPending}
             onClick={() =>
               ouvrir.mutate(
-                { titre: titre.trim(), description: description.trim(), chantierId: chantierId ? Number(chantierId) : undefined, categorie, photos },
+                { titre: titre.trim(), description: description.trim(), chantierId: Number(chantierId), categorie, photos },
                 { onSuccess: (r) => { setDone(r.message); setTitre(''); setDescription(''); setPhotos([]); } },
               )
             }
@@ -400,7 +433,7 @@ function EspaceClientView({ source }: { source: EspaceSource }) {
       ) : (
         <>
           <div>
-            <h1 className="text-2xl font-bold">Bonjour {fullName(d.client)}</h1>
+            <h1 className="text-2xl font-bold">Bonjour {d.client.typeClient === 'PROFESSIONNEL' && d.client.contactNom ? d.client.contactNom : fullName(d.client)}</h1>
             <p className="text-sm text-slate-500">
               {d.expiresAt
                 ? `Votre espace personnel, valable jusqu’au ${formatDate(d.expiresAt)}.`
@@ -421,28 +454,7 @@ function EspaceClientView({ source }: { source: EspaceSource }) {
             <div className="space-y-4">
               {d.chantiers.length === 0 && <Card><EmptyState title="Aucun chantier pour l’instant" /></Card>}
               {d.chantiers.map((c) => (
-                <Card key={c.id}>
-                  <CardHeader title={`${c.reference} · ${c.adresse}`} description={`${formatDate(c.dateDebut)} → ${formatDate(c.dateFin)}`} actions={<StatusBadge kind="chantier" value={c.statut} />} />
-                  <div className="space-y-4 p-5">
-                    <Progress value={c.avancement} />
-                    {c.chefChantier && (
-                      <p className="text-sm">
-                        Votre chef de chantier : <span className="font-medium">{fullName(c.chefChantier)}</span>
-                        {c.chefChantier.telephone && <a href={`tel:${c.chefChantier.telephone}`} className="ml-2 inline-flex items-center gap-1 text-brand-700 hover:underline"><Phone className="size-3.5" />{c.chefChantier.telephone}</a>}
-                      </p>
-                    )}
-                    {c.taches.length > 0 && (
-                      <ul className="space-y-2">
-                        {c.taches.map((t) => (
-                          <li key={t.id} className="grid items-center gap-2 text-sm sm:grid-cols-[1fr_10rem]">
-                            <span>{t.libelle}</span>
-                            <Progress value={t.avancement} />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </Card>
+                <ChantierSuivi key={c.id} c={c} source={source} token={token} entreprise={d.entreprise} />
               ))}
             </div>
           )}

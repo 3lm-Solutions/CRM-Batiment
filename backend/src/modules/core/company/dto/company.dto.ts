@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
+import { IsEmail, IsIn, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
 import { IsBic, IsIban, NormalizeEmail, Trim, TrimOrNull, IsPhone } from '../../../../common';
 
 export class UpdateCompanyDto {
@@ -65,4 +65,9 @@ export class UpdateCompanySettingsDto {
   @ApiPropertyOptional({ example: 0.01, description: 'Pas d’arrondi des prix suggérés' })
   @IsOptional() @IsNumber(MONEY) @Min(0.01) @Max(1000)
   pasArrondiPrix?: number;
+
+  /** Étape 2 (26/10): SAV possible during N months after the end of the works (0 = no limit). */
+  @ApiPropertyOptional({ example: 12, description: 'Durée du SAV après la fin des travaux, en mois (0 = sans limite)' })
+  @IsOptional() @IsInt() @Min(0) @Max(120)
+  savDureeMois?: number;
 }

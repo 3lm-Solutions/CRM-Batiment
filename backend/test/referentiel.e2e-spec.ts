@@ -50,7 +50,8 @@ describe('Référentiel (e2e)', () => {
         .send({ nom: `${tag} Martin`, email: ' Claire@Mail.FR ', typeProjetIds: typeIds, source: 'APPEL' })
         .expect(201);
       expect(created.body.email).toBe('claire@mail.fr');
-      expect(created.body.typeProjetIds).toEqual(typeIds);
+      // order of the links is not guaranteed by the database
+      expect([...created.body.typeProjetIds].sort((a: number, b: number) => a - b)).toEqual([...typeIds].sort((a: number, b: number) => a - b));
 
       const list = await request(http)
         .get(`/api/v1/clients?search=${encodeURIComponent(tag)}&source=APPEL`)
@@ -110,9 +111,13 @@ describe('Référentiel (e2e)', () => {
 
   describe('catalogue', () => {
     it('returns the seeded catalogue as a tree', async () => {
-      const res = await request(http).get('/api/v1/catalogue/tree').set(auth(chef)).expect(200);
+      const res = await request(http).get('/api/v1/catalogue/tree').set(auth(technico)).expect(200);
       expect(res.body.length).toBeGreaterThanOrEqual(20);
       expect(typeof res.body[0].sousCategories[0].prestations[0].prixVenteMin).toBe('number'); // Decimal → number
+      // the chef de chantier sees the same tree without any price (decision D of 20/10)
+      const chefTree = await request(http).get('/api/v1/catalogue/tree').set(auth(chef)).expect(200);
+      expect(chefTree.body[0].sousCategories[0].prestations[0].nom).toBeDefined();
+      expect(chefTree.body[0].sousCategories[0].prestations[0].prixVenteMin).toBeUndefined();
     });
 
     it('prices "Chape béton": the chosen chape type replaces the base composition', async () => {

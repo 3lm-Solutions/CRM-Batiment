@@ -1,2 +1,5 @@
+# pnpm 10+ / 11 / 12 : paquets autorisés à exécuter leur script d'installation
+# (pnpm 12 ne lit plus « pnpm.onlyBuiltDependencies » du package.json)
 allowBuilds:
+  '@tailwindcss/oxide': true
   esbuild: true

@@ -36,6 +36,7 @@ describe('Étapes 5–6 — relances (C3), photos SAV (C42) (e2e)', () => {
     await t.prisma.savTicket.deleteMany({ where: { clientId } });
     await t.prisma.relance.deleteMany({ where: { devis: { clientId } } });
     await t.prisma.devis.deleteMany({ where: { clientId } });
+    await t.prisma.chantier.deleteMany({ where: { clientId } });
     await t.prisma.client.delete({ where: { id: clientId } });
     await t.close();
   });
@@ -91,15 +92,19 @@ describe('Étapes 5–6 — relances (C3), photos SAV (C42) (e2e)', () => {
     const lien = await request(http).post(api(`/clients/${clientId}/espace/lien`)).set(auth(admin)).expect(201);
     const token = String(lien.body.url).split('/').pop()!;
     const espace = (p = '') => api(`/public/espace-client/${token}${p}`);
+    // Étape 2 (26/10): the SAV is opened on a finished job site
+    const chantierId = String((await request(http).post(api('/chantiers')).set(auth(admin)).send({ clientId, adresse: '3 rue des Photos' }).expect(201)).body.id);
+    await t.prisma.chantier.update({ where: { id: Number(chantierId) }, data: { statut: 'TERMINE', dateFin: new Date() } });
 
     // anything but an image is refused, and no ticket is left behind
-    await request(http).post(espace('/sav')).field('titre', `${tag} pdf`).field('description', 'x').attach('photos', PDF, 'doc.pdf').expect(422);
+    await request(http).post(espace('/sav')).field('titre', `${tag} pdf`).field('description', 'x').field('chantierId', chantierId).attach('photos', PDF, 'doc.pdf').expect(422);
     expect(await t.prisma.savTicket.count({ where: { clientId, titre: `${tag} pdf` } })).toBe(0);
 
     await request(http)
       .post(espace('/sav'))
       .field('titre', `${tag} fuite`)
       .field('description', 'Le joint fuit')
+      .field('chantierId', chantierId)
       .attach('photos', PNG, 'fuite.png')
       .attach('photos', PNG, 'fuite2.png')
       .expect(201);

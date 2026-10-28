@@ -237,6 +237,12 @@ describe('Portails — fichiers, sous-traitant, fournisseur, espace client (e2e)
       // drafts never visible
       expect(view.body.devis.every((d: { statut: string }) => d.statut !== 'BROUILLON')).toBe(true);
 
+      // Étape 2 (26/10): no SAV while the works are in progress, nor without a job site
+      const enCours = await request(http).post(api(`/public/espace-client/${token}/sav`)).send({ titre: 'Fuite', description: 'Le joint fuit', chantierId }).expect(422);
+      expect(enCours.body.code).toBe('CHANTIER_NON_TERMINE');
+      expect(view.body.chantiers.find((c: { id: number }) => c.id === chantierId).sav.possible).toBe(false);
+      await request(http).post(api(`/public/espace-client/${token}/sav`)).send({ titre: 'Fuite', description: 'Le joint fuit' }).expect(422);
+      await t.prisma.chantier.update({ where: { id: chantierId }, data: { statut: 'TERMINE', dateFin: new Date() } });
       const sav = await request(http).post(api(`/public/espace-client/${token}/sav`)).send({ titre: 'Fuite', description: 'Le joint fuit', chantierId }).expect(201);
       const ticket = await t.prisma.savTicket.findFirstOrThrow({ where: { reference: sav.body.reference } });
       expect(ticket).toMatchObject({ origine: 'ESPACE_CLIENT', createurId: null, clientId });

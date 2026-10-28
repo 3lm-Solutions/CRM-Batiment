@@ -1,4 +1,4 @@
-import { AlertTriangle, BellRing, Boxes, ClipboardList, Euro, HardHat, Percent, Receipt, Send, TrendingUp, Truck, Wrench, XCircle } from 'lucide-react';
+import { AlertTriangle, BellRing, Boxes, Camera, ClipboardList, Euro, HardHat, MessageSquare, Percent, Receipt, Send, TrendingUp, Truck, Wrench, XCircle } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, ErrorState, Loading, Select, Stat, StatusBadge, WelcomeBanner } from '@/components/ui';
@@ -86,6 +86,15 @@ export function DashboardPage() {
             <Alerte to="/commandes" icon={<Truck className="size-4" />} label="Commandes en attente" count={d.commandesEnAttente} detail="à envoyer ou à réceptionner" />
             <Alerte to="/stock" icon={<Boxes className="size-4" />} label="Matériaux sous le seuil" count={d.stockAlertes} />
             <Alerte to="/demandes" icon={<ClipboardList className="size-4" />} label="Demandes de devis" count={d.prospects.demandesActives} />
+            {d.retoursClient && (
+              <Alerte
+                to={d.retoursClient.alertes[0] ? `/chantiers/${d.retoursClient.alertes[0].chantier.id}?onglet=retours` : '/chantiers'}
+                icon={<MessageSquare className="size-4" />}
+                label="Alertes client ouvertes"
+                count={d.retoursClient.alertesOuvertes}
+                detail={d.retoursClient.commentairesOuverts ? `+ ${d.retoursClient.commentairesOuverts} commentaire(s)` : undefined}
+              />
+            )}
             {/* Information, not a to-do: the reminders already went out (C3 of 21/10) */}
             <p className="flex items-center gap-2 px-1 pt-1 text-xs text-slate-500">
               <BellRing className="size-3.5" aria-hidden />
@@ -149,6 +158,45 @@ export function DashboardPage() {
           </div>
         )}
       </Card>
+
+      {d.retoursClient && d.chantiersSansPhoto && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader title="Alertes client" description="Problèmes signalés depuis l’espace client, pas encore traités" />
+            {d.retoursClient.alertes.length === 0 ? (
+              <p className="flex items-center gap-2 px-5 py-4 text-sm text-slate-500"><MessageSquare className="size-4" /> Aucune alerte en attente.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {d.retoursClient.alertes.map((a) => (
+                  <li key={a.id}>
+                    <Link to={`/chantiers/${a.chantier.id}?onglet=retours`} className="block px-5 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <span className="font-medium">{a.chantier.reference}</span> <span className="text-slate-500">· {fullName(a.client)} · {formatDate(a.createdAt)}</span>
+                      <span className="mt-0.5 block truncate text-slate-600 dark:text-slate-400">{a.message}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+          <Card>
+            <CardHeader title="Chantiers sans photo" description="En cours, avec sous-traitants, aucune photo depuis 2 jours" />
+            {d.chantiersSansPhoto.liste.length === 0 ? (
+              <p className="flex items-center gap-2 px-5 py-4 text-sm text-slate-500"><Camera className="size-4" /> Tous les chantiers en cours ont des photos récentes.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {d.chantiersSansPhoto.liste.map((c) => (
+                  <li key={c.id}>
+                    <Link to={`/chantiers/${c.id}?onglet=photos`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <span><span className="font-medium">{c.reference}</span> <span className="text-slate-500">· {fullName(c.client)}</span></span>
+                      <span className="text-xs text-slate-500">{c.dernierePhoto ? `dernière photo le ${formatDate(c.dernierePhoto)}` : 'aucune photo'}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
+      )}
 
       <Card className="mt-6">
         <CardHeader title="Chantiers en retard" description="Date de fin prévue dépassée" />

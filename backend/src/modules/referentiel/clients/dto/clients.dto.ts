@@ -13,20 +13,45 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { NormalizeEmail, PaginationQueryDto, ToBoolean, ToIntArray, Trim, TrimOrNull, IsPhone } from '../../../../common';
-import { LeadSource } from '../../../../generated/prisma/client';
+import { IsSiret, IsTvaIntracom, NormalizeEmail, PaginationQueryDto, ToBoolean, ToIntArray, ToStringArray, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import { LeadSource, StatutClient, TypeClient } from '../../../../generated/prisma/client';
 
 export class CreateClientDto {
-  @ApiProperty({ example: 'Martin' })
+  @ApiPropertyOptional({ enum: StatutClient, default: StatutClient.PROSPECT, description: 'Prospect, prospect qualifié ou client. Évolue tout seul (devis envoyé → qualifié, devis signé → client).' })
+  @IsOptional() @IsEnum(StatutClient)
+  statut?: StatutClient;
+
+  @ApiPropertyOptional({ enum: TypeClient, default: TypeClient.PARTICULIER, description: 'Particulier ou professionnel (entreprise)' })
+  @IsOptional() @IsEnum(TypeClient)
+  typeClient?: TypeClient;
+
+  @ApiProperty({ example: 'Martin', description: 'Nom du particulier, ou raison sociale du professionnel' })
   @Trim()
   @IsString()
-  @IsNotEmpty({ message: 'Le nom est obligatoire' })
-  @MaxLength(100)
+  @IsNotEmpty({ message: 'Le nom (ou la raison sociale) est obligatoire' })
+  @MaxLength(150)
   nom: string;
 
   @ApiPropertyOptional({ example: 'Claire' })
   @IsOptional() @TrimOrNull() @IsString() @MaxLength(100)
   prenom?: string | null;
+
+  // ── professional client only (ignored and emptied for a private person) ──
+  @ApiPropertyOptional({ example: '73282932000074', description: 'Professionnel : SIRET (facultatif, vérifié s’il est saisi)' })
+  @IsOptional() @IsSiret()
+  siret?: string | null;
+
+  @ApiPropertyOptional({ example: 'FR44732829320', description: 'Professionnel : n° de TVA intracommunautaire' })
+  @IsOptional() @IsTvaIntracom()
+  tvaIntracom?: string | null;
+
+  @ApiPropertyOptional({ example: 'Paul Durand', description: 'Professionnel : personne à contacter' })
+  @IsOptional() @TrimOrNull() @IsString() @MaxLength(150)
+  contactNom?: string | null;
+
+  @ApiPropertyOptional({ example: 'Responsable travaux' })
+  @IsOptional() @TrimOrNull() @IsString() @MaxLength(100)
+  contactFonction?: string | null;
 
   @ApiPropertyOptional({ example: '0612345678' })
   @IsOptional() @TrimOrNull()
@@ -72,6 +97,14 @@ export type ClientSortField = (typeof SORTABLE_CLIENT_FIELDS)[number];
 export const CLIENT_SORT_FIELDS = SORTABLE_CLIENT_FIELDS;
 
 export class QueryClientsDto extends PaginationQueryDto {
+  @ApiPropertyOptional({ enum: StatutClient, isArray: true, description: 'Ex. PROSPECT,QUALIFIE pour la page Prospects, CLIENT pour la page Clients' })
+  @IsOptional() @ToStringArray() @IsArray() @IsEnum(StatutClient, { each: true })
+  statuts?: StatutClient[];
+
+  @ApiPropertyOptional({ enum: TypeClient })
+  @IsOptional() @IsEnum(TypeClient)
+  typeClient?: TypeClient;
+
   @ApiPropertyOptional({ enum: LeadSource })
   @IsOptional() @IsEnum(LeadSource)
   source?: LeadSource;

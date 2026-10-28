@@ -30,6 +30,7 @@ describe('Pilotage (e2e)', () => {
   afterAll(async () => {
     await t.prisma.savTicket.deleteMany({ where: { clientId } });
     await t.prisma.devis.deleteMany({ where: { clientId } });
+    await t.prisma.chantier.deleteMany({ where: { clientId } });
     await t.prisma.client.delete({ where: { id: clientId } });
     await t.prisma.demoRequest.deleteMany({ where: { email: { startsWith: tag } } });
     await t.close();
@@ -95,10 +96,13 @@ describe('Pilotage (e2e)', () => {
   });
 
   it('SAV: ticket lifecycle with notes; links must match the client', async () => {
+    // Étape 2 (26/10): a SAV ticket is opened on a finished job site
+    const chantier = await request(http).post('/api/v1/chantiers').set(auth(admin)).send({ clientId, adresse: '1 rue du SAV' }).expect(201);
+    await t.prisma.chantier.update({ where: { id: chantier.body.id }, data: { statut: 'TERMINE', dateFin: new Date() } });
     const ticket = await request(http)
       .post('/api/v1/sav')
       .set(auth(technico))
-      .send({ clientId, titre: 'Fissure chape', description: 'Fissure de 30 cm', priorite: 'HAUTE' })
+      .send({ clientId, chantierId: chantier.body.id, titre: 'Fissure chape', description: 'Fissure de 30 cm', priorite: 'HAUTE' })
       .expect(201);
     expect(ticket.body.reference).toMatch(/^SAV-/);
 
@@ -117,7 +121,7 @@ describe('Pilotage (e2e)', () => {
       await request(http)
         .post('/api/v1/sav')
         .set(auth(technico))
-        .send({ clientId, devisId: other.id, titre: 'x', description: 'x' })
+        .send({ clientId, chantierId: chantier.body.id, devisId: other.id, titre: 'x', description: 'x' })
         .expect(422);
     }
   });

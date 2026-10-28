@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BellRing, Building2, Calculator, ImageUp, Landmark, Play, Settings, Trash2 } from 'lucide-react';
+import { BellRing, Building2, Calculator, ImageUp, Landmark, LifeBuoy, Play, Settings, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -319,6 +319,71 @@ function SettingsCard({ settings }: { settings: CompanySettings }) {
   );
 }
 
+// ── After-sales period (Étape 2 of 26/10) ──────────────────────────────────
+const DUREES_SAV = [
+  { value: '12', label: '1 an (garantie de parfait achèvement)' },
+  { value: '24', label: '2 ans (garantie biennale)' },
+  { value: '120', label: '10 ans (garantie décennale)' },
+  { value: '0', label: 'Sans limite' },
+];
+
+function SavCard({ settings }: { settings: CompanySettings }) {
+  const save = useUpdateCompanySettings();
+  const [mois, setMois] = useState(String(settings.savDureeMois));
+  useEffect(() => setMois(String(settings.savDureeMois)), [settings.savDureeMois]);
+  const n = Number(mois);
+  const valide = Number.isInteger(n) && n >= 0 && n <= 120;
+  const preset = DUREES_SAV.some((d) => d.value === mois);
+  return (
+    <Card>
+      <CardHeader
+        title={<span className="flex items-center gap-2"><LifeBuoy className="size-4" /> Service après-vente</span>}
+        description="Un ticket SAV s’ouvre seulement sur un chantier terminé, pendant cette durée après la fin des travaux"
+      />
+      <div className="space-y-4 p-5">
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">Durée après la fin des travaux</legend>
+          {DUREES_SAV.map((d) => (
+            <label key={d.value} className="flex items-center gap-2 text-sm">
+              <input type="radio" name="savDuree" className="size-4 accent-brand-700" checked={mois === d.value} onChange={() => setMois(d.value)} />
+              {d.label}
+            </label>
+          ))}
+          <label className="flex flex-wrap items-center gap-2 text-sm">
+            <input type="radio" name="savDuree" className="size-4 accent-brand-700" checked={!preset} onChange={() => setMois('6')} />
+            Autre :
+            <input
+              type="number"
+              min={0}
+              max={120}
+              aria-label="Durée du SAV en mois"
+              className="w-20 rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-900"
+              value={preset ? '' : mois}
+              onFocus={() => preset && setMois('6')}
+              onChange={(e) => setMois(e.target.value)}
+            />
+            mois
+          </label>
+          {!valide && <p role="alert" className="text-sm text-red-600">De 0 à 120 mois (0 = sans limite).</p>}
+        </fieldset>
+        <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-800/50 dark:text-slate-300">
+          Pendant les travaux, le client ne peut pas ouvrir de ticket. Un administrateur peut toujours en ouvrir un (exception notée dans le ticket).
+        </p>
+        {save.isError && <p role="alert" className="text-sm text-red-600">{errorMessage(save.error)}</p>}
+        <div className="flex justify-end">
+          <Button
+            loading={save.isPending}
+            disabled={!valide || n === settings.savDureeMois}
+            onClick={() => save.mutate({ savDureeMois: n }, { onSuccess: () => toast.success('Durée du SAV enregistrée') })}
+          >
+            Enregistrer
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export function SettingsPage() {
   const company = useCompany();
   const settings = useCompanySettings();
@@ -337,6 +402,7 @@ export function SettingsPage() {
         <div className="space-y-6">
           <SettingsCard settings={settings.data} />
           <RelancesCard />
+          <SavCard settings={settings.data} />
         </div>
       </div>
     </>

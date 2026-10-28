@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Unite } from '../catalogue/api';
 import type { DevisStatut } from '../devis/api';
+import type { ClientPro } from '../clients/api';
 
 /** Exactly what the API exposes to a client link (no costs, no margins). */
 export interface PublicDevis {
@@ -25,7 +26,7 @@ export interface PublicDevis {
     totalTTC: number;
     signatureClientDate: string | null;
     company: { nom: string; adresse: string | null; email: string | null; telephone: string | null; siret: string | null; logo: string | null };
-    client: { nom: string; prenom: string | null; adresseClient: string | null; adresseChantier: string | null };
+    client: ClientPro & { nom: string; prenom: string | null; adresseClient: string | null; adresseChantier: string | null };
     createur: { prenom: string; nom: string; email: string; telephone: string | null } | null;
     lignes: {
       ordre: number;

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UploadMulterModule } from '../core/storage/upload.config';
 import { ChantiersModule } from '../execution/chantiers/chantiers.module';
+import { RetoursClientModule } from '../pilotage/retours-client/retours-client.module';
 import { SavModule } from '../pilotage/sav/sav.module';
 import { EspaceClientAdminController, EspaceClientPublicController } from './espace-client/espace-client.controller';
 import { EspaceClientService } from './espace-client/espace-client.service';
@@ -19,7 +20,7 @@ import { PortailSousTraitantService } from './sous-traitant/portail-sous-traitan
  * Plus the office side of the reports (review). Files go through the global StorageModule.
  */
 @Module({
-  imports: [UploadMulterModule, ChantiersModule, SavModule],
+  imports: [UploadMulterModule, ChantiersModule, SavModule, RetoursClientModule],
   controllers: [
     PortailSousTraitantController,
     RapportsController,

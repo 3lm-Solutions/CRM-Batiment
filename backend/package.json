@@ -22,7 +22,7 @@
     "test": "prisma generate && jest",
     "test:watch": "jest --watch",
     "test:cov": "prisma generate && jest --coverage",
-    "test:e2e": "prisma generate && jest --config ./test/jest-e2e.json",
+    "test:e2e": "prisma generate && node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand --forceExit",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
@@ -110,15 +110,9 @@
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/generated/"
-    ]
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@nestjs/core",
-      "@prisma/client",
-      "@prisma/engines",
-      "esbuild",
-      "prisma"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   }
 }

@@ -32,6 +32,7 @@ describe('toHttpError', () => {
 
   it('maps record-not-found to 404', () => {
     expect(toHttpError(prismaError('P2025'))).toMatchObject({ status: 404, code: 'NOT_FOUND' });
+    expect(toHttpError(prismaError('P2022'))).toMatchObject({ status: 500, code: 'BASE_PAS_A_JOUR' });
   });
 
   it('hides unknown errors behind a generic 500', () => {

@@ -92,7 +92,7 @@ export const DEVIS_DETAIL_SELECT = {
   createdAt: true,
   updatedAt: true,
   client: {
-    select: { id: true, nom: true, prenom: true, email: true, telephone: true, adresseClient: true, adresseChantier: true },
+    select: { id: true, typeClient: true, nom: true, prenom: true, siret: true, tvaIntracom: true, contactNom: true, email: true, telephone: true, adresseClient: true, adresseChantier: true },
   },
   createur: { select: { id: true, nom: true, prenom: true } },
   demandeDevis: { select: { id: true, reference: true, description: true } },
@@ -130,7 +130,7 @@ export const DEVIS_CLIENT_SELECT = {
   totalTTC: true,
   signatureClientDate: true,
   company: { select: { nom: true, adresse: true, email: true, telephone: true, siret: true, logo: true } },
-  client: { select: { nom: true, prenom: true, adresseClient: true, adresseChantier: true } },
+  client: { select: { typeClient: true, nom: true, prenom: true, siret: true, tvaIntracom: true, contactNom: true, adresseClient: true, adresseChantier: true } },
   createur: { select: { prenom: true, nom: true, email: true, telephone: true } },
   lignes: { select: LIGNE_CLIENT, orderBy: { ordre: 'asc' } },
 } satisfies Prisma.DevisSelect;

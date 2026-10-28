@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, ClipboardCopy, Plus, Sparkles, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, Check, ClipboardCopy, Mic, Plus, Sparkles, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { AWAITING_CLIENT, EDITABLE, useCompany, useCompanySettings, useDevis, us
 import { DevisActions } from './DevisActions';
 import { DevisIaModal } from './DevisIaModal';
 import { LignesTable } from './LignesTable';
+import { ClientMentionsPro } from '../clients/ClientMentionsPro';
 
 const LIEN_STATUT: Record<string, string> = {
   ACTIF: 'Envoyé',
@@ -198,6 +199,7 @@ function PrintHeader({ devis }: { devis: DevisDetail }) {
         <p className="text-lg font-bold">Devis {devis.reference}</p>
         <p>Date : {formatDate(devis.dateEnvoi ?? devis.dateCreation)}</p>
         <p className="mt-2 font-semibold">{fullName(devis.client)}</p>
+        <ClientMentionsPro client={devis.client} />
         <p>{devis.client.adresseClient}</p>
         {devis.client.adresseChantier && <p>Chantier : {devis.client.adresseChantier}</p>}
       </div>
@@ -212,7 +214,7 @@ export function DevisEditorPage() {
   const devis = useDevis(id);
   const settings = useCompanySettings(isBureau);
   const [adding, setAdding] = useState(false);
-  const [ia, setIa] = useState(false);
+  const [ia, setIa] = useState<false | 'texte' | 'dictee'>(false);
   const [lastLink, setLastLink] = useState<string | null>(null);
 
   if (devis.isPending) return <Loading />;
@@ -255,8 +257,12 @@ export function DevisEditorPage() {
               actions={
                 editable && (
                   <div className="flex flex-wrap gap-2 print:hidden">
-                    <Button size="sm" variant="outline" icon={<Sparkles className="size-4 text-purple-600" />} onClick={() => setIa(true)}>
+                    <Button size="sm" variant="outline" icon={<Sparkles className="size-4 text-purple-600" />} onClick={() => setIa('texte')}>
                       Proposer avec l’IA
+                    </Button>
+                    {/* Étape 7 (27/10): dictate the job, the AI proposes the lines */}
+                    <Button size="sm" variant="outline" icon={<Mic className="size-4 text-red-600" />} onClick={() => setIa('dictee')}>
+                      Dicter le devis
                     </Button>
                     <Button size="sm" icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>Ajouter une ligne</Button>
                   </div>
@@ -284,7 +290,7 @@ export function DevisEditorPage() {
         )}
       </div>
       {editable && adding && <AddLigneModal devisId={d.id} open onClose={() => setAdding(false)} />}
-      {editable && ia && <DevisIaModal devisId={d.id} description={d.demandeDevis?.description} onClose={() => setIa(false)} />}
+      {editable && ia && <DevisIaModal devisId={d.id} description={d.demandeDevis?.description} dicter={ia === 'dictee'} onClose={() => setIa(false)} />}
     </>
   );
 }

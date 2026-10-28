@@ -1,11 +1,14 @@
 import { ArrowLeft, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Loading, Modal, PageHeader, Progress, Stat, StatusBadge } from '@/components/ui';
+import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Loading, Modal, PageHeader, Progress, Stat, StatusBadge, Tabs } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { formatDate, formatEuros, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
+import { SuiviPhotosCard } from '../photos/SuiviPhotosCard';
+import { useRetoursClient } from '../retours-client/api';
+import { RetoursClientCard } from '../retours-client/RetoursClientCard';
 import { RapportsCard } from '../rapports/RapportsCard';
 import { ChecklistTache } from './ChecklistTache';
 import { useUserOptions } from '../users/api';
@@ -23,6 +26,8 @@ import {
 import { ChantierFormModal } from './ChantierFormModal';
 import { DocumentsCard } from './DocumentsCard';
 import { TacheModal } from './TacheModal';
+
+type Onglet = 'taches' | 'photos' | 'retours';
 
 /** Buttons offered per status (same transitions as the API state machine). */
 const ACTIONS: Record<ChantierStatut, { action: ChantierAction; label: string; variant?: 'primary' | 'outline' | 'success' | 'danger'; bureauOnly?: boolean; cancel?: boolean }[]> = {
@@ -146,6 +151,19 @@ export function ChantierDetailPage() {
   const [editing, setEditing] = useState(false);
   const [acces, setAcces] = useState(false);
   const [confirm, setConfirm] = useState<ChantierAction | 'delete' | null>(null);
+  // « ?onglet=photos / retours » opens that tab (links of the « Photos à valider » / client notifications)
+  const location = useLocation();
+  const ongletUrl = (): Onglet | null => {
+    const o = new URLSearchParams(location.search).get('onglet');
+    return o === 'photos' || o === 'retours' ? o : null;
+  };
+  const [onglet, setOnglet] = useState<Onglet>(() => ongletUrl() ?? 'taches');
+  useEffect(() => {
+    const o = ongletUrl();
+    if (o) setOnglet(o);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+  const retoursOuverts = useRetoursClient(id, { statut: 'OUVERT' });
 
   const isBureau = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
   // Operational writes: ADMIN, ASSISTANTE, CHEF_CHANTIER (same as the API)
@@ -215,8 +233,29 @@ export function ChantierDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <TachesCard chantier={c} canEdit={canOperate} />
-          <RapportsCard chantierId={c.id} canReview={canOperate} />
+          <Tabs
+            value={onglet}
+            onChange={setOnglet}
+            tabs={[
+              { value: 'taches', label: 'Tâches et rapports' },
+              { value: 'photos', label: 'Suivi photos' },
+              {
+                value: 'retours',
+                label: (() => {
+                  const n = (retoursOuverts.data?.totaux?.alertesOuvertes ?? 0) + (retoursOuverts.data?.totaux?.commentairesOuverts ?? 0);
+                  return n ? `Retours client (${n})` : 'Retours client';
+                })(),
+              },
+            ]}
+          />
+          {onglet === 'taches' && (
+            <>
+              <TachesCard chantier={c} canEdit={canOperate} />
+              <RapportsCard chantierId={c.id} canReview={canOperate} />
+            </>
+          )}
+          {onglet === 'photos' && <SuiviPhotosCard chantierId={c.id} taches={c.taches} canValidate={canOperate} />}
+          {onglet === 'retours' && <RetoursClientCard chantierId={c.id} canRepondre={canOperate} />}
         </div>
         <div className="space-y-6">
           <Card>

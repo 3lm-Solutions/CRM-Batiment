@@ -1,3 +1,5 @@
+// Reads backend/.env first (DATABASE_URL of your local database); the values below are only fallbacks
+import 'dotenv/config';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -14,3 +16,6 @@ process.env.OPENAI_VISION_API_KEY = '';
 // Never read a real mailbox in tests (prospects by email: a fake reader is injected)
 process.env.IMAP_HOST = '';
 process.env.IMAP_SUBJECTS = '';
+// Never send real emails in tests (even when backend/.env has a Gmail account): printed in the console
+process.env.MAIL_HOST = '';
+process.env.DEMO_MODE = 'false';

@@ -1,0 +1,94 @@
+BÂTIFLOW CRM 
+
+RÈGLES D'OR
+Deux fenêtres PowerShell : n°1 = backend, n°2 = frontend
+
+
+══════════════════════════════════════════════════════════════
+1. PRÉREQUIS (une seule fois sur le PC)
+══════════════════════════════════════════════════════════════
+    node -v                 → doit afficher v22.x
+    npm install -g pnpm     (seule fois où on utilise npm : pour installer pnpm)
+    pnpm -v
+- PostgreSQL 16 installé et démarré (port 5432)
+
+══════════════════════════════════════════════════════════════
+2. FICHIER backend\.env (une seule fois)
+══════════════════════════════════════════════════════════════
+Copier backend\.env.example en backend\.env, puis remplir
+
+══════════════════════════════════════════════════════════════
+3. PREMIÈRE INSTALLATION — BACKEND (fenêtre n°1)
+══════════════════════════════════════════════════════════════
+    cd "<DOSSIER>\backend"
+    pnpm install
+    pnpm db:reset
+        → crée la base si besoin et applique 0_init
+        → « Are you sure? » : répondre y (base neuve uniquement : efface tout !)
+    pnpm prisma generate
+    pnpm db:seed
+        → crée l'entreprise, le catalogue et les 6 comptes (affichés à l'écran)
+    pnpm prisma migrate status
+        → « 1 migration found » + « Database schema is up to date! »
+    pnpm build
+        → doit finir sans erreur
+
+Si « pnpm install » affiche ERR_PNPM_IGNORED_BUILDS :
+  lancez alors :  pnpm rebuild   puis   pnpm install
+ 
+
+
+══════════════════════════════════════════════════════════════
+4. PREMIÈRE INSTALLATION — FRONTEND (fenêtre n°2)
+══════════════════════════════════════════════════════════════
+    cd "<DOSSIER>\frontend"
+    pnpm install
+Si ERR_PNPM_IGNORED_BUILDS (esbuild) :
+    pnpm rebuild
+    pnpm install
+
+
+
+══════════════════════════════════════════════════════════════
+5. LANCER L'APPLICATION (tous les jours)
+══════════════════════════════════════════════════════════════
+Fenêtre n°1 :
+    cd "<DOSSIER>\backend"
+    pnpm dev
+  → attendre « Nest application successfully started »
+Fenêtre n°2 :
+    cd "<DOSSIER>\frontend"
+    pnpm dev
+  → « Local: http://localhost:5173/ »
+Navigateur : http://localhost:5173
+Arrêter : Ctrl+C dans chaque fenêtre.
+
+
+══════════════════════════════════════════════════════════════
+6. COMPTES DE TEST (créés par pnpm db:seed)
+══════════════════════════════════════════════════════════════
+    ADMIN          admin@batiment-pro.fr          Admin@2026!
+    TECHNICO       technico@batiment-pro.fr       Technico@2026!
+    ASSISTANTE     assistante@batiment-pro.fr     Assistante@2026!
+    CHEF_CHANTIER  chef@batiment-pro.fr           Chef@2026!
+    SOUS_TRAITANT  soustraitant@batiment-pro.fr   Soustraitant@2026!
+    FOURNISSEUR    fournisseur@batiment-pro.fr    Fournisseur@2026!
+
+══════════════════════════════════════════════════════════════
+7. VÉRIFIER QUE TOUT MARCHE (tests)
+══════════════════════════════════════════════════════════════
+Backend (backend arrêté) :
+    pnpm build
+    pnpm test          ← tests unitaires
+    pnpm test:e2e      ← tests complets sur la base
+Frontend :
+    pnpm build
+
+
+
+RÉCAPITULATIF
+══════════════════════════════════════════════════════════════
+1re fois  backend  : pnpm install → pnpm db:reset → pnpm db:seed → pnpm build → pnpm dev
+1re fois  frontend : pnpm install → pnpm dev
+Tous les jours     : pnpm dev (backend) + pnpm dev (frontend) → http://localhost:5173
+Mise à jour        : pnpm install → pnpm db:deploy → pnpm prisma generate → pnpm dev

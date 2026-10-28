@@ -5,7 +5,25 @@ CREATE TYPE "NiveauNotification" AS ENUM ('INFO', 'SUCCES', 'ALERTE');
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'TECHNICO', 'ASSISTANTE', 'CHEF_CHANTIER', 'SOUS_TRAITANT', 'FOURNISSEUR');
 
 -- CreateEnum
-CREATE TYPE "LeadSource" AS ENUM ('CHATBOT', 'TECHNICO_COMMERCIAL', 'APPEL', 'RECOMMANDATION', 'SITE_WEB', 'WHATSAPP', 'AUTRE');
+CREATE TYPE "RetourClientType" AS ENUM ('COMMENTAIRE', 'ALERTE');
+
+-- CreateEnum
+CREATE TYPE "RetourClientStatut" AS ENUM ('OUVERT', 'TRAITE');
+
+-- CreateEnum
+CREATE TYPE "PhotoMoment" AS ENUM ('AVANT', 'APRES');
+
+-- CreateEnum
+CREATE TYPE "PhotoAvancementStatut" AS ENUM ('EN_ATTENTE', 'VALIDEE', 'MASQUEE');
+
+-- CreateEnum
+CREATE TYPE "StatutClient" AS ENUM ('PROSPECT', 'QUALIFIE', 'CLIENT');
+
+-- CreateEnum
+CREATE TYPE "TypeClient" AS ENUM ('PARTICULIER', 'PROFESSIONNEL');
+
+-- CreateEnum
+CREATE TYPE "LeadSource" AS ENUM ('CHATBOT', 'TECHNICO_COMMERCIAL', 'APPEL', 'RECOMMANDATION', 'SITE_WEB', 'WHATSAPP', 'EMAIL', 'AUTRE');
 
 -- CreateEnum
 CREATE TYPE "DemandeStatut" AS ENUM ('NOUVEAU', 'EN_COURS', 'QUALIFIE', 'CONVERTI', 'PERDU');
@@ -26,7 +44,7 @@ CREATE TYPE "CanalEnvoi" AS ENUM ('EMAIL', 'SMS');
 CREATE TYPE "ModeValidation" AS ENUM ('EMAIL', 'SIGNATURE', 'VERBAL', 'AUTRE');
 
 -- CreateEnum
-CREATE TYPE "BonCommandeStatut" AS ENUM ('BROUILLON', 'VALIDE', 'ENVOYE', 'ANNULE');
+CREATE TYPE "RelanceType" AS ENUM ('DEVIS', 'FACTURE');
 
 -- CreateEnum
 CREATE TYPE "FactureStatut" AS ENUM ('BROUILLON', 'ENVOYEE', 'PAYEE', 'ANNULEE');
@@ -47,13 +65,13 @@ CREATE TYPE "ChantierStatut" AS ENUM ('PLANIFIE', 'EN_COURS', 'SUSPENDU', 'TERMI
 CREATE TYPE "TacheStatut" AS ENUM ('A_FAIRE', 'EN_COURS', 'BLOQUEE', 'TERMINEE');
 
 -- CreateEnum
-CREATE TYPE "EquipeType" AS ENUM ('INTERNE', 'SOUS_TRAITANT');
-
--- CreateEnum
 CREATE TYPE "Unite" AS ENUM ('M2', 'ML', 'M3', 'PIECE', 'JOUR', 'HEURE', 'LITRE', 'KG', 'FORFAIT');
 
 -- CreateEnum
 CREATE TYPE "SousTraitantStatut" AS ENUM ('ACTIF', 'INACTIF', 'SUSPENDU');
+
+-- CreateEnum
+CREATE TYPE "PointageStatut" AS ENUM ('SOUMIS', 'VALIDE', 'REFUSE');
 
 -- CreateEnum
 CREATE TYPE "ContratSousTraitantStatut" AS ENUM ('BROUILLON', 'ACTIF', 'TERMINE', 'RESILIE');
@@ -97,6 +115,8 @@ CREATE TABLE "companies" (
     "telephone" TEXT,
     "email" TEXT,
     "logo" TEXT,
+    "iban" TEXT,
+    "bic" TEXT,
     "tvaDefaut" DECIMAL(5,2) NOT NULL DEFAULT 20,
     "acomptePercentDefault" DECIMAL(5,2) NOT NULL DEFAULT 35,
     "margeCiblePourcent" DECIMAL(5,2) NOT NULL DEFAULT 30,
@@ -104,6 +124,10 @@ CREATE TABLE "companies" (
     "fraisFixeDeplacement" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "pasArrondiPrix" DECIMAL(8,2) NOT NULL DEFAULT 0.01,
     "devise" TEXT NOT NULL DEFAULT 'EUR',
+    "relancesActives" BOOLEAN NOT NULL DEFAULT true,
+    "relanceDevisJours" INTEGER[] DEFAULT ARRAY[7, 14]::INTEGER[],
+    "relanceFactureJours" INTEGER[] DEFAULT ARRAY[1, 15, 30]::INTEGER[],
+    "savDureeMois" INTEGER NOT NULL DEFAULT 12,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -173,7 +197,7 @@ CREATE TABLE "reference_counters" (
     "year" INTEGER NOT NULL,
     "value" INTEGER NOT NULL DEFAULT 0,
 
-    CONSTRAINT "reference_counters_pkey" PRIMARY KEY ("companyId","prefix","year")
+    CONSTRAINT "reference_counters_pkey" PRIMARY KEY ("companyId", "prefix", "year")
 );
 
 -- CreateTable
@@ -193,8 +217,15 @@ CREATE TABLE "types_projet" (
 CREATE TABLE "clients" (
     "id" SERIAL NOT NULL,
     "companyId" INTEGER NOT NULL,
+    "typeClient" "TypeClient" NOT NULL DEFAULT 'PARTICULIER',
+    "statut" "StatutClient" NOT NULL DEFAULT 'PROSPECT',
+    "devenuClientLe" TIMESTAMP(3),
     "nom" TEXT NOT NULL,
     "prenom" TEXT,
+    "siret" TEXT,
+    "tvaIntracom" TEXT,
+    "contactNom" TEXT,
+    "contactFonction" TEXT,
     "telephone" TEXT,
     "email" TEXT,
     "adresseClient" TEXT,
@@ -215,7 +246,7 @@ CREATE TABLE "clients_types_projet" (
     "typeProjetId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "clients_types_projet_pkey" PRIMARY KEY ("clientId","typeProjetId")
+    CONSTRAINT "clients_types_projet_pkey" PRIMARY KEY ("clientId", "typeProjetId")
 );
 
 -- CreateTable
@@ -238,7 +269,7 @@ CREATE TABLE "types_projet_categories" (
     "ordre" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "types_projet_categories_pkey" PRIMARY KEY ("typeProjetId","categorieId")
+    CONSTRAINT "types_projet_categories_pkey" PRIMARY KEY ("typeProjetId", "categorieId")
 );
 
 -- CreateTable
@@ -370,7 +401,6 @@ CREATE TABLE "fournisseurs" (
     "email" TEXT,
     "telephone" TEXT,
     "adresse" TEXT,
-    "typesMateriaux" TEXT,
     "delaiLivraison" INTEGER,
     "conditions" TEXT,
     "actif" BOOLEAN NOT NULL DEFAULT true,
@@ -499,20 +529,6 @@ CREATE TABLE "devis_liens_client" (
 );
 
 -- CreateTable
-CREATE TABLE "bons_commande" (
-    "id" SERIAL NOT NULL,
-    "devisId" INTEGER NOT NULL,
-    "reference" TEXT NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "statut" "BonCommandeStatut" NOT NULL DEFAULT 'BROUILLON',
-    "pdfUrl" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "bons_commande_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "factures" (
     "id" SERIAL NOT NULL,
     "companyId" INTEGER NOT NULL,
@@ -538,16 +554,20 @@ CREATE TABLE "factures" (
     "emailClient" TEXT,
     "telephoneClient" TEXT,
     "adresseClient" TEXT,
+    "clientSiret" TEXT,
+    "clientTvaIntracom" TEXT,
     "companyNom" TEXT,
     "companyEmail" TEXT,
     "companyTelephone" TEXT,
     "companyAdresse" TEXT,
     "companySiret" TEXT,
+    "companyIban" TEXT,
+    "companyBic" TEXT,
+    "lienPublicToken" TEXT,
     "conditionsPaiement" TEXT,
     "communicationPaiement" TEXT,
     "notesLegales" TEXT,
     "referencePaiement" TEXT,
-    "pdfUrl" TEXT,
     "emailEnvoiClient" TEXT,
     "dateEnvoiClient" TIMESTAMP(3),
     "datePaiement" TIMESTAMP(3),
@@ -562,7 +582,6 @@ CREATE TABLE "lignes_facture" (
     "id" SERIAL NOT NULL,
     "factureId" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
-    "datePrestation" TIMESTAMP(3),
     "quantite" DECIMAL(12,3) NOT NULL DEFAULT 1,
     "unite" TEXT NOT NULL DEFAULT 'UNITE',
     "prixUnitaireHT" DECIMAL(12,2) NOT NULL,
@@ -581,8 +600,9 @@ CREATE TABLE "lignes_facture" (
 CREATE TABLE "commandes_fournisseur" (
     "id" SERIAL NOT NULL,
     "companyId" INTEGER NOT NULL,
-    "devisId" INTEGER NOT NULL,
+    "devisId" INTEGER,
     "fournisseurId" INTEGER NOT NULL,
+    "chantierId" INTEGER,
     "reference" TEXT NOT NULL,
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "statutLivraison" "CommandeFournisseurStatut" NOT NULL DEFAULT 'CREEE',
@@ -591,7 +611,6 @@ CREATE TABLE "commandes_fournisseur" (
     "notes" TEXT,
     "dateAccuseReception" TIMESTAMP(3),
     "commentaireFournisseur" TEXT,
-    "pdfUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -679,20 +698,7 @@ CREATE TABLE "chantiers_sous_traitants" (
     "chantierId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
 
-    CONSTRAINT "chantiers_sous_traitants_pkey" PRIMARY KEY ("chantierId","userId")
-);
-
--- CreateTable
-CREATE TABLE "equipes" (
-    "id" SERIAL NOT NULL,
-    "companyId" INTEGER NOT NULL,
-    "nom" TEXT NOT NULL,
-    "type" "EquipeType" NOT NULL DEFAULT 'INTERNE',
-    "actif" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "equipes_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "chantiers_sous_traitants_pkey" PRIMARY KEY ("chantierId", "userId")
 );
 
 -- CreateTable
@@ -714,11 +720,88 @@ CREATE TABLE "taches" (
 );
 
 -- CreateTable
+CREATE TABLE "taches_checklist" (
+    "id" SERIAL NOT NULL,
+    "tacheId" INTEGER NOT NULL,
+    "libelle" TEXT NOT NULL,
+    "fait" BOOLEAN NOT NULL DEFAULT false,
+    "ordre" INTEGER NOT NULL DEFAULT 0,
+    "faitLe" TIMESTAMP(3),
+    "faitParId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "taches_checklist_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "photos_avancement" (
+    "id" SERIAL NOT NULL,
+    "companyId" INTEGER NOT NULL,
+    "chantierId" INTEGER NOT NULL,
+    "tacheId" INTEGER NOT NULL,
+    "checklistItemId" INTEGER,
+    "auteurId" INTEGER NOT NULL,
+    "date" DATE NOT NULL,
+    "moment" "PhotoMoment" NOT NULL,
+    "commentaire" TEXT,
+    "statut" "PhotoAvancementStatut" NOT NULL DEFAULT 'EN_ATTENTE',
+    "motifMasquage" TEXT,
+    "valideParId" INTEGER,
+    "valideLe" TIMESTAMP(3),
+    "fichierId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "photos_avancement_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "retours_client" (
+    "id" SERIAL NOT NULL,
+    "companyId" INTEGER NOT NULL,
+    "clientId" INTEGER NOT NULL,
+    "chantierId" INTEGER NOT NULL,
+    "tacheId" INTEGER,
+    "photoId" INTEGER,
+    "type" "RetourClientType" NOT NULL,
+    "message" TEXT NOT NULL,
+    "statut" "RetourClientStatut" NOT NULL DEFAULT 'OUVERT',
+    "reponse" TEXT,
+    "reponduParId" INTEGER,
+    "reponduLe" TIMESTAMP(3),
+    "traiteParId" INTEGER,
+    "traiteLe" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "retours_client_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "pointages" (
+    "id" SERIAL NOT NULL,
+    "companyId" INTEGER NOT NULL,
+    "sousTraitantId" INTEGER NOT NULL,
+    "chantierId" INTEGER NOT NULL,
+    "tacheId" INTEGER,
+    "date" DATE NOT NULL,
+    "heures" DECIMAL(4,2) NOT NULL,
+    "commentaire" TEXT,
+    "statut" "PointageStatut" NOT NULL DEFAULT 'SOUMIS',
+    "motifRefus" TEXT,
+    "saisiParId" INTEGER,
+    "valideParId" INTEGER,
+    "valideLe" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "pointages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "affectations_taches" (
     "id" SERIAL NOT NULL,
     "tacheId" INTEGER NOT NULL,
     "userId" INTEGER,
-    "equipeId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "affectations_taches_pkey" PRIMARY KEY ("id")
@@ -871,9 +954,38 @@ CREATE TABLE "sav_ticket_notes" (
     "ticketId" INTEGER NOT NULL,
     "userId" INTEGER,
     "contenu" TEXT NOT NULL,
+    "visibleClient" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "sav_ticket_notes_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "relances" (
+    "id" SERIAL NOT NULL,
+    "companyId" INTEGER NOT NULL,
+    "type" "RelanceType" NOT NULL,
+    "devisId" INTEGER,
+    "factureId" INTEGER,
+    "niveau" INTEGER NOT NULL,
+    "automatique" BOOLEAN NOT NULL DEFAULT true,
+    "destinataire" TEXT NOT NULL,
+    "emailEnvoye" BOOLEAN NOT NULL,
+    "userId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "relances_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "sav_ticket_historique" (
+    "id" SERIAL NOT NULL,
+    "ticketId" INTEGER NOT NULL,
+    "statut" "SavTicketStatut" NOT NULL,
+    "userId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "sav_ticket_historique_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -904,6 +1016,9 @@ CREATE TABLE "chat_sessions" (
     "companyId" INTEGER NOT NULL,
     "tokenHash" TEXT NOT NULL,
     "statut" "ProspectStatut" NOT NULL DEFAULT 'NOUVEAU',
+    "source" "LeadSource" NOT NULL DEFAULT 'CHATBOT',
+    "emailMessageId" TEXT,
+    "emailSujet" TEXT,
     "clientNom" TEXT,
     "clientPrenom" TEXT,
     "clientEmail" TEXT,
@@ -920,7 +1035,6 @@ CREATE TABLE "chat_sessions" (
     "motifRejet" TEXT,
     "traiteParId" INTEGER,
     "traiteLe" TIMESTAMP(3),
-    "terminee" BOOLEAN NOT NULL DEFAULT false,
     "derniereActivite" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -991,6 +1105,7 @@ CREATE TABLE "fichiers" (
     "taille" INTEGER NOT NULL,
     "chantierId" INTEGER,
     "rapportId" INTEGER,
+    "savTicketId" INTEGER,
     "uploadedById" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -1060,6 +1175,12 @@ CREATE UNIQUE INDEX "types_projet_companyId_nom_key" ON "types_projet"("companyI
 CREATE INDEX "clients_companyId_archivedAt_idx" ON "clients"("companyId", "archivedAt");
 
 -- CreateIndex
+CREATE INDEX "clients_companyId_typeClient_idx" ON "clients"("companyId", "typeClient");
+
+-- CreateIndex
+CREATE INDEX "clients_companyId_statut_idx" ON "clients"("companyId", "statut");
+
+-- CreateIndex
 CREATE INDEX "clients_companyId_nom_idx" ON "clients"("companyId", "nom");
 
 -- CreateIndex
@@ -1078,10 +1199,10 @@ CREATE UNIQUE INDEX "categories_prestations_companyId_nom_key" ON "categories_pr
 CREATE INDEX "types_projet_categories_categorieId_idx" ON "types_projet_categories"("categorieId");
 
 -- CreateIndex
-CREATE INDEX "sous_categories_companyId_idx" ON "sous_categories"("companyId");
+CREATE UNIQUE INDEX "sous_categories_categorieId_nom_key" ON "sous_categories"("categorieId", "nom");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sous_categories_categorieId_nom_key" ON "sous_categories"("categorieId", "nom");
+CREATE INDEX "sous_categories_companyId_idx" ON "sous_categories"("companyId");
 
 -- CreateIndex
 CREATE INDEX "prestations_companyId_actif_idx" ON "prestations"("companyId", "actif");
@@ -1174,16 +1295,10 @@ CREATE INDEX "devis_liens_client_devisId_type_statut_idx" ON "devis_liens_client
 CREATE INDEX "devis_liens_client_expiresAt_idx" ON "devis_liens_client"("expiresAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "bons_commande_devisId_key" ON "bons_commande"("devisId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "bons_commande_reference_key" ON "bons_commande"("reference");
-
--- CreateIndex
-CREATE INDEX "bons_commande_statut_idx" ON "bons_commande"("statut");
-
--- CreateIndex
 CREATE UNIQUE INDEX "factures_reference_key" ON "factures"("reference");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "factures_lienPublicToken_key" ON "factures"("lienPublicToken");
 
 -- CreateIndex
 CREATE INDEX "factures_companyId_statut_idx" ON "factures"("companyId", "statut");
@@ -1198,13 +1313,16 @@ CREATE INDEX "lignes_facture_factureId_idx" ON "lignes_facture"("factureId");
 CREATE UNIQUE INDEX "commandes_fournisseur_reference_key" ON "commandes_fournisseur"("reference");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "commandes_fournisseur_devisId_fournisseurId_key" ON "commandes_fournisseur"("devisId", "fournisseurId");
+
+-- CreateIndex
+CREATE INDEX "commandes_fournisseur_chantierId_idx" ON "commandes_fournisseur"("chantierId");
+
+-- CreateIndex
 CREATE INDEX "commandes_fournisseur_companyId_statutLivraison_idx" ON "commandes_fournisseur"("companyId", "statutLivraison");
 
 -- CreateIndex
 CREATE INDEX "commandes_fournisseur_fournisseurId_idx" ON "commandes_fournisseur"("fournisseurId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "commandes_fournisseur_devisId_fournisseurId_key" ON "commandes_fournisseur"("devisId", "fournisseurId");
 
 -- CreateIndex
 CREATE INDEX "lignes_commande_fournisseur_commandeFournisseurId_idx" ON "lignes_commande_fournisseur"("commandeFournisseurId");
@@ -1240,10 +1358,43 @@ CREATE INDEX "chantiers_chefChantierId_idx" ON "chantiers"("chefChantierId");
 CREATE INDEX "chantiers_sous_traitants_userId_idx" ON "chantiers_sous_traitants"("userId");
 
 -- CreateIndex
-CREATE INDEX "equipes_companyId_idx" ON "equipes"("companyId");
+CREATE INDEX "taches_chantierId_statut_idx" ON "taches"("chantierId", "statut");
 
 -- CreateIndex
-CREATE INDEX "taches_chantierId_statut_idx" ON "taches"("chantierId", "statut");
+CREATE INDEX "taches_checklist_tacheId_idx" ON "taches_checklist"("tacheId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "photos_avancement_fichierId_key" ON "photos_avancement"("fichierId");
+
+-- CreateIndex
+CREATE INDEX "photos_avancement_chantierId_date_idx" ON "photos_avancement"("chantierId", "date");
+
+-- CreateIndex
+CREATE INDEX "photos_avancement_tacheId_idx" ON "photos_avancement"("tacheId");
+
+-- CreateIndex
+CREATE INDEX "photos_avancement_companyId_statut_idx" ON "photos_avancement"("companyId", "statut");
+
+-- CreateIndex
+CREATE INDEX "photos_avancement_auteurId_date_idx" ON "photos_avancement"("auteurId", "date");
+
+-- CreateIndex
+CREATE INDEX "retours_client_chantierId_createdAt_idx" ON "retours_client"("chantierId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "retours_client_companyId_statut_type_idx" ON "retours_client"("companyId", "statut", "type");
+
+-- CreateIndex
+CREATE INDEX "retours_client_clientId_createdAt_idx" ON "retours_client"("clientId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "pointages_companyId_statut_idx" ON "pointages"("companyId", "statut");
+
+-- CreateIndex
+CREATE INDEX "pointages_sousTraitantId_date_idx" ON "pointages"("sousTraitantId", "date");
+
+-- CreateIndex
+CREATE INDEX "pointages_chantierId_idx" ON "pointages"("chantierId");
 
 -- CreateIndex
 CREATE INDEX "affectations_taches_tacheId_idx" ON "affectations_taches"("tacheId");
@@ -1261,10 +1412,10 @@ CREATE INDEX "documents_chantier_chantierId_idx" ON "documents_chantier"("chanti
 CREATE UNIQUE INDEX "sous_traitants_userId_key" ON "sous_traitants"("userId");
 
 -- CreateIndex
-CREATE INDEX "sous_traitants_companyId_statut_idx" ON "sous_traitants"("companyId", "statut");
+CREATE UNIQUE INDEX "sous_traitants_companyId_siret_key" ON "sous_traitants"("companyId", "siret");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "sous_traitants_companyId_siret_key" ON "sous_traitants"("companyId", "siret");
+CREATE INDEX "sous_traitants_companyId_statut_idx" ON "sous_traitants"("companyId", "statut");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "contrats_sous_traitant_reference_key" ON "contrats_sous_traitant"("reference");
@@ -1300,10 +1451,10 @@ CREATE INDEX "disponibilites_sous_traitant_sousTraitantId_dateDebut_idx" ON "dis
 CREATE INDEX "disponibilites_sous_traitant_companyId_idx" ON "disponibilites_sous_traitant"("companyId");
 
 -- CreateIndex
-CREATE INDEX "notations_sous_traitant_companyId_idx" ON "notations_sous_traitant"("companyId");
+CREATE UNIQUE INDEX "notations_sous_traitant_sousTraitantId_chantierId_key" ON "notations_sous_traitant"("sousTraitantId", "chantierId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "notations_sous_traitant_sousTraitantId_chantierId_key" ON "notations_sous_traitant"("sousTraitantId", "chantierId");
+CREATE INDEX "notations_sous_traitant_companyId_idx" ON "notations_sous_traitant"("companyId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "sav_tickets_reference_key" ON "sav_tickets"("reference");
@@ -1324,6 +1475,18 @@ CREATE INDEX "sav_tickets_assignedToId_idx" ON "sav_tickets"("assignedToId");
 CREATE INDEX "sav_ticket_notes_ticketId_idx" ON "sav_ticket_notes"("ticketId");
 
 -- CreateIndex
+CREATE INDEX "relances_devisId_idx" ON "relances"("devisId");
+
+-- CreateIndex
+CREATE INDEX "relances_factureId_idx" ON "relances"("factureId");
+
+-- CreateIndex
+CREATE INDEX "relances_companyId_createdAt_idx" ON "relances"("companyId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "sav_ticket_historique_ticketId_idx" ON "sav_ticket_historique"("ticketId");
+
+-- CreateIndex
 CREATE INDEX "demo_requests_statut_createdAt_idx" ON "demo_requests"("statut", "createdAt");
 
 -- CreateIndex
@@ -1336,6 +1499,9 @@ CREATE INDEX "demo_requests_assignedToId_idx" ON "demo_requests"("assignedToId")
 CREATE UNIQUE INDEX "chat_sessions_tokenHash_key" ON "chat_sessions"("tokenHash");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "chat_sessions_emailMessageId_key" ON "chat_sessions"("emailMessageId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "chat_sessions_demandeDevisId_key" ON "chat_sessions"("demandeDevisId");
 
 -- CreateIndex
@@ -1343,6 +1509,9 @@ CREATE INDEX "chat_sessions_companyId_statut_derniereActivite_idx" ON "chat_sess
 
 -- CreateIndex
 CREATE INDEX "chat_sessions_companyId_clientEmail_idx" ON "chat_sessions"("companyId", "clientEmail");
+
+-- CreateIndex
+CREATE INDEX "chat_sessions_companyId_source_idx" ON "chat_sessions"("companyId", "source");
 
 -- CreateIndex
 CREATE INDEX "messages_chat_sessionId_createdAt_idx" ON "messages_chat"("sessionId", "createdAt");
@@ -1367,6 +1536,9 @@ CREATE INDEX "fichiers_chantierId_idx" ON "fichiers"("chantierId");
 
 -- CreateIndex
 CREATE INDEX "fichiers_rapportId_idx" ON "fichiers"("rapportId");
+
+-- CreateIndex
+CREATE INDEX "fichiers_savTicketId_idx" ON "fichiers"("savTicketId");
 
 -- CreateIndex
 CREATE INDEX "rapports_chantier_chantierId_createdAt_idx" ON "rapports_chantier"("chantierId", "createdAt");
@@ -1522,9 +1694,6 @@ ALTER TABLE "versions_devis" ADD CONSTRAINT "versions_devis_auteurId_fkey" FOREI
 ALTER TABLE "devis_liens_client" ADD CONSTRAINT "devis_liens_client_devisId_fkey" FOREIGN KEY ("devisId") REFERENCES "devis"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "bons_commande" ADD CONSTRAINT "bons_commande_devisId_fkey" FOREIGN KEY ("devisId") REFERENCES "devis"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "factures" ADD CONSTRAINT "factures_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1540,10 +1709,13 @@ ALTER TABLE "lignes_facture" ADD CONSTRAINT "lignes_facture_factureId_fkey" FORE
 ALTER TABLE "commandes_fournisseur" ADD CONSTRAINT "commandes_fournisseur_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "commandes_fournisseur" ADD CONSTRAINT "commandes_fournisseur_devisId_fkey" FOREIGN KEY ("devisId") REFERENCES "devis"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "commandes_fournisseur" ADD CONSTRAINT "commandes_fournisseur_devisId_fkey" FOREIGN KEY ("devisId") REFERENCES "devis"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "commandes_fournisseur" ADD CONSTRAINT "commandes_fournisseur_fournisseurId_fkey" FOREIGN KEY ("fournisseurId") REFERENCES "fournisseurs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "commandes_fournisseur" ADD CONSTRAINT "commandes_fournisseur_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "lignes_commande_fournisseur" ADD CONSTRAINT "lignes_commande_fournisseur_commandeFournisseurId_fkey" FOREIGN KEY ("commandeFournisseurId") REFERENCES "commandes_fournisseur"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1591,19 +1763,79 @@ ALTER TABLE "chantiers_sous_traitants" ADD CONSTRAINT "chantiers_sous_traitants_
 ALTER TABLE "chantiers_sous_traitants" ADD CONSTRAINT "chantiers_sous_traitants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "equipes" ADD CONSTRAINT "equipes_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "taches" ADD CONSTRAINT "taches_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "taches" ADD CONSTRAINT "taches_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "taches_checklist" ADD CONSTRAINT "taches_checklist_tacheId_fkey" FOREIGN KEY ("tacheId") REFERENCES "taches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "taches_checklist" ADD CONSTRAINT "taches_checklist_faitParId_fkey" FOREIGN KEY ("faitParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_tacheId_fkey" FOREIGN KEY ("tacheId") REFERENCES "taches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_checklistItemId_fkey" FOREIGN KEY ("checklistItemId") REFERENCES "taches_checklist"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_auteurId_fkey" FOREIGN KEY ("auteurId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_valideParId_fkey" FOREIGN KEY ("valideParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "photos_avancement" ADD CONSTRAINT "photos_avancement_fichierId_fkey" FOREIGN KEY ("fichierId") REFERENCES "fichiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_tacheId_fkey" FOREIGN KEY ("tacheId") REFERENCES "taches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_photoId_fkey" FOREIGN KEY ("photoId") REFERENCES "photos_avancement"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_reponduParId_fkey" FOREIGN KEY ("reponduParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "retours_client" ADD CONSTRAINT "retours_client_traiteParId_fkey" FOREIGN KEY ("traiteParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_sousTraitantId_fkey" FOREIGN KEY ("sousTraitantId") REFERENCES "sous_traitants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_tacheId_fkey" FOREIGN KEY ("tacheId") REFERENCES "taches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_saisiParId_fkey" FOREIGN KEY ("saisiParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "pointages" ADD CONSTRAINT "pointages_valideParId_fkey" FOREIGN KEY ("valideParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "affectations_taches" ADD CONSTRAINT "affectations_taches_tacheId_fkey" FOREIGN KEY ("tacheId") REFERENCES "taches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "affectations_taches" ADD CONSTRAINT "affectations_taches_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "affectations_taches" ADD CONSTRAINT "affectations_taches_equipeId_fkey" FOREIGN KEY ("equipeId") REFERENCES "equipes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "documents_chantier" ADD CONSTRAINT "documents_chantier_chantierId_fkey" FOREIGN KEY ("chantierId") REFERENCES "chantiers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1687,6 +1919,24 @@ ALTER TABLE "sav_ticket_notes" ADD CONSTRAINT "sav_ticket_notes_ticketId_fkey" F
 ALTER TABLE "sav_ticket_notes" ADD CONSTRAINT "sav_ticket_notes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "relances" ADD CONSTRAINT "relances_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "relances" ADD CONSTRAINT "relances_devisId_fkey" FOREIGN KEY ("devisId") REFERENCES "devis"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "relances" ADD CONSTRAINT "relances_factureId_fkey" FOREIGN KEY ("factureId") REFERENCES "factures"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "relances" ADD CONSTRAINT "relances_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sav_ticket_historique" ADD CONSTRAINT "sav_ticket_historique_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "sav_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sav_ticket_historique" ADD CONSTRAINT "sav_ticket_historique_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "demo_requests" ADD CONSTRAINT "demo_requests_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1738,6 +1988,9 @@ ALTER TABLE "fichiers" ADD CONSTRAINT "fichiers_chantierId_fkey" FOREIGN KEY ("c
 ALTER TABLE "fichiers" ADD CONSTRAINT "fichiers_rapportId_fkey" FOREIGN KEY ("rapportId") REFERENCES "rapports_chantier"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "fichiers" ADD CONSTRAINT "fichiers_savTicketId_fkey" FOREIGN KEY ("savTicketId") REFERENCES "sav_tickets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "fichiers" ADD CONSTRAINT "fichiers_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1763,3 +2016,4 @@ ALTER TABLE "client_espace_liens" ADD CONSTRAINT "client_espace_liens_clientId_f
 
 -- AddForeignKey
 ALTER TABLE "client_espace_liens" ADD CONSTRAINT "client_espace_liens_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

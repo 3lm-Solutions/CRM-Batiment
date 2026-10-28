@@ -52,6 +52,9 @@ model Company {
   relanceDevisJours    Int[]   @default([7, 14])
   /// Days after the due date of an unpaid invoice
   relanceFactureJours  Int[]   @default([1, 15, 30])
+  // ── After-sales (Étape 2 of 26/10) ──
+  /// Months after the end of the works during which a SAV ticket can be opened (0 = no limit)
+  savDureeMois         Int     @default(12)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -90,6 +93,8 @@ model Company {
   espaceLiens                ClientEspaceLien[]
   relances                   Relance[]
   pointages                  Pointage[]
+  photosAvancement           PhotoAvancement[]
+  retoursClient              RetourClient[]
 
   @@map("companies")
 }
@@ -147,6 +152,10 @@ model User {
   prospectsTraites     ChatSession[]          @relation("ProspectTraitePar")
   pointagesSaisis      Pointage[]             @relation("PointageAuteur")
   pointagesValides     Pointage[]             @relation("PointageValidateur")
+  photosAvancement     PhotoAvancement[]      @relation("PhotoAvancementAuteur")
+  photosValidees       PhotoAvancement[]      @relation("PhotoAvancementValidateur")
+  retoursRepondus      RetourClient[]         @relation("RetourClientRepondu")
+  retoursTraites       RetourClient[]         @relation("RetourClientTraite")
   checklistCoches      TacheChecklistItem[]
 
   @@index([companyId])
@@ -233,8 +242,22 @@ model TypeProjet {
 model Client {
   id              Int        @id @default(autoincrement())
   companyId       Int
+  /// Étape 1 (26/10): private person or company. For a PROFESSIONNEL, `nom` holds the company
+  /// name (raison sociale) and `prenom` is empty: every list and document shows it as is.
+  typeClient      TypeClient @default(PARTICULIER)
+  /// 27/10: PROSPECT → QUALIFIE (request qualified / quote sent) → CLIENT (first signed quote).
+  /// Moves up automatically; only « Clients » lists the CLIENT ones.
+  statut          StatutClient @default(PROSPECT)
+  /// When the first quote was signed (the prospect became a client)
+  devenuClientLe  DateTime?
   nom             String
   prenom          String?
+  /// PROFESSIONNEL only (optional, checked when entered)
+  siret           String?
+  tvaIntracom     String?
+  /// Contact person at the company client, and his position
+  contactNom      String?
+  contactFonction String?
   telephone       String?
   email           String?
   adresseClient   String?
@@ -256,8 +279,11 @@ model Client {
   savTickets      SavTicket[]
   espaceLiens     ClientEspaceLien[]
   chatSessions    ChatSession[]
+  retours         RetourClient[]
 
   @@index([companyId, archivedAt])
+  @@index([companyId, typeClient])
+  @@index([companyId, statut])
   @@index([companyId, nom])
   @@index([companyId, email])
   @@index([companyId, telephone])
@@ -708,6 +734,9 @@ model Facture {
   emailClient           String?
   telephoneClient       String?
   adresseClient         String?
+  /// Company client (Étape 1 of 26/10): printed on the invoice
+  clientSiret           String?
+  clientTvaIntracom     String?
   companyNom            String?
   companyEmail          String?
   companyTelephone      String?
@@ -911,6 +940,8 @@ model Chantier {
   rapports              RapportChantier[]
   commandesFournisseur  CommandeFournisseur[]
   pointages             Pointage[]
+  photosAvancement      PhotoAvancement[]
+  retoursClient         RetourClient[]
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -952,6 +983,8 @@ model Tache {
   rapports     RapportChantier[]
   checklist    TacheChecklistItem[]
   pointages    Pointage[]
+  photos       PhotoAvancement[]
+  retoursClient RetourClient[]
 
   @@index([chantierId, statut])
   @@map("taches")
@@ -970,9 +1003,83 @@ model TacheChecklistItem {
 
   tache   Tache @relation(fields: [tacheId], references: [id], onDelete: Cascade)
   faitPar User? @relation(fields: [faitParId], references: [id], onDelete: SetNull)
+  photos  PhotoAvancement[]
 
   @@index([tacheId])
   @@map("taches_checklist")
+}
+
+/// Étapes 3–4 (26/10): before / after photo of a task (or one of its sub-tasks), sent by a
+/// sous-traitant from his portal. The chef (or the office) validates it: only validated photos
+/// will be shown to the client (Étape 5). One row per photo; the bytes are in `fichier`.
+model PhotoAvancement {
+  id              Int                   @id @default(autoincrement())
+  companyId       Int
+  chantierId      Int
+  tacheId         Int
+  checklistItemId Int?
+  auteurId        Int
+  /// Day the photo is about (a DATE, like the time tracking)
+  date            DateTime              @db.Date
+  moment          PhotoMoment
+  commentaire     String?
+  statut          PhotoAvancementStatut @default(EN_ATTENTE)
+  /// Why the photo was hidden (shown to its author)
+  motifMasquage   String?
+  valideParId     Int?
+  valideLe        DateTime?
+  fichierId       Int                   @unique
+  createdAt       DateTime              @default(now())
+
+  company       Company             @relation(fields: [companyId], references: [id])
+  chantier      Chantier            @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  tache         Tache               @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  checklistItem TacheChecklistItem? @relation(fields: [checklistItemId], references: [id], onDelete: SetNull)
+  auteur        User                @relation("PhotoAvancementAuteur", fields: [auteurId], references: [id])
+  validePar     User?               @relation("PhotoAvancementValidateur", fields: [valideParId], references: [id], onDelete: SetNull)
+  fichier       Fichier             @relation(fields: [fichierId], references: [id], onDelete: Cascade)
+  retoursClient RetourClient[]
+
+  @@index([chantierId, date])
+  @@index([tacheId])
+  @@index([companyId, statut])
+  @@index([auteurId, date])
+  @@map("photos_avancement")
+}
+
+/// Étapes 5–6 (26/10): comment or alert sent by the client from his online space, on a job site,
+/// one of its tasks or one of its validated photos. The chef / office answers (the answer is
+/// shown in the client space and emailed) and marks it handled.
+model RetourClient {
+  id          Int               @id @default(autoincrement())
+  companyId   Int
+  clientId    Int
+  chantierId  Int
+  tacheId     Int?
+  photoId     Int?
+  type        RetourClientType
+  message     String
+  statut      RetourClientStatut @default(OUVERT)
+  reponse     String?
+  reponduParId Int?
+  reponduLe   DateTime?
+  traiteParId Int?
+  traiteLe    DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  company   Company          @relation(fields: [companyId], references: [id])
+  client    Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  chantier  Chantier         @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  tache     Tache?           @relation(fields: [tacheId], references: [id], onDelete: SetNull)
+  photo     PhotoAvancement? @relation(fields: [photoId], references: [id], onDelete: SetNull)
+  reponduPar User?           @relation("RetourClientRepondu", fields: [reponduParId], references: [id], onDelete: SetNull)
+  traitePar  User?           @relation("RetourClientTraite", fields: [traiteParId], references: [id], onDelete: SetNull)
+
+  @@index([chantierId, createdAt])
+  @@index([companyId, statut, type])
+  @@index([clientId, createdAt])
+  @@map("retours_client")
 }
 
 /// Hours entered by a sous-traitant in his portal, validated by the chef or the office (21/10).
@@ -1482,6 +1589,8 @@ model Fichier {
   uploadedBy User?                   @relation("FichierAuteur", fields: [uploadedById], references: [id], onDelete: SetNull)
   document   DocumentChantier?
   assurances AssuranceSousTraitant[]
+  /// Before / after photo of a task (26/10)
+  photoAvancement PhotoAvancement?
 
   @@index([companyId])
   @@index([chantierId])
@@ -1557,6 +1666,43 @@ enum Role {
   CHEF_CHANTIER
   SOUS_TRAITANT
   FOURNISSEUR
+}
+
+/// Étape 5 (26/10): a remark, or a problem to look at quickly
+enum RetourClientType {
+  COMMENTAIRE
+  ALERTE
+}
+
+enum RetourClientStatut {
+  OUVERT
+  TRAITE
+}
+
+/// Étape 3 (26/10): before or after the work
+enum PhotoMoment {
+  AVANT
+  APRES
+}
+
+/// Étape 4 (26/10): only VALIDEE photos are shown to the client
+enum PhotoAvancementStatut {
+  EN_ATTENTE
+  VALIDEE
+  MASQUEE
+}
+
+/// 27/10: lifecycle of a contact — prospect, qualified prospect, client (signed a quote)
+enum StatutClient {
+  PROSPECT
+  QUALIFIE
+  CLIENT
+}
+
+/// Étape 1 (26/10): private person or company client
+enum TypeClient {
+  PARTICULIER
+  PROFESSIONNEL
 }
 
 enum LeadSource {

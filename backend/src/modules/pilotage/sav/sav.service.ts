@@ -10,6 +10,7 @@ import { savSuiviClientMail } from '../../core/mail/templates/portails.templates
 import { CreateSavTicketDto, QuerySavDto, ResoudreSavDto, SavNoteDto, UpdateSavTicketDto } from './sav.dto';
 import { type SavEvent, SavEvents } from './sav.events';
 import { SavMachine } from './sav-status';
+import { eligibiliteSav } from './sav-rules';
 
 const INCLUDE = {
   client: { select: { id: true, nom: true, prenom: true, telephone: true } },
@@ -82,6 +83,8 @@ export class SavService {
   async create(user: AuthUser, dto: CreateSavTicketDto) {
     await this.assertLinks(user.companyId, dto);
     await this.assertAssignee(user.companyId, dto.assignedToId);
+    // Étape 2 (26/10): only on a finished job site, within the SAV period — the ADMIN may override
+    const exception = await this.assertSavPossible(user.companyId, dto.chantierId, user.role === Role.ADMIN);
 
     const ticket = await this.prisma.$transaction(async (tx) => {
       const created = await tx.savTicket.create({
@@ -93,6 +96,8 @@ export class SavService {
         },
       });
       await tx.savTicketHistorique.create({ data: { ticketId: created.id, statut: 'OUVERT', userId: user.id } });
+      // Traceability of the override (internal note, never shown to the client)
+      if (exception) await tx.savTicketNote.create({ data: { ticketId: created.id, userId: user.id, contenu: `Ouvert par un administrateur hors règle SAV : ${exception}` } });
       return created;
     });
     this.emit(SavEvents.CREE, ticket);
@@ -160,10 +165,11 @@ export class SavService {
     if (photos.length > MAX_PHOTOS_CLIENT) {
       throw new BusinessException('TROP_DE_PHOTOS', `${MAX_PHOTOS_CLIENT} photos au maximum.`);
     }
-    if (input.chantierId) {
-      const ok = await this.prisma.chantier.count({ where: { id: input.chantierId, companyId, clientId } });
-      if (!ok) throw new BusinessException('LIEN_INVALIDE', 'Ce chantier ne vous concerne pas.');
-    }
+    if (!input.chantierId) throw new BusinessException('CHANTIER_REQUIS', 'Choisissez le chantier concerné.');
+    const ok = await this.prisma.chantier.count({ where: { id: input.chantierId, companyId, clientId } });
+    if (!ok) throw new BusinessException('LIEN_INVALIDE', 'Ce chantier ne vous concerne pas.');
+    // Étape 2 (26/10): the client can open a ticket only after the works, within the SAV period
+    await this.assertSavPossible(companyId, input.chantierId, false);
     const ticket = await this.prisma.$transaction(async (tx) => {
       const created = await tx.savTicket.create({
         data: {
@@ -250,6 +256,47 @@ export class SavService {
         if (count) await tx.savTicketHistorique.create({ data: { ticketId, statut: 'EN_COURS', userId: null } });
       }
     });
+  }
+
+  // ── SAV period (Étape 2 of 26/10) ───────────────────────────────────────
+
+  /** The client's job sites, with whether a ticket can be opened on each (the office form). */
+  async chantiersEligibles(user: AuthUser, clientId: number) {
+    const [company, chantiers] = await Promise.all([
+      this.prisma.company.findUniqueOrThrow({ where: { id: user.companyId }, select: { savDureeMois: true } }),
+      this.prisma.chantier.findMany({
+        where: { companyId: user.companyId, clientId, statut: { not: 'ANNULE' } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, reference: true, adresse: true, statut: true, dateFin: true, updatedAt: true },
+      }),
+    ]);
+    return {
+      savDureeMois: company.savDureeMois,
+      chantiers: chantiers.map(({ updatedAt, ...c }) => {
+        const e = eligibiliteSav({ statut: c.statut, dateFin: c.dateFin, updatedAt }, company.savDureeMois);
+        return { ...c, savPossible: e.possible, savJusquau: e.jusquau, savMotif: e.message };
+      }),
+    };
+  }
+
+  /**
+   * Throws when no ticket may be opened; for the ADMIN, returns instead the reason he is overriding
+   * (null when the rule is met).
+   */
+  private async assertSavPossible(companyId: number, chantierId: number | undefined, admin: boolean): Promise<string | null> {
+    if (!chantierId) {
+      const motif = 'aucun chantier terminé n’est rattaché au ticket.';
+      if (admin) return motif;
+      throw new BusinessException('CHANTIER_REQUIS', 'Le SAV concerne un chantier terminé : choisissez le chantier.');
+    }
+    const [company, chantier] = await Promise.all([
+      this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { savDureeMois: true } }),
+      this.prisma.chantier.findFirstOrThrow({ where: { id: chantierId, companyId }, select: { statut: true, dateFin: true, updatedAt: true } }),
+    ]);
+    const e = eligibiliteSav(chantier, company.savDureeMois);
+    if (e.possible) return null;
+    if (admin) return e.code === 'CHANTIER_NON_TERMINE' ? 'le chantier n’est pas terminé.' : e.message;
+    throw new BusinessException(e.code, e.message);
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────

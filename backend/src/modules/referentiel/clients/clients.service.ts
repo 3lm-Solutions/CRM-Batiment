@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { type AuthUser, BusinessException, paginate, parseSort, toSkipTake } from '../../../common';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma, type TypeClient } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CLIENT_SORT_FIELDS, CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients.dto';
 
@@ -20,6 +20,20 @@ function toResponse<T extends ClientWithTypes>(client: T) {
   return { ...rest, typeProjets, typeProjetIds: typeProjets.map((t) => t.id) };
 }
 
+/** Fields that only make sense for a company client. */
+const CHAMPS_PRO = ['siret', 'tvaIntracom', 'contactNom', 'contactFonction'] as const;
+
+/**
+ * Étape 1 (26/10): a private person never keeps company fields; a company has no first name
+ * (`nom` is its company name). Switching a client to PARTICULIER empties the company fields.
+ */
+export function appliquerCategorie<T extends Partial<Record<(typeof CHAMPS_PRO)[number] | 'prenom', string | null>>>(data: T, type: TypeClient): T {
+  if (type === 'PROFESSIONNEL') return { ...data, prenom: null };
+  const out = { ...data };
+  for (const k of CHAMPS_PRO) (out as Record<string, unknown>)[k] = null;
+  return out;
+}
+
 @Injectable()
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -29,6 +43,8 @@ export class ClientsService {
       companyId: user.companyId,
       archivedAt: query.archived ? { not: null } : null,
       source: query.source,
+      typeClient: query.typeClient,
+      ...(query.statuts?.length && { statut: { in: query.statuts } }),
       ...(query.typeProjetIds?.length && {
         typeProjetLinks: { some: { typeProjetId: { in: query.typeProjetIds } } },
       }),
@@ -38,6 +54,8 @@ export class ClientsService {
           { prenom: { contains: query.search, mode: 'insensitive' } },
           { email: { contains: query.search, mode: 'insensitive' } },
           { telephone: { contains: query.search } },
+          { siret: { contains: query.search.replace(/\s+/g, '') } },
+          { contactNom: { contains: query.search, mode: 'insensitive' } },
         ],
       }),
     };
@@ -83,8 +101,10 @@ export class ClientsService {
   }
 
   async create(user: AuthUser, dto: CreateClientDto) {
-    const { typeProjetIds, ...data } = dto;
+    const { typeProjetIds, ...rest } = dto;
     await this.assertTypesProjet(user.companyId, typeProjetIds);
+    const data = appliquerCategorie(rest, rest.typeClient ?? 'PARTICULIER');
+    if (data.statut === 'CLIENT') Object.assign(data, { devenuClientLe: new Date() });
 
     const client = await this.prisma.client.create({
       data: {
@@ -100,9 +120,13 @@ export class ClientsService {
   }
 
   async update(user: AuthUser, id: number, dto: UpdateClientDto) {
-    await this.ensureExists(user, id);
-    const { typeProjetIds, ...data } = dto;
+    const current = await this.prisma.client.findFirst({ where: { id, companyId: user.companyId }, select: { typeClient: true, statut: true } });
+    if (!current) throw new NotFoundException(`Client #${id} introuvable`);
+    const { typeProjetIds, ...rest } = dto;
     await this.assertTypesProjet(user.companyId, typeProjetIds);
+    const data = appliquerCategorie(rest, rest.typeClient ?? current.typeClient);
+    // Manual change (27/10): the date is set when he becomes a client, cleared if moved back
+    if (data.statut && data.statut !== current.statut) Object.assign(data, { devenuClientLe: data.statut === 'CLIENT' ? new Date() : null });
 
     const client = await this.prisma.client.update({
       where: { id },

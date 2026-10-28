@@ -131,7 +131,8 @@ const prestationSchema = z
   .object({
     nom: z.string().trim().min(1, 'Obligatoire'),
     description: z.string().trim(),
-    categorieId: z.coerce.number().min(1, 'Choisissez une catégorie'),
+    // '' while nothing is chosen (empty select), then the id: '' → 0 → « Choisissez une catégorie »
+    categorieId: z.union([z.literal(''), z.coerce.number()]).pipe(z.coerce.number().min(1, 'Choisissez une catégorie')),
     sousCategorieId: optionalId,
     unite,
     prixVenteMin: money,

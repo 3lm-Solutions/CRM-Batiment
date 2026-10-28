@@ -6,6 +6,8 @@ import { errorMessage } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatEuros, formatNumber, formatUnite } from '@/lib/format';
 import { shrinkImage } from '@/lib/images';
+import { ajouterTexte } from '@/components/voice/useDictee';
+import { BoutonDictee } from '@/components/voice/BoutonDictee';
 import { MAX_PHOTOS_IA, useAppliquerIa, useProposerIa, useProposerPhotoIa, type AnalysePhoto, type LigneProposee, type PropositionIa } from './api';
 
 type Mode = 'texte' | 'photo';
@@ -129,7 +131,7 @@ const validQty = (r: Row) => Number.isFinite(qty(r)) && qty(r) > 0 && qty(r) <= 
  * catalogue lines (keep / remove / change quantity), then adds them in one go.
  * Prices shown come from the catalogue, exactly like a line added by hand.
  */
-export function DevisIaModal({ devisId, description: initial, onClose }: { devisId: number; description?: string; onClose: () => void }) {
+export function DevisIaModal({ devisId, description: initial, onClose, dicter }: { devisId: number; description?: string; onClose: () => void; dicter?: boolean }) {
   const [mode, setMode] = useState<Mode>('texte');
   const [description, setDescription] = useState(initial ?? '');
   const [photos, setPhotos] = useState<File[]>([]);
@@ -195,16 +197,20 @@ export function DevisIaModal({ devisId, description: initial, onClose }: { devis
           onChange={(m) => !proposer.isPending && !proposerPhoto.isPending && setMode(m)}
         />
         {mode === 'texte' ? (
-          <Textarea
-            label="Description des travaux"
-            rows={6}
-            autoFocus
-            placeholder={EXEMPLE}
-            hint="Indiquez les surfaces (m²), longueurs (ml) et nombres d’éléments : les quantités seront plus justes."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={3000}
-          />
+          <div className="space-y-3">
+            {/* Étape 7 (27/10): dictate the job instead of typing it; the text stays editable */}
+            <BoutonDictee demarrerAuto={dicter} disabled={proposer.isPending} onTexte={(t) => setDescription((d) => ajouterTexte(d, t).slice(0, 3000))} />
+            <Textarea
+              label="Description des travaux"
+              rows={6}
+              autoFocus
+              placeholder={EXEMPLE}
+              hint="Tapez ou dictez. Indiquez les surfaces (m²), longueurs (ml) et nombres d’éléments : les quantités seront plus justes."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={3000}
+            />
+          </div>
         ) : (
           <div className="space-y-4">
             <PhotoPicker photos={photos} onChange={setPhotos} disabled={proposerPhoto.isPending} />

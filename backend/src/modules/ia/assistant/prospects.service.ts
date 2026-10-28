@@ -6,6 +6,7 @@ import { QualifierProspectDto, QueryProspectsDto, UpdateProspectDto } from './dt
 import { ProspectDedupService } from './prospect-dedup.service';
 import { isComplete, normalizeEmail, normalizePhone } from './prospect-fields';
 import { ProspectMachine } from './prospect-status';
+import { promouvoirClient } from '../../referentiel/clients/client-statut';
 
 const LIST_SELECT = {
   id: true,
@@ -127,12 +128,17 @@ export class ProspectsService {
             email: p.clientEmail,
             telephone: p.clientTelephone,
             adresseChantier: p.adresse,
-            source: 'CHATBOT',
+            // CHATBOT or EMAIL (the prospect's real origin)
+            source: p.source,
+            // 27/10: a qualified chatbot / email prospect is a qualified prospect
+            statut: 'QUALIFIE',
             besoin: p.description,
             ...(type && { typeProjetLinks: { create: { typeProjetId: type.id } } }),
           },
         });
         clientId = client.id;
+      } else {
+        await promouvoirClient(tx, clientId, 'QUALIFIE');
       }
       const created = await tx.demandeDevis.create({
         data: {

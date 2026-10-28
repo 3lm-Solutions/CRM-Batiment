@@ -11,6 +11,11 @@ import { espaceClientMail } from '../../core/mail/templates/portails.templates';
 import { chantierProgress } from '../../execution/chantiers/tache-rules';
 import type { UploadedBinary } from '../../core/storage/upload.config';
 import { SavService } from '../../pilotage/sav/sav.service';
+import { RetoursClientService } from '../../pilotage/retours-client/retours-client.service';
+import type { CreateRetourClientDto } from '../../pilotage/retours-client/retours-client.dto';
+import { FichiersService } from '../../core/storage/fichiers.service';
+import { eligibiliteSav } from '../../pilotage/sav/sav-rules';
+import { CHANTIERS_RETOURS } from '../../pilotage/retours-client/retours-rules';
 import { completerQrFacture, FACTURE_CLIENT_SELECT } from '../../finance/factures/facture.views';
 import { CreateSavClientDto } from './espace-client.dto';
 
@@ -35,6 +40,8 @@ export class EspaceClientService {
     private readonly config: ConfigService<Env, true>,
     private readonly mail: MailService,
     private readonly sav: SavService,
+    private readonly retours: RetoursClientService,
+    private readonly fichiers: FichiersService,
   ) {}
 
   // ── office side ─────────────────────────────────────────────────────────
@@ -119,9 +126,9 @@ export class EspaceClientService {
 
   private async buildView(lien: ResolvedEspace & { expiresAt: Date | null }) {
     const { companyId, clientId } = lien;
-    const [company, client, devis, factures, chantiers, tickets] = await Promise.all([
-      this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { nom: true, email: true, telephone: true, adresse: true, logo: true } }),
-      this.prisma.client.findUniqueOrThrow({ where: { id: clientId }, select: { nom: true, prenom: true } }),
+    const [company, client, devis, factures, chantiers, tickets, photos, retours] = await Promise.all([
+      this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { nom: true, email: true, telephone: true, adresse: true, logo: true, savDureeMois: true } }),
+      this.prisma.client.findUniqueOrThrow({ where: { id: clientId }, select: { typeClient: true, nom: true, prenom: true, contactNom: true } }),
       this.prisma.devis.findMany({
         where: { clientId, companyId, statut: { in: DEVIS_VISIBLES } },
         orderBy: { dateCreation: 'desc' },
@@ -142,8 +149,21 @@ export class EspaceClientService {
           statut: true,
           dateDebut: true,
           dateFin: true,
+          updatedAt: true,
           chefChantier: { select: { prenom: true, nom: true, telephone: true } },
-          taches: { orderBy: { ordre: 'asc' }, select: { id: true, libelle: true, statut: true, avancement: true, dateDebut: true, dateFin: true } },
+          taches: {
+            orderBy: { ordre: 'asc' },
+            select: {
+              id: true,
+              libelle: true,
+              statut: true,
+              avancement: true,
+              dateDebut: true,
+              dateFin: true,
+              // Étape 5 (26/10): the client follows the sub-tasks too
+              checklist: { orderBy: [{ ordre: 'asc' }, { id: 'asc' }], select: { id: true, libelle: true, fait: true } },
+            },
+          },
         },
       }),
       this.prisma.savTicket.findMany({
@@ -170,14 +190,36 @@ export class EspaceClientService {
           photos: { orderBy: { createdAt: 'asc' }, select: { id: true, nom: true, uploadedById: true } },
         },
       }),
+      // Étape 5 (26/10): before / after photos VALIDATED by the chef — never the pending or hidden ones,
+      // never who took them
+      this.prisma.photoAvancement.findMany({
+        where: { companyId, statut: 'VALIDEE', chantier: { clientId, statut: { not: 'ANNULE' } } },
+        orderBy: [{ date: 'desc' }, { id: 'asc' }],
+        take: 400,
+        select: { id: true, chantierId: true, tacheId: true, checklistItemId: true, date: true, moment: true, commentaire: true },
+      }),
+      this.retours.pourClient(companyId, clientId),
     ]);
+    const { savDureeMois, ...entreprise } = company;
     return {
-      entreprise: company,
+      entreprise,
       client,
       expiresAt: lien.expiresAt,
       devis,
       factures,
-      chantiers: chantiers.map((c) => ({ ...c, avancement: chantierProgress(c.taches) })),
+      chantiers: chantiers.map(({ updatedAt, ...c }) => {
+        // Étape 2 (26/10): the SAV opens at the end of the works, for the company's period
+        const e = eligibiliteSav({ statut: c.statut, dateFin: c.dateFin, updatedAt }, savDureeMois);
+        return {
+          ...c,
+          avancement: chantierProgress(c.taches),
+          sav: { possible: e.possible, jusquau: e.jusquau, motif: e.message },
+          photos: photos.filter((p) => p.chantierId === c.id).map(({ chantierId: _c, ...p }) => p),
+          retours: retours.filter((r) => r.chantierId === c.id).map(({ chantierId: _c, ...r }) => r),
+          // Comments and alerts: during the works and right after (a closed job site → SAV)
+          retoursPossibles: CHANTIERS_RETOURS.includes(c.statut),
+        };
+      }),
       sav: tickets.map(({ notes, historique, photos, ...t }) => ({
         ...t,
         photos: photos.map((p) => ({ id: p.id, nom: p.nom, auteur: p.uploadedById === null ? ('CLIENT' as const) : ('EQUIPE' as const) })),
@@ -239,6 +281,39 @@ export class EspaceClientService {
     const { companyId, clientId } = await this.resolve(token);
     const ticket = await this.sav.createFromClient(companyId, clientId, dto, photos);
     return { reference: ticket.reference, message: `Votre demande ${ticket.reference} a bien été transmise. Nous revenons vers vous rapidement.` };
+  }
+
+  // ── progress photos, comments and alerts (Étapes 5–6 of 26/10) ────────────
+
+  /** A validated before / after photo of one of the client's job sites. */
+  async photoAvancement(token: string, photoId: number) {
+    const { companyId, clientId } = await this.resolve(token);
+    return this.streamPhotoAvancement(companyId, clientId, photoId);
+  }
+
+  async apercuPhotoAvancement(user: AuthUser, clientId: number, photoId: number) {
+    const { companyId } = await this.resolveForStaff(user, clientId);
+    return this.streamPhotoAvancement(companyId, clientId, photoId);
+  }
+
+  private async streamPhotoAvancement(companyId: number, clientId: number, photoId: number) {
+    const photo = await this.prisma.photoAvancement.findFirst({
+      where: { id: photoId, companyId, statut: 'VALIDEE', chantier: { clientId } },
+      select: { fichier: { select: { cle: true, mime: true, nom: true } } },
+    });
+    if (!photo) throw new NotFoundException('Photo introuvable');
+    return this.fichiers.stream(photo.fichier);
+  }
+
+  async envoyerRetour(token: string, dto: CreateRetourClientDto) {
+    const { companyId, clientId } = await this.resolve(token);
+    const retour = await this.retours.creerParClient(companyId, clientId, dto);
+    return {
+      id: retour.id,
+      message: retour.type === 'ALERTE'
+        ? 'Votre signalement a été transmis à votre chef de chantier. Nous revenons vers vous rapidement.'
+        : 'Merci, votre commentaire a été transmis à l’équipe.',
+    };
   }
 
   async repondreSav(token: string, ticketId: number, contenu: string) {

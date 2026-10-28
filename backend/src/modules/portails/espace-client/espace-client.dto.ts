@@ -11,7 +11,7 @@ export class CreateSavClientDto {
   @ApiProperty() @Trim() @IsString() @IsNotEmpty() @MaxLength(5000)
   description: string;
 
-  @ApiPropertyOptional({ description: 'Chantier concerné (un des vôtres)' }) @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional({ description: 'Chantier concerné (un des vôtres, terminé) — obligatoire depuis le 26/10' }) @IsOptional() @IsInt() @Min(1)
   chantierId?: number;
 
   @ApiPropertyOptional({ enum: SavTicketCategorie }) @IsOptional() @IsEnum(SavTicketCategorie)

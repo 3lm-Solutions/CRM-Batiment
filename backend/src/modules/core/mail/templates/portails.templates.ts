@@ -71,3 +71,57 @@ export function savSuiviClientMail(p: {
   ].join('\n');
   return { subject, html, text };
 }
+
+/** Étape 6 (26/10): the company answered a comment / alert sent from the client space. */
+export function retourReponseClientMail(p: {
+  clientNom: string;
+  entreprise: string;
+  chantier: string;
+  objet: string;
+  message: string;
+  reponse: string;
+  traite: boolean;
+  avecEspaceClient: boolean;
+}): RenderedMail {
+  const subject = `${p.entreprise} — réponse à votre message (chantier ${p.chantier})`;
+  const suite = p.avecEspaceClient
+    ? 'Retrouvez l’avancement de vos travaux, les photos et nos échanges dans votre espace client (lien personnel reçu par email).'
+    : `Pour toute question, contactez ${p.entreprise}.`;
+  const html = layout(
+    'Réponse à votre message',
+    `<p>Bonjour ${escapeHtml(p.clientNom)},</p>
+     <p>Vous nous avez écrit au sujet de <strong>${escapeHtml(p.objet)}</strong> (chantier ${escapeHtml(p.chantier)}) :</p>
+     <blockquote style="margin:12px 0;padding:10px 14px;background:#f9fafb;border-left:3px solid #d1d5db;color:#4b5563;white-space:pre-line;">${escapeHtml(p.message)}</blockquote>
+     <p>Notre réponse :</p>
+     <blockquote style="margin:12px 0;padding:12px 16px;background:#f3f4f6;border-left:3px solid #1f3a5f;white-space:pre-line;">${escapeHtml(p.reponse)}</blockquote>
+     ${p.traite ? '<p>Nous considérons ce point comme traité. N’hésitez pas à nous réécrire si besoin.</p>' : ''}
+     <p>${escapeHtml(suite)}</p>`,
+  );
+  const text = [
+    `Bonjour ${p.clientNom},`,
+    '',
+    `Vous nous avez écrit au sujet de ${p.objet} (chantier ${p.chantier}) :`,
+    p.message,
+    '',
+    'Notre réponse :',
+    p.reponse,
+    ...(p.traite ? ['', 'Nous considérons ce point comme traité. N’hésitez pas à nous réécrire si besoin.'] : []),
+    '',
+    suite,
+  ].join('\n');
+  return { subject, html, text };
+}
+
+/** Étape 5 (26/10): alert sent by a client from his space — emailed to the chef of the job site. */
+export function alerteClientChefMail(p: { chefNom: string; clientNom: string; chantier: string; objet: string; message: string; url: string }): RenderedMail {
+  const subject = `⚠ Alerte client — chantier ${p.chantier}`;
+  const html = layout(
+    'Alerte envoyée par un client',
+    `<p>Bonjour ${escapeHtml(p.chefNom)},</p>
+     <p><strong>${escapeHtml(p.clientNom)}</strong> signale un problème sur <strong>${escapeHtml(p.objet)}</strong> (chantier ${escapeHtml(p.chantier)}) :</p>
+     <blockquote style="margin:16px 0;padding:12px 16px;background:#fef2f2;border-left:3px solid #b91c1c;white-space:pre-line;">${escapeHtml(p.message)}</blockquote>
+     ${button(p.url, 'Voir et répondre')}`,
+  );
+  const text = [`Bonjour ${p.chefNom},`, '', `${p.clientNom} signale un problème sur ${p.objet} (chantier ${p.chantier}) :`, p.message, '', `Voir et répondre : ${p.url}`].join('\n');
+  return { subject, html, text };
+}

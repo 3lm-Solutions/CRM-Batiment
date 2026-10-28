@@ -118,7 +118,8 @@ export const router = createBrowserRouter([
           page('demandes', BUREAU, <DemandesPage />, 'Demandes de devis'),
           page('devis', STAFF, <DevisListPage />, 'Devis'),
           page('devis/:id', STAFF, <DevisEditorPage />, 'Devis'),
-          page('clients', STAFF, <ClientsPage />, 'Clients'),
+          page('prospects', STAFF, <ClientsPage mode="prospects" />, 'Prospects'),
+          page('clients', STAFF, <ClientsPage mode="clients" />, 'Clients'),
           page('clients/:id', STAFF, <ClientDetailPage />, 'Fiche client'),
 
           // ── opérations ──

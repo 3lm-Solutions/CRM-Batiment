@@ -64,6 +64,10 @@ describe('Commercial: demandes & devis (e2e)', () => {
   });
 
   afterAll(async () => {
+    // A signed quote creates the deposit invoice (and maybe orders / a job site): removed first
+    await t.prisma.facture.deleteMany({ where: { devis: { clientId } } });
+    await t.prisma.commandeFournisseur.deleteMany({ where: { devis: { clientId } } });
+    await t.prisma.chantier.deleteMany({ where: { clientId } });
     await t.prisma.devis.deleteMany({ where: { clientId } });
     await t.prisma.demandeDevis.deleteMany({ where: { clientId } });
     await t.prisma.client.delete({ where: { id: clientId } });

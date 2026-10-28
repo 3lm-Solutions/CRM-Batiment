@@ -3,6 +3,7 @@ import type { AuthUser } from '../../../common';
 import type { DevisStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { chantierMargins } from './chantier-margins';
+import { chantiersSansPhoto } from './chantiers-sans-photo';
 import { rate, weeklySeries } from './weekly-series';
 
 const OPEN_CHANTIER = ['PLANIFIE', 'EN_COURS', 'SUSPENDU'] as const;
@@ -40,6 +41,9 @@ export class DashboardService {
       chantiersMarge,
       company,
       relancesSemaine,
+      alertesClient,
+      commentairesClient,
+      chantiersPhotos,
     ] = await Promise.all([
       this.prisma.demandeDevis.count({ where: { companyId, statut: { in: ['NOUVEAU', 'EN_COURS', 'QUALIFIE'] }, createdAt: { gte: since } } }),
       this.prisma.client.count({ where: { companyId, createdAt: { gte: since } } }),
@@ -78,6 +82,23 @@ export class DashboardService {
       this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { seuilAlerteMargePourcent: true } }),
       // C3: reminders sent in the last 7 days (automatic + manual)
       this.prisma.relance.count({ where: { companyId, createdAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } } }),
+      // Étape 6 (26/10): client alerts still open (oldest first) and open comments
+      this.prisma.retourClient.findMany({
+        where: { companyId, type: 'ALERTE', statut: 'OUVERT' },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, message: true, createdAt: true, chantier: { select: { id: true, reference: true } }, client: { select: { nom: true, prenom: true } } },
+      }),
+      this.prisma.retourClient.count({ where: { companyId, type: 'COMMENTAIRE', statut: 'OUVERT' } }),
+      // Job sites in progress with sous-traitants, and their latest photo
+      this.prisma.chantier.findMany({
+        where: { companyId, statut: 'EN_COURS', sousTraitantsVisibles: { some: {} } },
+        select: {
+          id: true,
+          reference: true,
+          client: { select: { nom: true, prenom: true } },
+          photosAvancement: { orderBy: { createdAt: 'desc' }, take: 1, select: { createdAt: true } },
+        },
+      }),
     ]);
 
     const byStatut = (statuts: string[]) =>
@@ -107,6 +128,12 @@ export class DashboardService {
       sav: { ouverts: savOuverts, urgents: savUrgents },
       stockAlertes,
       relancesSemaine,
+      retoursClient: {
+        alertesOuvertes: alertesClient.length,
+        commentairesOuverts: commentairesClient,
+        alertes: alertesClient.slice(0, 5).map((a) => ({ ...a, message: a.message.length > 120 ? `${a.message.slice(0, 120)}…` : a.message })),
+      },
+      chantiersSansPhoto: chantiersSansPhoto(chantiersPhotos, now),
       margesChantiers: chantierMargins(chantiersMarge, company.seuilAlerteMargePourcent.toNumber()),
       serieDevis: weeklySeries(
         seriesRows.filter((r): r is { dateEnvoi: Date; statut: DevisStatut } => r.dateEnvoi !== null),

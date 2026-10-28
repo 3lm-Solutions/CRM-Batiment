@@ -1,3 +1,5 @@
+// Type metadata (emitDecoratorMetadata) for enableImplicitConversion — loaded by Nest in the app, not by Jest
+import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { NormalizeEmail, ToBoolean, ToIntArray, Trim, TrimOrNull } from './transforms';
 

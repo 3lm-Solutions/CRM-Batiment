@@ -90,3 +90,8 @@ export class ResoudreSavDto {
   @IsOptional() @IsBoolean()
   visibleClient?: boolean;
 }
+
+export class SavChantiersQueryDto {
+  @ApiProperty() @IsInt() @Min(1)
+  clientId: number;
+}

@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PaginatedResponse } from '@/shared';
 import { api } from '@/lib/api';
+import type { ChantierStatut } from '../chantiers/api';
 
 export type SavStatut = 'OUVERT' | 'EN_COURS' | 'EN_ATTENTE_CLIENT' | 'RESOLU' | 'CLOTURE';
 export type SavPriorite = 'BASSE' | 'NORMALE' | 'HAUTE' | 'URGENTE';
@@ -108,6 +109,25 @@ function useSavWrite<TVars, TResult>(fn: (vars: TVars) => Promise<TResult>) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: ['sav'] }) });
 }
+
+/** Étape 2 (26/10): the client's job sites and whether a ticket can be opened on each. */
+export interface SavChantierEligible {
+  id: number;
+  reference: string;
+  adresse: string;
+  statut: ChantierStatut;
+  dateFin: string | null;
+  savPossible: boolean;
+  savJusquau: string | null;
+  savMotif: string | null;
+}
+
+export const useSavChantiers = (clientId: number | null, enabled: boolean) =>
+  useQuery({
+    queryKey: ['sav', 'chantiers', clientId],
+    enabled: enabled && !!clientId,
+    queryFn: async () => (await api.get<{ savDureeMois: number; chantiers: SavChantierEligible[] }>('/sav/chantiers', { params: { clientId } })).data,
+  });
 
 export interface SavInput {
   clientId?: number;

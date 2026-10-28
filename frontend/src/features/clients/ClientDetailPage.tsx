@@ -8,7 +8,7 @@ import { formatDate, formatEuros, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import { EspaceClientCard } from '../espace-client/EspaceClientCard';
 import { useCreateDevis } from '../devis/api';
-import { LEAD_SOURCES, useClient, useClientAction } from './api';
+import { formatSiret, LEAD_SOURCES, STATUT_CLIENT_TONE, STATUTS_CLIENT, TYPES_CLIENT, useClient, useChangerStatutClient, useClientAction } from './api';
 import { ClientFormModal } from './ClientFormModal';
 
 export function ClientDetailPage() {
@@ -20,6 +20,7 @@ export function ClientDetailPage() {
   const action = useClientAction();
   const newDevis = useCreateDevis();
   const [editing, setEditing] = useState(false);
+  const qualifier = useChangerStatutClient();
   const [deleting, setDeleting] = useState(false);
 
   if (client.isPending) return <Loading />;
@@ -32,7 +33,7 @@ export function ClientDetailPage() {
       {
         onSuccess: () => {
           toast.success(act === 'delete' ? 'Client supprimé' : act === 'archive' ? 'Client archivé' : 'Client réactivé');
-          if (act === 'delete') navigate('/clients');
+          if (act === 'delete') navigate(c.statut === 'CLIENT' ? '/clients' : '/prospects');
         },
         onError: (e) => toast.error(errorMessage(e)),
       },
@@ -42,7 +43,19 @@ export function ClientDetailPage() {
     <>
       <PageHeader
         title={fullName(c)}
-        description={c.archivedAt ? `Archivé le ${formatDate(c.archivedAt)}` : `Client depuis le ${formatDate(c.createdAt)}`}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <Badge tone={STATUT_CLIENT_TONE[c.statut]}>{STATUTS_CLIENT[c.statut]}</Badge>
+            <span>
+              {TYPES_CLIENT[c.typeClient]} ·{' '}
+              {c.archivedAt
+                ? `archivé le ${formatDate(c.archivedAt)}`
+                : c.statut === 'CLIENT' && c.devenuClientLe
+                  ? `client depuis le ${formatDate(c.devenuClientLe)}`
+                  : `contact créé le ${formatDate(c.createdAt)}`}
+            </span>
+          </span>
+        }
         actions={
           canWrite && (
             <>
@@ -53,6 +66,16 @@ export function ClientDetailPage() {
                   onClick={() => newDevis.mutate({ clientId: id }, { onSuccess: (d) => navigate(`/devis/${d.id}`), onError: (e) => toast.error(errorMessage(e)) })}
                 >
                   Nouveau devis
+                </Button>
+              )}
+              {/* 27/10: a prospect becomes qualified by hand when he is serious (automatic on quote sent) */}
+              {c.statut === 'PROSPECT' && !c.archivedAt && (
+                <Button
+                  variant="outline"
+                  loading={qualifier.isPending}
+                  onClick={() => qualifier.mutate({ id: c.id, statut: 'QUALIFIE' }, { onSuccess: () => toast.success('Prospect qualifié'), onError: (e) => toast.error(errorMessage(e)) })}
+                >
+                  Marquer qualifié
                 </Button>
               )}
               {/* E1 of 20/10: one click to see the client's space as he sees it */}
@@ -72,10 +95,22 @@ export function ClientDetailPage() {
         <Card>
           <CardHeader title="Coordonnées" />
           <dl className="space-y-3 p-5 text-sm">
+            {c.typeClient === 'PROFESSIONNEL' && (
+              <div className="flex items-center gap-2">
+                <Badge tone="violet">Professionnel</Badge>
+              </div>
+            )}
             {[
+              ...(c.typeClient === 'PROFESSIONNEL'
+                ? [
+                    ['Personne à contacter', [c.contactNom, c.contactFonction].filter(Boolean).join(' — ')],
+                    ['SIRET', c.siret ? formatSiret(c.siret) : null],
+                    ['N° TVA intracommunautaire', c.tvaIntracom],
+                  ]
+                : []),
               ['Email', c.email],
               ['Téléphone', c.telephone],
-              ['Adresse', c.adresseClient],
+              [c.typeClient === 'PROFESSIONNEL' ? 'Adresse de facturation' : 'Adresse', c.adresseClient],
               ['Adresse du chantier', c.adresseChantier],
               ['Origine', LEAD_SOURCES[c.source]],
             ].map(([label, value]) => (

@@ -26,6 +26,7 @@ const SETTINGS_SELECT = {
   seuilAlerteMargePourcent: true,
   fraisFixeDeplacement: true,
   pasArrondiPrix: true,
+  savDureeMois: true,
 } satisfies Prisma.CompanySelect;
 
 export type CompanySettingsRecord = Prisma.CompanyGetPayload<{ select: typeof SETTINGS_SELECT }>;
@@ -70,5 +71,6 @@ function toSettings(r: CompanySettingsRecord): CompanySettings {
     seuilAlerteMargePourcent: r.seuilAlerteMargePourcent.toNumber(),
     fraisFixeDeplacement: r.fraisFixeDeplacement.toNumber(),
     pasArrondiPrix: r.pasArrondiPrix.toNumber(),
+    savDureeMois: r.savDureeMois,
   };
 }

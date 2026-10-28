@@ -16,7 +16,7 @@ const ISSUED: FactureStatut[] = ['ENVOYEE', 'PAYEE'];
 
 const INCLUDE = {
   lignes: { orderBy: { ordre: 'asc' } },
-  devis: { select: { id: true, reference: true, totalHT: true, client: { select: { id: true, nom: true, prenom: true } } } },
+  devis: { select: { id: true, reference: true, totalHT: true, client: { select: { id: true, typeClient: true, nom: true, prenom: true, siret: true, tvaIntracom: true } } } },
   factureOrigine: { select: { id: true, reference: true } },
   avoirs: { select: { id: true, reference: true, montantTTC: true } },
 } satisfies Prisma.FactureInclude;
@@ -426,6 +426,9 @@ export class FacturesService {
       emailClient: client.email,
       telephoneClient: client.telephone,
       adresseClient: client.adresseClient ?? client.adresseChantier,
+      // Company client (Étape 1 of 26/10)
+      clientSiret: client.typeClient === 'PROFESSIONNEL' ? client.siret : null,
+      clientTvaIntracom: client.typeClient === 'PROFESSIONNEL' ? client.tvaIntracom : null,
       companyNom: company.nom,
       companyEmail: company.email,
       companyTelephone: company.telephone,

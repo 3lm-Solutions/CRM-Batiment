@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { CompanySettings, PaginatedResponse } from '@/shared';
 import { api } from '@/lib/api';
 import type { Unite } from '../catalogue/api';
+import type { ClientPro } from '../clients/api';
 
 export type DevisStatut = 'BROUILLON' | 'ENVOYE' | 'RENVOYE' | 'ACCEPTE' | 'SIGNE' | 'REFUSE' | 'REVISE' | 'ANNULE';
 export const DEVIS_STATUTS: DevisStatut[] = ['BROUILLON', 'ENVOYE', 'RENVOYE', 'ACCEPTE', 'SIGNE', 'REFUSE', 'REVISE', 'ANNULE'];
@@ -82,7 +83,7 @@ export interface DevisDetail {
   alerteMarge?: boolean;
   signatureClientDate?: string | null;
   signatureConseillerDate?: string | null;
-  client: { id: number; nom: string; prenom: string | null; email?: string | null; telephone?: string | null; adresseClient?: string | null; adresseChantier?: string | null };
+  client: ClientPro & { id: number; nom: string; prenom: string | null; email?: string | null; telephone?: string | null; adresseClient?: string | null; adresseChantier?: string | null };
   createur?: { id: number; nom: string; prenom: string } | null;
   demandeDevis?: { id: number; reference: string; description?: string } | null;
   chantier: { id: number; reference: string; statut: string } | null;

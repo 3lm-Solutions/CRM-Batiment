@@ -114,6 +114,14 @@ function fromPrismaError(error: Prisma.PrismaClientKnownRequestError): HttpError
       };
     case 'P2025':
       return { status: HttpStatus.NOT_FOUND, message: 'Ressource introuvable.', code: 'NOT_FOUND' };
+    // 28/10: the code expects a table / column the database does not have yet (migration not run)
+    case 'P2021':
+    case 'P2022':
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Base de données pas à jour : lancez « pnpm db:deploy » dans le dossier backend, puis redémarrez.',
+        code: 'BASE_PAS_A_JOUR',
+      };
     case 'P2000':
       return { status: HttpStatus.BAD_REQUEST, message: 'Une valeur est trop longue.', code: 'VALUE_TOO_LONG' };
     default:

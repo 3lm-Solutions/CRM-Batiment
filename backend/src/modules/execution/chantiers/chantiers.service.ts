@@ -272,7 +272,22 @@ export class ChantiersService {
     if (linked) {
       throw new BusinessException('CHANTIER_LIE_A_UN_DEVIS', 'Ce chantier provient d’un devis : annulez-le au lieu de le supprimer.');
     }
+    // Checked first: the files below are removed before the job site itself
+    if (await this.prisma.contratSousTraitant.count({ where: { chantierId: id } })) {
+      throw new BusinessException('CHANTIER_AVEC_CONTRATS', 'Ce chantier a des contrats de sous-traitance : supprimez-les ou annulez le chantier.');
+    }
+    // Before / after photos and report photos go with the job site (the database would drop their
+    // rows but leave the bytes in storage); after-sales photos stay with their ticket
+    await this.supprimerFichiers({
+      OR: [{ photoAvancement: { chantierId: id } }, { rapport: { chantierId: id } }],
+    });
     await this.prisma.chantier.delete({ where: { id } });
+  }
+
+  /** Removes files (row + bytes) — used when a task or a job site is deleted (26/10). */
+  async supprimerFichiers(where: Prisma.FichierWhereInput): Promise<void> {
+    const fichiers = await this.prisma.fichier.findMany({ where, select: { id: true } });
+    for (const f of fichiers) await this.fichiers.remove(f.id);
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────

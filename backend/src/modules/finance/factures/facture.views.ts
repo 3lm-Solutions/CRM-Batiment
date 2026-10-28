@@ -53,6 +53,8 @@ export const FACTURE_CLIENT_SELECT = {
   prenomClient: true,
   emailClient: true,
   adresseClient: true,
+  clientSiret: true,
+  clientTvaIntracom: true,
   companyNom: true,
   companyEmail: true,
   companyTelephone: true,

@@ -66,8 +66,10 @@ export class TachesService {
 
   async remove(user: AuthUser, chantierId: number, tacheId: number): Promise<void> {
     await this.chantiers.assertWritable(user, chantierId);
-    const { count } = await this.prisma.tache.deleteMany({ where: { id: tacheId, chantierId } });
-    if (!count) throw new NotFoundException(`Tâche #${tacheId} introuvable`);
+    if (!(await this.prisma.tache.count({ where: { id: tacheId, chantierId } }))) throw new NotFoundException(`Tâche #${tacheId} introuvable`);
+    // Its before / after photos go with it (files removed from storage too) — 26/10
+    await this.chantiers.supprimerFichiers({ photoAvancement: { tacheId } });
+    await this.prisma.tache.deleteMany({ where: { id: tacheId, chantierId } });
   }
 
   /**

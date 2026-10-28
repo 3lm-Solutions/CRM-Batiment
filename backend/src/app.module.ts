@@ -15,6 +15,7 @@ import { DevisModule } from './modules/commercial/devis/devis.module';
 import { ChantiersModule } from './modules/execution/chantiers/chantiers.module';
 import { SousTraitantsModule } from './modules/execution/sous-traitants/sous-traitants.module';
 import { PointagesModule } from './modules/execution/pointages/pointages.module';
+import { PhotosAvancementModule } from './modules/execution/photos-avancement/photos-avancement.module';
 import { CommandesModule } from './modules/finance/commandes-fournisseur/commandes.module';
 import { FacturesModule } from './modules/finance/factures/factures.module';
 import { StockModule } from './modules/finance/stock/stock.module';
@@ -76,6 +77,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ChantiersModule,
     SousTraitantsModule,
     PointagesModule,
+    PhotosAvancementModule,
     StockModule,
     CommandesModule,
     FacturesModule,

@@ -1,4 +1,5 @@
 import {
+  UserSearch,
   BookOpen,
   Bot,
   CalendarDays,
@@ -58,7 +59,8 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
   {
     section: 'Commercial',
     items: [
-      { to: '/clients', label: 'Clients', description: 'Fiches clients', icon: Users, roles: STAFF },
+      { to: '/prospects', label: 'Prospects', description: 'Contacts sans devis signé', icon: UserSearch, roles: STAFF },
+      { to: '/clients', label: 'Clients', description: 'Ont signé un devis', icon: Users, roles: STAFF },
       { to: '/demandes', label: 'Demandes', description: 'Demandes de devis', icon: ClipboardList, roles: BUREAU },
       { to: '/assistant', label: 'Assistant IA', description: 'Prospects chatbot et emails', icon: Bot, roles: BUREAU },
       { to: '/devis', label: 'Devis', description: 'Création et suivi', icon: FileText, roles: STAFF },

@@ -14,6 +14,7 @@ export * from './validators/transforms';
 export * from './validators/signature.validator';
 export * from './validators/phone.validator';
 export * from './validators/bank.validator';
+export * from './validators/entreprise.validator';
 export * from './validators/validation-messages';
 export * from './state-machine/state-machine';
 export * from './auth/session-validator.service';

@@ -5,6 +5,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { DevisService } from '../devis/devis.service';
 import { assertDemandeTransition } from './demande-status';
 import { CreateDemandeDevisDto, QueryDemandesDevisDto, UpdateDemandeDevisDto } from './dto/demandes-devis.dto';
+import { promouvoirClient } from '../../referentiel/clients/client-statut';
 
 const SORTABLE = ['reference', 'date', 'createdAt'] as const;
 const INCLUDE = {
@@ -88,7 +89,11 @@ export class DemandesDevisService {
   async changerStatut(user: AuthUser, id: number, to: Exclude<DemandeStatut, 'CONVERTI'>) {
     const demande = await this.findOne(user, id);
     assertDemandeTransition(demande.statut, to);
-    return this.prisma.demandeDevis.update({ where: { id }, data: { statut: to }, include: INCLUDE });
+    return this.prisma.$transaction(async (tx) => {
+      // 27/10: a qualified request makes its contact a qualified prospect
+      if (to === 'QUALIFIE') await promouvoirClient(tx, demande.clientId, 'QUALIFIE');
+      return tx.demandeDevis.update({ where: { id }, data: { statut: to }, include: INCLUDE });
+    });
   }
 
   /**
@@ -115,6 +120,7 @@ export class DemandesDevisService {
       });
       if (!count) throw new BusinessException('DEMANDE_MODIFIEE', 'La demande vient d’être modifiée. Rechargez la page.');
 
+      await promouvoirClient(tx, demande.clientId, 'QUALIFIE');
       const devis = await this.devis.createDraft(tx, user, {
         clientId: demande.clientId,
         demandeDevisId: demande.id,

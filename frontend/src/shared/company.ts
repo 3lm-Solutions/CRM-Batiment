@@ -7,4 +7,6 @@ export interface CompanySettings {
   seuilAlerteMargePourcent: number;
   fraisFixeDeplacement: number;
   pasArrondiPrix: number;
+  /** Months of after-sales service after the end of the works (0 = no limit) — 26/10 */
+  savDureeMois: number;
 }

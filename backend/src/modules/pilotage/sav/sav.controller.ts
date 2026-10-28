@@ -3,7 +3,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
 import type { UploadedBinary } from '../../core/storage/upload.config';
-import { CreateSavTicketDto, QuerySavDto, ResoudreSavDto, SavNoteDto, UpdateSavTicketDto } from './sav.dto';
+import { CreateSavTicketDto, QuerySavDto, ResoudreSavDto, SavChantiersQueryDto, SavNoteDto, UpdateSavTicketDto } from './sav.dto';
 import { MAX_PHOTOS_PAR_TICKET, SavService } from './sav.service';
 
 @ApiTags('SAV')
@@ -16,6 +16,13 @@ export class SavController {
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QuerySavDto) {
     return this.sav.findAll(user, query);
+  }
+
+  /** Before ':id'. Étape 2 (26/10): which job sites of the client can receive a ticket. */
+  @Get('chantiers')
+  @ApiOperation({ summary: 'Chantiers du client et possibilité d’ouvrir un SAV (chantier terminé, dans le délai)' })
+  chantiers(@CurrentUser() user: AuthUser, @Query() query: SavChantiersQueryDto) {
+    return this.sav.chantiersEligibles(user, query.clientId);
   }
 
   @Get(':id')

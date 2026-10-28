@@ -41,7 +41,7 @@ export function useRevoquerEspace(clientId: number) {
 
 export interface EspaceClient {
   entreprise: { nom: string; email: string | null; telephone: string | null; adresse: string | null; logo: string | null };
-  client: { nom: string; prenom: string | null };
+  client: { typeClient?: 'PARTICULIER' | 'PROFESSIONNEL'; nom: string; prenom: string | null; contactNom?: string | null };
   /** null in the office preview when the client has no active link */
   expiresAt: string | null;
   /** true: the office is looking at the client's space (read only) */
@@ -57,7 +57,24 @@ export interface EspaceClient {
     dateFin: string | null;
     avancement: number;
     chefChantier: { prenom: string | null; nom: string; telephone: string | null } | null;
-    taches: { id: number; libelle: string; statut: TacheStatut; avancement: number; dateDebut: string | null; dateFin: string | null }[];
+    taches: {
+      id: number;
+      libelle: string;
+      statut: TacheStatut;
+      avancement: number;
+      dateDebut: string | null;
+      dateFin: string | null;
+      /** Étape 5 (26/10) */
+      checklist?: { id: number; libelle: string; fait: boolean }[];
+    }[];
+    /** Étape 2 (26/10): the SAV opens at the end of the works, for the company's period */
+    sav?: { possible: boolean; jusquau: string | null; motif: string | null };
+    /** Étape 5 (26/10): before / after photos validated by the chef */
+    photos?: EspacePhoto[];
+    /** Étape 5–6 (26/10): the client's comments / alerts and the company's answers */
+    retours?: EspaceRetour[];
+    /** false once the job site is closed (after-sales then goes through a SAV ticket) */
+    retoursPossibles?: boolean;
   }[];
   sav: {
     id: number;
@@ -74,6 +91,29 @@ export interface EspaceClient {
     /** photos sent by the client or added by the team (C42 of 21/10) */
     photos?: { id: number; nom: string; auteur: 'CLIENT' | 'EQUIPE' }[];
   }[];
+}
+
+export interface EspacePhoto {
+  id: number;
+  tacheId: number;
+  checklistItemId: number | null;
+  date: string;
+  moment: 'AVANT' | 'APRES';
+  commentaire: string | null;
+}
+
+export type RetourType = 'COMMENTAIRE' | 'ALERTE';
+
+export interface EspaceRetour {
+  id: number;
+  type: RetourType;
+  message: string;
+  statut: 'OUVERT' | 'TRAITE';
+  reponse: string | null;
+  reponduLe: string | null;
+  createdAt: string;
+  tacheId: number | null;
+  photoId: number | null;
 }
 
 export type EspaceDevis = PublicDevis['devis'];
@@ -99,6 +139,9 @@ export interface EspaceFacture {
   prenomClient: string | null;
   emailClient: string | null;
   adresseClient: string | null;
+  /** company client (Étape 1 of 26/10) */
+  clientSiret?: string | null;
+  clientTvaIntracom?: string | null;
   companyNom: string | null;
   companyEmail: string | null;
   companyTelephone: string | null;
@@ -128,6 +171,20 @@ const sourceKey = (s: EspaceSource) => ('token' in s ? ['espace', s.token] : ['e
 /** A ticket photo: by the client's token, or through the office preview. */
 export const espacePhotoPath = (s: EspaceSource, fichierId: number) =>
   'token' in s ? `${base(s.token)}/photos/${fichierId}` : `/clients/${s.clientId}/espace/apercu/photos/${fichierId}`;
+
+/** A validated before / after photo (26/10): by the client's token, or through the office preview. */
+export const espaceAvancementPath = (s: EspaceSource, photoId: number) =>
+  'token' in s ? `${base(s.token)}/avancement/${photoId}` : `/clients/${s.clientId}/espace/apercu/avancement/${photoId}`;
+
+/** Comment on a task / photo, or alert (Étape 5 of 26/10). */
+export function useEspaceRetour(token: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { chantierId: number; tacheId?: number; photoId?: number; type: RetourType; message: string }) =>
+      (await api.post<{ id: number; message: string }>(`${base(token)}/retours`, input)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['espace', token] }),
+  });
+}
 
 /** Same limits as the API (5 photos, 10 Mo each) */
 export const MAX_PHOTOS_CLIENT = 5;

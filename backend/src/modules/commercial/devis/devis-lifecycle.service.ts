@@ -12,6 +12,7 @@ import { type DevisRow, DevisService } from './devis.service';
 import { assertTransition, AWAITING_CLIENT_STATUTS } from './devis-status';
 import { AnnulerDevisDto, ReviserDevisDto, SignerConseillerDto } from './dto/devis.dto';
 import { DevisLiensService, type ResolvedLink } from './public/devis-liens.service';
+import { promouvoirClient } from '../../referentiel/clients/client-statut';
 
 /**
  * Every quote status change goes through this service (internal actions AND client links).
@@ -43,6 +44,7 @@ export class DevisLifecycleService {
 
       await this.snapshotVersion(tx, devis, user.id, 'Envoi au client');
       await this.transition(tx, devis, to, { dateEnvoi: new Date(), modeValidation: ModeValidation.EMAIL });
+      await promouvoirClient(tx, devis.clientId, 'QUALIFIE'); // 27/10
       const lien = await this.liens.create(tx, devis, 'VALIDATION', devis.client.email!);
       return { devis, lien };
     });
@@ -242,6 +244,8 @@ export class DevisLifecycleService {
    */
   private async finaliserSignature(tx: DbClient, devis: DevisRow, data: Prisma.DevisUpdateManyMutationInput) {
     await this.transition(tx, devis, 'SIGNE', { ...data, dateValidation: new Date() });
+    // 27/10: the first signed quote turns the prospect into a client
+    await promouvoirClient(tx, devis.clientId, 'CLIENT');
     await this.liens.cancelAll(tx, devis.id);
     await this.hooks.runSigned(tx, devis);
   }

@@ -8,7 +8,6 @@ import { DevisLifecycleService } from '../../commercial/devis/devis-lifecycle.se
 import { DevisLignesService } from '../../commercial/devis/devis-lignes.service';
 import { ChantiersService } from '../../execution/chantiers/chantiers.service';
 import { ClientsService } from '../../referentiel/clients/clients.service';
-import { SavService } from '../sav/sav.service';
 import { DEMO_SIGNATURE_PNG } from './demo-signature';
 
 interface ClientExemple {
@@ -84,7 +83,6 @@ export class DemoScenario {
     private readonly lignes: DevisLignesService,
     private readonly lifecycle: DevisLifecycleService,
     private readonly chantiers: ChantiersService,
-    private readonly sav: SavService,
   ) {}
 
   async load(companyId: number): Promise<string[]> {
@@ -144,13 +142,16 @@ export class DemoScenario {
           if (chantierId) {
             if (chef) await this.chantiers.update(admin, chantierId, { chefChantierId: chef.id });
             await this.chantiers.transition(admin, chantierId, 'EN_COURS');
-            await this.sav.create(assistante, {
-              clientId: clientIds[projet.client],
-              chantierId,
-              titre: 'Joint de douche à reprendre',
-              description: 'La cliente signale un joint silicone mal fini en bas de la paroi de douche.',
-              priorite: 'NORMALE',
-              categorie: 'QUALITE',
+            // 26/10: during the works the client writes from his space (the SAV opens at the end
+            // of the works) — an open alert to answer in « Retours client »
+            await this.prisma.retourClient.create({
+              data: {
+                companyId,
+                clientId: clientIds[projet.client],
+                chantierId,
+                type: 'ALERTE',
+                message: 'Le joint silicone en bas de la paroi de douche me semble mal fini, pouvez-vous regarder ?',
+              },
             });
           }
         }
@@ -158,7 +159,7 @@ export class DemoScenario {
         this.logger.warn(`Exemple « ${client.prenom} ${client.nom} » ignoré : ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    resume.push(`${PROJETS.length} demandes, ${PROJETS.filter((p) => p.lignes.length).length} devis (brouillon, envoyé, 2 signés → chantiers et acomptes), 1 ticket SAV`);
+    resume.push(`${PROJETS.length} demandes, ${PROJETS.filter((p) => p.lignes.length).length} devis (brouillon, envoyé, 2 signés → chantiers et acomptes), 1 alerte client`);
 
     await this.prospects(companyId);
     resume.push('2 conversations du chatbot (Assistant IA)');

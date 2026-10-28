@@ -6,6 +6,7 @@ import { Button, Card, Input, Textarea } from '@/components/ui';
 import { errorMessage, toProblem } from '@/lib/api';
 import { formatDate, formatEuros, formatNumber, formatUnite, fullName } from '@/lib/format';
 import { usePublicAction, usePublicDevis, type PublicDevis } from './api';
+import { ClientMentionsPro } from '../clients/ClientMentionsPro';
 
 const CLOSED_MESSAGES: Record<string, string> = {
   UTILISE: 'Ce lien a déjà été utilisé. Merci pour votre réponse !',
@@ -160,6 +161,7 @@ export function ClientDevisPage() {
             Pour {fullName(devis.client)} · émis le {formatDate(devis.dateEnvoi ?? devis.dateCreation)}
             {devis.createur && ` · conseiller : ${devis.createur.prenom} ${devis.createur.nom}`}
           </p>
+          <ClientMentionsPro client={devis.client} className="text-xs" />
         </div>
         <p className="flex items-center gap-1 text-xs text-slate-500"><Clock className="size-4" /> Lien valable jusqu’au {formatDate(lien.expiresAt)}</p>
       </div>

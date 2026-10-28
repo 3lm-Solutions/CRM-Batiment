@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardCheck, NotebookPen, ExternalLink, FileText, HardHat, MessageSquareWarning, Phone, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Camera, ClipboardCheck, NotebookPen, ExternalLink, FileText, HardHat, MessageSquareWarning, Phone, ShieldAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -10,6 +10,8 @@ import { RapportItem } from '../rapports/RapportItem';
 import { TYPE_ASSURANCE } from '../sous-traitants/api';
 import { useAvancerTache, useCocherChecklist, useStChantier, useStChantiers, useStDashboard, useStProfil, useStRapports, type StTache } from './api';
 import { RapportForm } from './RapportForm';
+import { MesPhotosCard } from '../photos/MesPhotosCard';
+import { PhotosJourModal } from '../photos/PhotosJourModal';
 
 // ── tableau de bord ───────────────────────────────────────────────────────
 
@@ -99,7 +101,7 @@ export function StChantiersPage() {
   );
 }
 
-function TacheRow({ tache, chantierId, editable, onReport }: { tache: StTache; chantierId: number; editable: boolean; onReport: () => void }) {
+function TacheRow({ tache, chantierId, editable, onReport, onPhotos }: { tache: StTache; chantierId: number; editable: boolean; onReport: () => void; onPhotos: () => void }) {
   const avancer = useAvancerTache(chantierId);
   const cocher = useCocherChecklist(chantierId);
   const checklist = tache.checklist ?? [];
@@ -166,6 +168,10 @@ function TacheRow({ tache, chantierId, editable, onReport }: { tache: StTache; c
       ) : (
         <Progress value={tache.avancement} className="max-w-xs" />
       )}
+      {/* Étape 3 (26/10): before / after photos of the day, validated by the chef */}
+      {editable && (
+        <Button size="sm" variant="outline" icon={<Camera className="size-4" />} onClick={onPhotos}>Photos avant / après</Button>
+      )}
       {tache.commentaire && <p className="text-xs italic text-slate-500">{tache.commentaire}</p>}
     </li>
   );
@@ -175,6 +181,7 @@ export function StChantierPage() {
   const id = Number(useParams().id);
   const c = useStChantier(id);
   const [reportTache, setReportTache] = useState<number | undefined>(undefined);
+  const [photosTache, setPhotosTache] = useState<StTache | null>(null);
 
   if (c.isPending) return <Loading />;
   if (c.isError) return <ErrorState error={c.error} onRetry={() => void c.refetch()} />;
@@ -203,15 +210,18 @@ export function StChantierPage() {
                     setReportTache(t.id);
                     document.getElementById('rapport')?.scrollIntoView({ behavior: 'smooth' });
                   }}
+                  onPhotos={() => setPhotosTache(t)}
                 />
               ))}
             </ul>
           </Card>
+          <MesPhotosCard chantierId={ch.id} />
           {open && (
             <div id="rapport">
               <RapportForm chantierId={ch.id} taches={ch.taches} tacheInitiale={reportTache} />
             </div>
           )}
+          <PhotosJourModal open={!!photosTache} onClose={() => setPhotosTache(null)} tache={photosTache} />
         </div>
         <div className="space-y-6">
           <Card>

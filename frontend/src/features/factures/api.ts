@@ -53,6 +53,9 @@ export interface Facture extends FactureListItem {
   emailClient: string | null;
   telephoneClient: string | null;
   adresseClient: string | null;
+  /** company client (Étape 1 of 26/10) */
+  clientSiret?: string | null;
+  clientTvaIntracom?: string | null;
   companyNom: string | null;
   companyEmail: string | null;
   companyTelephone: string | null;

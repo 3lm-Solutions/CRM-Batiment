@@ -8,6 +8,7 @@ import { formatDate, formatEuros, formatNumber, formatPercent, fromDateInput, fu
 import { useAuth } from '../auth/auth-context';
 import { RelancesCard } from '../relances/RelancesCard';
 import { FactureQrCodes } from './FactureQrCodes';
+import { ClientMentionsPro } from '../clients/ClientMentionsPro';
 import {
   FACTURE_TYPE_TITLE,
   factureLabel,
@@ -150,6 +151,7 @@ function FactureDocument({ facture: f, editable, onEditLigne, onRemoveLigne }: {
         <div className="rounded-xl bg-slate-50 p-4 sm:justify-self-end dark:bg-slate-800/60 print:bg-transparent">
           <p className="text-xs uppercase tracking-wide text-slate-500">Facturé à</p>
           <p className="font-semibold">{fullName({ nom: f.nomClient ?? f.devis.client.nom, prenom: f.prenomClient })}</p>
+          <ClientMentionsPro client={{ siret: f.clientSiret, tvaIntracom: f.clientTvaIntracom }} />
           {f.adresseClient && <p className="whitespace-pre-line text-slate-600 dark:text-slate-400">{f.adresseClient}</p>}
           {f.emailClient && <p className="text-slate-600 dark:text-slate-400">{f.emailClient}</p>}
         </div>
