@@ -1,4 +1,5 @@
 import {
+  TrendingUp,
   UserSearch,
   BookOpen,
   Bot,
@@ -59,12 +60,13 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
   {
     section: 'Commercial',
     items: [
-      { to: '/prospects', label: 'Prospects', description: 'Contacts sans devis signé', icon: UserSearch, roles: STAFF },
-      { to: '/clients', label: 'Clients', description: 'Ont signé un devis', icon: Users, roles: STAFF },
+      { to: '/prospects', label: 'Prospects', description: 'Qualifiés, sans devis signé', icon: UserSearch, roles: BUREAU },
+      { to: '/clients', label: 'Clients', description: 'Ont signé un devis', icon: Users, roles: BUREAU },
       { to: '/demandes', label: 'Demandes', description: 'Demandes de devis', icon: ClipboardList, roles: BUREAU },
       { to: '/assistant', label: 'Assistant IA', description: 'Prospects chatbot et emails', icon: Bot, roles: BUREAU },
       { to: '/devis', label: 'Devis', description: 'Création et suivi', icon: FileText, roles: STAFF },
-      { to: '/factures', label: 'Factures', description: 'Facturation et paiements', icon: Receipt, roles: STAFF },
+      { to: '/prix-marche', label: 'Prix de marché', description: 'Fourchettes de vos prix', icon: TrendingUp, roles: BUREAU },
+      { to: '/factures', label: 'Factures', description: 'Facturation et paiements', icon: Receipt, roles: BUREAU },
       { to: '/demandes-demo', label: 'Demandes de démo', description: 'Demandes reçues', icon: MonitorPlay, roles: ['ADMIN', 'TECHNICO'] },
     ],
   },

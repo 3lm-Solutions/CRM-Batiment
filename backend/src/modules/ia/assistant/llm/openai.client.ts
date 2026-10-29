@@ -1,5 +1,11 @@
 import OpenAI from 'openai';
-import { LlmError, type LlmClient, type LlmJsonSchema, type LlmMessage, type LlmOptions } from './llm.client';
+import {
+  LlmError,
+  type LlmClient,
+  type LlmJsonSchema,
+  type LlmMessage,
+  type LlmOptions,
+} from './llm.client';
 
 /** Models that « think » before answering: their reasoning counts in the token budget. */
 const REASONING_MODEL = /gpt-oss|^o\d|gpt-5/;
@@ -32,7 +38,11 @@ export class OpenAiLlmClient implements LlmClient {
     this.reasoning = REASONING_MODEL.test(model);
   }
 
-  async completeJson(messages: LlmMessage[], schema: LlmJsonSchema, options: LlmOptions = {}): Promise<unknown> {
+  async completeJson(
+    messages: LlmMessage[],
+    schema: LlmJsonSchema,
+    options: LlmOptions = {},
+  ): Promise<unknown> {
     try {
       return await this.call(messages, schema, options, 'schema');
     } catch (error) {
@@ -44,7 +54,12 @@ export class OpenAiLlmClient implements LlmClient {
     }
   }
 
-  private async call(messages: LlmMessage[], schema: LlmJsonSchema, options: LlmOptions, mode: 'schema' | 'json'): Promise<unknown> {
+  private async call(
+    messages: LlmMessage[],
+    schema: LlmJsonSchema,
+    options: LlmOptions,
+    mode: 'schema' | 'json',
+  ): Promise<unknown> {
     const answerTokens = options.maxTokens ?? 700;
     const sent = mode === 'json' ? withSchemaInPrompt(messages, schema) : messages;
     let content: string | null | undefined;
@@ -60,7 +75,10 @@ export class OpenAiLlmClient implements LlmClient {
           max_completion_tokens: this.reasoning ? answerTokens * REASONING_FACTOR : answerTokens,
           response_format:
             mode === 'schema'
-              ? { type: 'json_schema', json_schema: { name: schema.name, strict: this.strict, schema: schema.schema } }
+              ? {
+                  type: 'json_schema',
+                  json_schema: { name: schema.name, strict: this.strict, schema: schema.schema },
+                }
               : { type: 'json_object' },
         },
         options.timeoutMs ? { timeout: options.timeoutMs } : undefined,
@@ -71,7 +89,12 @@ export class OpenAiLlmClient implements LlmClient {
       if (status === 429) throw new LlmError('QUOTA', 'Limite de requêtes OpenAI atteinte');
       // The API's own explanation (wrong model, image refused…) is kept: « HTTP 400 » alone says nothing
       const detail = error instanceof Error ? error.message.replace(/\s+/g, ' ').slice(0, 300) : '';
-      throw new LlmError('LLM_INDISPONIBLE', status ? `OpenAI HTTP ${status} (${this.model})${detail ? ` : ${detail}` : ''}` : detail || 'erreur réseau');
+      throw new LlmError(
+        'LLM_INDISPONIBLE',
+        status
+          ? `OpenAI HTTP ${status} (${this.model})${detail ? ` : ${detail}` : ''}`
+          : detail || 'erreur réseau',
+      );
     }
     if (!content) throw new LlmError('LLM_REPONSE_INVALIDE', 'Réponse vide');
     try {
@@ -84,7 +107,13 @@ export class OpenAiLlmClient implements LlmClient {
 
 function isSchemaRejection(error: unknown): boolean {
   // Also a model that does not support JSON schemas at all (some Groq vision models: JSON mode only)
-  return error instanceof LlmError && /HTTP 400/.test(error.message) && /validate JSON|json_validate_failed|failed_generation|response_format|json_schema/i.test(error.message);
+  return (
+    error instanceof LlmError &&
+    /HTTP 400/.test(error.message) &&
+    /validate JSON|json_validate_failed|failed_generation|response_format|json_schema/i.test(
+      error.message,
+    )
+  );
 }
 
 /** Plain JSON mode: the expected shape is written into the system message. */
@@ -107,8 +136,11 @@ function toOpenAi(m: LlmMessage): OpenAI.Chat.ChatCompletionMessageParam {
   if (m.role === 'user' && m.images?.length) {
     return {
       role: 'user',
-      content: [{ type: 'text', text: m.content }, ...m.images.map((url) => ({ type: 'image_url' as const, image_url: { url } }))],
+      content: [
+        { type: 'text', text: m.content },
+        ...m.images.map((url) => ({ type: 'image_url' as const, image_url: { url } })),
+      ],
     };
   }
-  return { role: m.role, content: m.content } as OpenAI.Chat.ChatCompletionMessageParam;
+  return { role: m.role, content: m.content };
 }

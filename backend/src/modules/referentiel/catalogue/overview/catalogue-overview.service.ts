@@ -66,13 +66,18 @@ export class CatalogueOverviewService {
           nom: true,
           prixVenteMin: true,
           prixVenteMax: true,
-          compositions: { select: { materiauId: true, serviceMainOeuvreId: true, quantiteParUnite: true } },
+          compositions: {
+            select: { materiauId: true, serviceMainOeuvreId: true, quantiteParUnite: true },
+          },
           options: {
             select: {
               id: true,
               nom: true,
               obligatoire: true,
-              choix: { where: { actif: true }, select: { id: true, _count: { select: { compositions: true } } } },
+              choix: {
+                where: { actif: true },
+                select: { id: true, _count: { select: { compositions: true } } },
+              },
             },
           },
         },
@@ -87,7 +92,10 @@ export class CatalogueOverviewService {
           ...p,
           prixVenteMin: p.prixVenteMin.toNumber(),
           prixVenteMax: p.prixVenteMax.toNumber(),
-          compositions: p.compositions.map((c) => ({ ...c, quantiteParUnite: c.quantiteParUnite.toNumber() })),
+          compositions: p.compositions.map((c) => ({
+            ...c,
+            quantiteParUnite: c.quantiteParUnite.toNumber(),
+          })),
           options: p.options.map((o) => ({
             ...o,
             choix: o.choix.map((c) => ({ id: c.id, aComposition: c._count.compositions > 0 })),

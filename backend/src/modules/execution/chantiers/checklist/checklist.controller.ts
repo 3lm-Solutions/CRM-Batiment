@@ -14,7 +14,9 @@ export class ChecklistController {
   constructor(private readonly checklist: ChecklistService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Ajouter un point à cocher (l’avancement de la tâche suit la checklist)' })
+  @ApiOperation({
+    summary: 'Ajouter un point à cocher (l’avancement de la tâche suit la checklist)',
+  })
   add(
     @CurrentUser() user: AuthUser,
     @Param('chantierId', ParseIntPipe) chantierId: number,

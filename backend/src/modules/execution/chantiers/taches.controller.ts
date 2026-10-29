@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
@@ -19,7 +30,11 @@ export class TachesController {
   }
 
   @Post()
-  create(@CurrentUser() user: AuthUser, @Param('chantierId', ParseIntPipe) chantierId: number, @Body() dto: CreateTacheDto) {
+  create(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Body() dto: CreateTacheDto,
+  ) {
     return this.taches.create(user, chantierId, dto);
   }
 
@@ -33,7 +48,8 @@ export class TachesController {
     return this.taches.update(user, chantierId, tacheId, dto);
   }
 
-  @Delete(':tacheId') @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':tacheId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(
     @CurrentUser() user: AuthUser,
     @Param('chantierId', ParseIntPipe) chantierId: number,

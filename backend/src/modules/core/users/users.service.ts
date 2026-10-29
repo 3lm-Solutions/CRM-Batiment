@@ -1,6 +1,13 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { type AuthUser, BusinessException, paginate, parseSort, STAFF, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  parseSort,
+  STAFF,
+  toSkipTake,
+} from '../../../common';
 import type { Env } from '../../../config/env.validation';
 import { Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -69,7 +76,9 @@ export class UsersService {
    * linked to a supplier. Supplier accounts are listed for the admin only (only he links them).
    */
   options(user: AuthUser, query: UserOptionsQueryDto) {
-    const allowed = (Object.values(Role) as Role[]).filter((r) => r !== Role.FOURNISSEUR || user.role === Role.ADMIN);
+    const allowed = (Object.values(Role) as Role[]).filter(
+      (r) => r !== Role.FOURNISSEUR || user.role === Role.ADMIN,
+    );
     const roles = query.roles?.length ? query.roles.filter((r) => allowed.includes(r)) : STAFF;
     return this.prisma.user.findMany({
       where: { companyId: user.companyId, actif: true, role: { in: roles } },
@@ -115,9 +124,13 @@ export class UsersService {
 
     if (dto.role && dto.role !== target.role) {
       if (target.id === admin.id) {
-        throw new BusinessException('PROPRE_ROLE', 'Vous ne pouvez pas modifier votre propre rôle.');
+        throw new BusinessException(
+          'PROPRE_ROLE',
+          'Vous ne pouvez pas modifier votre propre rôle.',
+        );
       }
-      if (target.role === Role.ADMIN) await this.ensureAnotherActiveAdmin(admin.companyId, target.id);
+      if (target.role === Role.ADMIN)
+        await this.ensureAnotherActiveAdmin(admin.companyId, target.id);
     }
 
     return this.prisma.user.update({ where: { id }, data: dto, select: USER_SELECT });
@@ -126,7 +139,10 @@ export class UsersService {
   async deactivate(admin: AuthUser, id: number) {
     const target = await this.findOne(admin, id);
     if (target.id === admin.id) {
-      throw new BusinessException('PROPRE_COMPTE', 'Vous ne pouvez pas désactiver votre propre compte.');
+      throw new BusinessException(
+        'PROPRE_COMPTE',
+        'Vous ne pouvez pas désactiver votre propre compte.',
+      );
     }
     if (target.role === Role.ADMIN) await this.ensureAnotherActiveAdmin(admin.companyId, target.id);
 
@@ -156,7 +172,11 @@ export class UsersService {
 
     const emailSent = await this.mail.send(
       target.email,
-      temporaryPasswordResetMail({ prenom: target.prenom, temporaryPassword, appUrl: this.appUrl() }),
+      temporaryPasswordResetMail({
+        prenom: target.prenom,
+        temporaryPassword,
+        appUrl: this.appUrl(),
+      }),
     );
 
     this.logger.log(`Mot de passe de #${id} réinitialisé par #${admin.id}`);
@@ -170,10 +190,16 @@ export class UsersService {
   async remove(admin: AuthUser, id: number): Promise<void> {
     const target = await this.findOne(admin, id);
     if (target.id === admin.id) {
-      throw new BusinessException('PROPRE_COMPTE', 'Vous ne pouvez pas supprimer votre propre compte.');
+      throw new BusinessException(
+        'PROPRE_COMPTE',
+        'Vous ne pouvez pas supprimer votre propre compte.',
+      );
     }
     if (target.role === Role.ADMIN) {
-      throw new BusinessException('SUPPRESSION_ADMIN', 'Un compte administrateur ne peut pas être supprimé.');
+      throw new BusinessException(
+        'SUPPRESSION_ADMIN',
+        'Un compte administrateur ne peut pas être supprimé.',
+      );
     }
     await this.prisma.user.delete({ where: { id } });
   }
@@ -198,6 +224,8 @@ export class UsersService {
 
   /** The temporary password is returned in the API response only outside production. */
   private exposeInDev(temporaryPassword: string): { temporaryPassword?: string } {
-    return this.config.get('NODE_ENV', { infer: true }) === 'production' ? {} : { temporaryPassword };
+    return this.config.get('NODE_ENV', { infer: true }) === 'production'
+      ? {}
+      : { temporaryPassword };
   }
 }

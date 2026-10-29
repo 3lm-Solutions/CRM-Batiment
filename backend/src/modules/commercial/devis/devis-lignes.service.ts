@@ -47,22 +47,35 @@ export class DevisLignesService {
       const devis = await this.devis.getForUpdate(user.companyId, devisId, tx);
       assertEditable(devis.statut);
       const first = await tx.ligneDevis.count({ where: { devisId } });
-      await tx.ligneDevis.createMany({ data: prepared.map((data, i) => ({ ...data, devisId, ordre: first + i })) });
+      await tx.ligneDevis.createMany({
+        data: prepared.map((data, i) => ({ ...data, devisId, ordre: first + i })),
+      });
       await this.devis.recalculate(tx, devisId);
     });
     return this.devis.findOne(user, devisId);
   }
 
   /** Validates one line and computes its prices (catalogue or free line). */
-  private async prepare(user: AuthUser, dto: AddLigneDto): Promise<Omit<Prisma.LigneDevisCreateManyInput, 'devisId' | 'ordre'>> {
-    const fromCatalogue = dto.prestationId ? await this.priceFromCatalogue(user, dto.prestationId, dto.choixIds) : null;
+  private async prepare(
+    user: AuthUser,
+    dto: AddLigneDto,
+  ): Promise<Omit<Prisma.LigneDevisCreateManyInput, 'devisId' | 'ordre'>> {
+    const fromCatalogue = dto.prestationId
+      ? await this.priceFromCatalogue(user, dto.prestationId, dto.choixIds)
+      : null;
 
     if (!fromCatalogue) {
       if (!dto.description) {
-        throw new BusinessException('LIGNE_INCOMPLETE', 'Une ligne libre doit avoir une description.');
+        throw new BusinessException(
+          'LIGNE_INCOMPLETE',
+          'Une ligne libre doit avoir une description.',
+        );
       }
       if (dto.prixUnitaireVente === undefined) {
-        throw new BusinessException('LIGNE_INCOMPLETE', 'Une ligne libre doit avoir un prix de vente.');
+        throw new BusinessException(
+          'LIGNE_INCOMPLETE',
+          'Une ligne libre doit avoir un prix de vente.',
+        );
       }
       await this.assertComponent(user, dto);
     }
@@ -78,7 +91,9 @@ export class DevisLignesService {
       materiauId: dto.materiauId,
       serviceMainOeuvreId: dto.serviceMainOeuvreId,
       description: dto.description ?? fromCatalogue?.description,
-      optionsChoisies: fromCatalogue ? (fromCatalogue.choix as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+      optionsChoisies: fromCatalogue
+        ? (fromCatalogue.choix as unknown as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
       quantite: dto.quantite,
       unite: dto.unite ?? fromCatalogue?.unite,
       dimension: dto.dimension,
@@ -103,7 +118,9 @@ export class DevisLignesService {
     }
 
     const unit: UnitPrices = {
-      prixUnitaireVente: toDecimal(dto.prixUnitaireVente ?? repriced?.unit.prixUnitaireVente ?? ligne.prixUnitaireVente),
+      prixUnitaireVente: toDecimal(
+        dto.prixUnitaireVente ?? repriced?.unit.prixUnitaireVente ?? ligne.prixUnitaireVente,
+      ),
       prixAchat: toDecimal(dto.prixAchat ?? repriced?.unit.prixAchat ?? ligne.prixAchat),
       mainOeuvre: toDecimal(dto.mainOeuvre ?? repriced?.unit.mainOeuvre ?? ligne.mainOeuvre),
     };
@@ -127,7 +144,10 @@ export class DevisLignesService {
     });
 
     // Manual price change → price history (audit, Step 10)
-    if (dto.prixUnitaireVente !== undefined && !ligne.prixUnitaireVente.equals(dto.prixUnitaireVente)) {
+    if (
+      dto.prixUnitaireVente !== undefined &&
+      !ligne.prixUnitaireVente.equals(dto.prixUnitaireVente)
+    ) {
       this.events.emit(DevisEvents.PRIX_MODIFIE, {
         companyId: user.companyId,
         devisId,
@@ -161,9 +181,14 @@ export class DevisLignesService {
       const existing = await tx.ligneDevis.findMany({ where: { devisId }, select: { id: true } });
       const ids = new Set(existing.map((l) => l.id));
       if (ids.size !== dto.ligneIds.length || !dto.ligneIds.every((id) => ids.has(id))) {
-        throw new BusinessException('ORDRE_INCOMPLET', 'La liste doit contenir exactement toutes les lignes du devis.');
+        throw new BusinessException(
+          'ORDRE_INCOMPLET',
+          'La liste doit contenir exactement toutes les lignes du devis.',
+        );
       }
-      await Promise.all(dto.ligneIds.map((id, ordre) => tx.ligneDevis.update({ where: { id }, data: { ordre } })));
+      await Promise.all(
+        dto.ligneIds.map((id, ordre) => tx.ligneDevis.update({ where: { id }, data: { ordre } })),
+      );
     });
     return this.devis.findOne(user, devisId);
   }
@@ -175,7 +200,10 @@ export class DevisLignesService {
    * since unit costs do not depend on the quantity.
    */
   private async priceFromCatalogue(user: AuthUser, prestationId: number, choixIds: number[] = []) {
-    const { prestation, choix, result } = await this.pricing.price(user, prestationId, { quantite: 1, choixIds });
+    const { prestation, choix, result } = await this.pricing.price(user, prestationId, {
+      quantite: 1,
+      choixIds,
+    });
     const suffix = choix.length ? ` (${choix.map((c) => c.choixNom).join(', ')})` : '';
     return {
       description: `${prestation.nom}${suffix}`,
@@ -191,18 +219,33 @@ export class DevisLignesService {
 
   private async assertComponent(user: AuthUser, dto: AddLigneDto): Promise<void> {
     if (dto.materiauId) {
-      const ok = await this.prisma.materiau.count({ where: { id: dto.materiauId, companyId: user.companyId, actif: true } });
-      if (!ok) throw new BusinessException('COMPOSANT_INTROUVABLE', `Matériau #${dto.materiauId} introuvable ou inactif.`);
+      const ok = await this.prisma.materiau.count({
+        where: { id: dto.materiauId, companyId: user.companyId, actif: true },
+      });
+      if (!ok)
+        throw new BusinessException(
+          'COMPOSANT_INTROUVABLE',
+          `Matériau #${dto.materiauId} introuvable ou inactif.`,
+        );
     }
     if (dto.serviceMainOeuvreId) {
       const ok = await this.prisma.serviceMainOeuvre.count({
         where: { id: dto.serviceMainOeuvreId, companyId: user.companyId, actif: true },
       });
-      if (!ok) throw new BusinessException('COMPOSANT_INTROUVABLE', `Service #${dto.serviceMainOeuvreId} introuvable ou inactif.`);
+      if (!ok)
+        throw new BusinessException(
+          'COMPOSANT_INTROUVABLE',
+          `Service #${dto.serviceMainOeuvreId} introuvable ou inactif.`,
+        );
     }
   }
 
-  private async findLigne(user: AuthUser, devisId: number, ligneId: number, db: DbClient = this.prisma) {
+  private async findLigne(
+    user: AuthUser,
+    devisId: number,
+    ligneId: number,
+    db: DbClient = this.prisma,
+  ) {
     const ligne = await db.ligneDevis.findFirst({
       where: { id: ligneId, devisId, devis: { companyId: user.companyId } },
     });

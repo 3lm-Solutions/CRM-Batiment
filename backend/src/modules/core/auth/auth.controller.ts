@@ -1,9 +1,35 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { ALL_ROLES, AllowPasswordChangeToken, type AuthUser, CurrentUser, Public, Roles, STAFF } from '../../../common';
+import {
+  ALL_ROLES,
+  AllowPasswordChangeToken,
+  type AuthUser,
+  CurrentUser,
+  Public,
+  Roles,
+  STAFF,
+} from '../../../common';
 import { AuthService } from './auth.service';
-import { ChangePasswordDto, ForgotPasswordDto, LoginDto, ResetPasswordDto, SaveSignatureDto, UpdateProfileDto, VerifyResetCodeDto } from './dto/auth.dto';
+import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto,
+  ResetPasswordDto,
+  SaveSignatureDto,
+  UpdateProfileDto,
+  VerifyResetCodeDto,
+} from './dto/auth.dto';
 
 /** Brute-force protection on public endpoints (per IP). */
 const STRICT = { default: { limit: 5, ttl: 60_000 } };
@@ -35,7 +61,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Changer son mot de passe',
-    description: 'Exige le mot de passe actuel. Ferme toutes les autres sessions et renvoie un nouveau token.',
+    description:
+      'Exige le mot de passe actuel. Ferme toutes les autres sessions et renvoie un nouveau token.',
   })
   changePassword(@CurrentUser() user: AuthUser, @Body() dto: ChangePasswordDto) {
     return this.auth.changePassword(user, dto);
@@ -45,7 +72,9 @@ export class AuthController {
   @Throttle(VERY_STRICT)
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Demander un code de réinitialisation (réponse identique si l’email est inconnu)' })
+  @ApiOperation({
+    summary: 'Demander un code de réinitialisation (réponse identique si l’email est inconnu)',
+  })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.auth.forgotPassword(dto);
   }

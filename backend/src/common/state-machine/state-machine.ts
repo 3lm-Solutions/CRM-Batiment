@@ -23,7 +23,9 @@ export function defineStateMachine<S extends string>(
       throw new BusinessException(
         `TRANSITION_${code}_INTERDITE`,
         `Transition ${from} → ${to} impossible pour ce ${label}. ` +
-          (allowed.length ? `Depuis ${from} : ${allowed.join(', ')}.` : `${from} est un statut final.`),
+          (allowed.length
+            ? `Depuis ${from} : ${allowed.join(', ')}.`
+            : `${from} est un statut final.`),
       );
     },
     /** States from which `to` can be reached — for conditional (race-safe) updates. */

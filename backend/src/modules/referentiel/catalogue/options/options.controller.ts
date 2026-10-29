@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
@@ -14,12 +25,20 @@ export class OptionsController {
   constructor(private readonly options: OptionsService) {}
 
   @Post('prestations/:id/options')
-  createOption(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) prestationId: number, @Body() dto: CreateOptionDto) {
+  createOption(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) prestationId: number,
+    @Body() dto: CreateOptionDto,
+  ) {
     return this.options.createOption(user, prestationId, dto);
   }
 
   @Patch('options/:id')
-  updateOption(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOptionDto) {
+  updateOption(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOptionDto,
+  ) {
     return this.options.updateOption(user, id, dto);
   }
 
@@ -30,12 +49,20 @@ export class OptionsController {
   }
 
   @Post('options/:id/choix')
-  createChoix(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) optionId: number, @Body() dto: CreateChoixDto) {
+  createChoix(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) optionId: number,
+    @Body() dto: CreateChoixDto,
+  ) {
     return this.options.createChoix(user, optionId, dto);
   }
 
   @Patch('choix/:id')
-  updateChoix(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateChoixDto) {
+  updateChoix(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateChoixDto,
+  ) {
     return this.options.updateChoix(user, id, dto);
   }
 
@@ -48,7 +75,8 @@ export class OptionsController {
   @Put('choix/:id/compositions')
   @ApiOperation({
     summary: 'Composition propre à un choix',
-    description: 'Remplace la composition de base de la prestation quand ce choix est sélectionné. Liste vide = supprimer.',
+    description:
+      'Remplace la composition de base de la prestation quand ce choix est sélectionné. Liste vide = supprimer.',
   })
   replaceChoixCompositions(
     @CurrentUser() user: AuthUser,

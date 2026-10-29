@@ -11,7 +11,11 @@ describe('SAV after the works (Étape 2 of 26/10)', () => {
 
   it('refuses a job site still in progress', () => {
     for (const statut of ['PLANIFIE', 'EN_COURS', 'SUSPENDU', 'ANNULE'] as const) {
-      const r = eligibiliteSav({ statut, dateFin: null, updatedAt: d('2026-01-01') }, 12, d('2026-02-01'));
+      const r = eligibiliteSav(
+        { statut, dateFin: null, updatedAt: d('2026-01-01') },
+        12,
+        d('2026-02-01'),
+      );
       expect(r).toMatchObject({ possible: false, code: 'CHANTIER_NON_TERMINE' });
     }
   });
@@ -27,8 +31,18 @@ describe('SAV after the works (Étape 2 of 26/10)', () => {
   });
 
   it('0 month = no limit; a closed site without end date uses its last update', () => {
-    expect(eligibiliteSav({ statut: 'CLOTURE', dateFin: d('2010-01-01'), updatedAt: d('2010-01-01') }, 0, d('2026-10-26'))).toMatchObject({ possible: true, jusquau: null });
-    const r = eligibiliteSav({ statut: 'CLOTURE', dateFin: null, updatedAt: d('2026-01-10') }, 6, d('2026-10-26'));
+    expect(
+      eligibiliteSav(
+        { statut: 'CLOTURE', dateFin: d('2010-01-01'), updatedAt: d('2010-01-01') },
+        0,
+        d('2026-10-26'),
+      ),
+    ).toMatchObject({ possible: true, jusquau: null });
+    const r = eligibiliteSav(
+      { statut: 'CLOTURE', dateFin: null, updatedAt: d('2026-01-10') },
+      6,
+      d('2026-10-26'),
+    );
     expect(r).toMatchObject({ possible: false, code: 'SAV_EXPIRE' });
   });
 });

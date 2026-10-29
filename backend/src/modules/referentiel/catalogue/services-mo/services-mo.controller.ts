@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
@@ -30,7 +42,11 @@ export class ServicesMoController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateServiceMoDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateServiceMoDto,
+  ) {
     return this.services.update(user, id, dto);
   }
 

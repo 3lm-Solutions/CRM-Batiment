@@ -8,7 +8,14 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
-import { IsAppPassword, IsSignaturePng, NormalizeEmail, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import {
+  IsAppPassword,
+  IsSignaturePng,
+  NormalizeEmail,
+  Trim,
+  TrimOrNull,
+  IsPhone,
+} from '../../../../common';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin@batiment-pro.fr' })

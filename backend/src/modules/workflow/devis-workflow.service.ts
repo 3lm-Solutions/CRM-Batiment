@@ -33,7 +33,9 @@ export class DevisWorkflowService implements OnModuleInit {
 
   async onAccepted(tx: DbClient, devis: DevisRow): Promise<void> {
     const { created } = await this.commandes.createFromDevis(tx, devis);
-    this.logger.log(`Devis ${devis.reference} accepté : ${created} commande(s) fournisseur créée(s)`);
+    this.logger.log(
+      `Devis ${devis.reference} accepté : ${created} commande(s) fournisseur créée(s)`,
+    );
   }
 
   async onSigned(tx: DbClient, devis: DevisRow): Promise<void> {
@@ -45,6 +47,8 @@ export class DevisWorkflowService implements OnModuleInit {
     await this.commandes.createFromDevis(tx, current); // no-op if already created at ACCEPTE
     const chantierId = await this.chantiers.createFromDevis(tx, current);
     const factureId = await this.factures.createAcompte(tx, current);
-    this.logger.log(`Devis ${devis.reference} signé : chantier #${chantierId}, acompte #${factureId ?? '—'}`);
+    this.logger.log(
+      `Devis ${devis.reference} signé : chantier #${chantierId}, acompte #${factureId ?? '—'}`,
+    );
   }
 }

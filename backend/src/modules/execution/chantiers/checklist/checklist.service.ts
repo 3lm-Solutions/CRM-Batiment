@@ -24,13 +24,23 @@ export class ChecklistService {
     await this.writableTache(user, chantierId, tacheId);
     return this.prisma.$transaction(async (tx) => {
       const count = await tx.tacheChecklistItem.count({ where: { tacheId } });
-      if (count >= MAX_ITEMS) throw new BusinessException('CHECKLIST_PLEINE', `${MAX_ITEMS} points au maximum par tâche.`);
+      if (count >= MAX_ITEMS)
+        throw new BusinessException(
+          'CHECKLIST_PLEINE',
+          `${MAX_ITEMS} points au maximum par tâche.`,
+        );
       await tx.tacheChecklistItem.create({ data: { tacheId, libelle: dto.libelle, ordre: count } });
       return this.sync(tx, tacheId);
     });
   }
 
-  async update(user: AuthUser, chantierId: number, tacheId: number, itemId: number, dto: UpdateChecklistItemDto) {
+  async update(
+    user: AuthUser,
+    chantierId: number,
+    tacheId: number,
+    itemId: number,
+    dto: UpdateChecklistItemDto,
+  ) {
     await this.writableTache(user, chantierId, tacheId);
     return this.prisma.$transaction(async (tx) => {
       await this.setItem(tx, user, tacheId, itemId, dto);
@@ -53,7 +63,10 @@ export class ChecklistService {
       where: {
         id: tacheId,
         affectations: { some: { userId: user.id } },
-        chantier: { companyId: user.companyId, sousTraitantsVisibles: { some: { userId: user.id } } },
+        chantier: {
+          companyId: user.companyId,
+          sousTraitantsVisibles: { some: { userId: user.id } },
+        },
       },
       select: { chantier: { select: { statut: true } } },
     });
@@ -75,7 +88,13 @@ export class ChecklistService {
     if (!ok) throw new NotFoundException(`Tâche #${tacheId} introuvable`);
   }
 
-  private async setItem(tx: DbClient, user: AuthUser, tacheId: number, itemId: number, dto: UpdateChecklistItemDto) {
+  private async setItem(
+    tx: DbClient,
+    user: AuthUser,
+    tacheId: number,
+    itemId: number,
+    dto: UpdateChecklistItemDto,
+  ) {
     const item = await tx.tacheChecklistItem.findFirst({ where: { id: itemId, tacheId } });
     if (!item) throw new NotFoundException(`Point #${itemId} introuvable`);
     const changed = dto.fait !== undefined && dto.fait !== item.fait;
@@ -83,18 +102,33 @@ export class ChecklistService {
       where: { id: itemId },
       data: {
         ...(dto.libelle !== undefined ? { libelle: dto.libelle } : {}),
-        ...(changed ? { fait: dto.fait, faitLe: dto.fait ? new Date() : null, faitParId: dto.fait ? user.id : null } : {}),
+        ...(changed
+          ? {
+              fait: dto.fait,
+              faitLe: dto.fait ? new Date() : null,
+              faitParId: dto.fait ? user.id : null,
+            }
+          : {}),
       },
     });
   }
 
   /** Task progress / status from the checklist; returns the task with its checklist. */
   private async sync(tx: DbClient, tacheId: number) {
-    const tache = await tx.tache.findUniqueOrThrow({ where: { id: tacheId }, include: { checklist: { select: { fait: true } } } });
+    const tache = await tx.tache.findUniqueOrThrow({
+      where: { id: tacheId },
+      include: { checklist: { select: { fait: true } } },
+    });
     const avancement = checklistProgress(tache.checklist);
     if (avancement !== null && avancement !== tache.avancement) {
-      await tx.tache.update({ where: { id: tacheId }, data: normalizeTaskProgress(tache, { avancement }) });
+      await tx.tache.update({
+        where: { id: tacheId },
+        data: normalizeTaskProgress(tache, { avancement }),
+      });
     }
-    return tx.tache.findUniqueOrThrow({ where: { id: tacheId }, select: { id: true, statut: true, avancement: true, checklist: CHECKLIST_SELECT } });
+    return tx.tache.findUniqueOrThrow({
+      where: { id: tacheId },
+      select: { id: true, statut: true, avancement: true, checklist: CHECKLIST_SELECT },
+    });
   }
 }

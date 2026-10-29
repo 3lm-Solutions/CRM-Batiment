@@ -26,7 +26,10 @@ export class AuditService {
     try {
       await this.prisma.auditLog.create({ data: entry });
     } catch (error) {
-      this.logger.error(`Audit non enregistré (${entry.action} ${entry.entite}#${entry.entiteId})`, error instanceof Error ? error.stack : String(error));
+      this.logger.error(
+        `Audit non enregistré (${entry.action} ${entry.entite}#${entry.entiteId})`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 
@@ -37,7 +40,13 @@ export class AuditService {
       entiteId: query.entiteId,
       action: query.action,
       userId: query.userId,
-      createdAt: query.du || query.au ? { gte: query.du ? new Date(query.du) : undefined, lte: query.au ? new Date(query.au) : undefined } : undefined,
+      createdAt:
+        query.du || query.au
+          ? {
+              gte: query.du ? new Date(query.du) : undefined,
+              lte: query.au ? new Date(query.au) : undefined,
+            }
+          : undefined,
     };
     const [data, total] = await this.prisma.$transaction([
       this.prisma.auditLog.findMany({

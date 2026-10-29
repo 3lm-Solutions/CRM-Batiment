@@ -4,13 +4,17 @@ import { IsSignaturePng, Trim } from '../../../../common';
 
 export class RefuserDevisDto {
   @ApiPropertyOptional({ example: 'Budget trop élevé' })
-  @IsOptional() @Trim() @IsString() @MaxLength(1000)
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @MaxLength(1000)
   motif?: string;
 }
 
 export class VerifierCodeDto {
   @ApiProperty({ example: '482913' })
-  @Trim() @Matches(/^\d{6}$/, { message: 'Le code doit contenir 6 chiffres' })
+  @Trim()
+  @Matches(/^\d{6}$/, { message: 'Le code doit contenir 6 chiffres' })
   code: string;
 }
 

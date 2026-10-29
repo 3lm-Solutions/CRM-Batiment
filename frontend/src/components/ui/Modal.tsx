@@ -16,6 +16,9 @@ interface ModalProps {
 /** Native <dialog>: focus trap, Escape and backdrop handled by the browser. */
 export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  /** The press started on the backdrop (29/10: a text selection dragged out of the window, or a
+   *  press inside released outside, no longer closes it) */
+  const pressDehors = useRef(false);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -28,7 +31,11 @@ export function Modal({ open, onClose, title, description, children, footer, siz
     <dialog
       ref={ref}
       onClose={onClose}
-      onClick={(e) => e.target === ref.current && onClose()}
+      onMouseDown={(e) => (pressDehors.current = e.target === ref.current)}
+      onClick={(e) => {
+        if (e.target === ref.current && pressDehors.current) onClose();
+        pressDehors.current = false;
+      }}
       className={cn(
         'm-auto w-[calc(100%-2rem)] overflow-hidden rounded-3xl bg-white p-0 text-gray-800 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm',
         'dark:bg-slate-900 dark:text-slate-100',

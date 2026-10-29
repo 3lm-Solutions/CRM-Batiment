@@ -22,7 +22,10 @@ RÈGLES
 
 export function buildMessages(description: string, candidates: CatalogueEntry[]): LlmMessage[] {
   const catalogue = candidates
-    .map((c) => `${c.id} | ${c.nom} | ${c.unite} | ${c.categorie}${c.sousCategorie ? ` > ${c.sousCategorie}` : ''}`)
+    .map(
+      (c) =>
+        `${c.id} | ${c.nom} | ${c.unite} | ${c.categorie}${c.sousCategorie ? ` > ${c.sousCategorie}` : ''}`,
+    )
     .join('\n');
   return [
     { role: 'system', content: SYSTEM },
@@ -83,7 +86,10 @@ const shortTexts = (value: unknown, max: number): string[] =>
  * Validates the model's answer. Unknown ids (the model "inventing" a prestation), duplicates
  * and absurd quantities are DROPPED, never trusted. Returns null if the shape is wrong.
  */
-export function parseProposition(value: unknown, allowedIds: ReadonlySet<number>): PropositionModele | null {
+export function parseProposition(
+  value: unknown,
+  allowedIds: ReadonlySet<number>,
+): PropositionModele | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
   if (!Array.isArray(v.lignes)) return null;
@@ -97,11 +103,20 @@ export function parseProposition(value: unknown, allowedIds: ReadonlySet<number>
     const quantite = cleanQuantity(l.quantite);
     if (!Number.isInteger(id) || !allowedIds.has(id) || seen.has(id) || quantite === null) continue;
     seen.add(id);
-    lignes.push({ prestationId: id, quantite, justification: typeof l.justification === 'string' ? l.justification.trim().slice(0, 300) : '' });
+    lignes.push({
+      prestationId: id,
+      quantite,
+      justification:
+        typeof l.justification === 'string' ? l.justification.trim().slice(0, 300) : '',
+    });
     if (lignes.length === MAX_LIGNES) break;
   }
 
-  return { lignes, nonCouverts: shortTexts(v.nonCouverts, 10), hypotheses: shortTexts(v.hypotheses, 10) };
+  return {
+    lignes,
+    nonCouverts: shortTexts(v.nonCouverts, 10),
+    hypotheses: shortTexts(v.hypotheses, 10),
+  };
 }
 
 // ── quote from photos (C37 of 21/10) ────────────────────────────────────
@@ -134,9 +149,16 @@ PHOTOS
 - Propose les travaux que la photo et la description rendent nécessaires (rénovation de ce qui est visible et dégradé, ou ce que demande la description). Pas de travaux spéculatifs.
 - "qualitePhoto" : INSUFFISANTE si la photo est floue, trop sombre, trop serrée ou ne montre pas de chantier ; dans ce cas propose peu ou pas de lignes.`;
 
-export function buildPhotoMessages(images: string[], description: string, candidates: CatalogueEntry[]): LlmMessage[] {
+export function buildPhotoMessages(
+  images: string[],
+  description: string,
+  candidates: CatalogueEntry[],
+): LlmMessage[] {
   const catalogue = candidates
-    .map((c) => `${c.id} | ${c.nom} | ${c.unite} | ${c.categorie}${c.sousCategorie ? ` > ${c.sousCategorie}` : ''}`)
+    .map(
+      (c) =>
+        `${c.id} | ${c.nom} | ${c.unite} | ${c.categorie}${c.sousCategorie ? ` > ${c.sousCategorie}` : ''}`,
+    )
     .join('\n');
   return [
     { role: 'system', content: PHOTO_SYSTEM },
@@ -148,7 +170,8 @@ export function buildPhotoMessages(images: string[], description: string, candid
   ];
 }
 
-const PROPOSITION_PROPS = (PROPOSITION_SCHEMA.schema as { properties: Record<string, unknown> }).properties;
+const PROPOSITION_PROPS = (PROPOSITION_SCHEMA.schema as { properties: Record<string, unknown> })
+  .properties;
 
 export const PHOTO_SCHEMA: LlmJsonSchema = {
   name: 'proposition_devis_photo',
@@ -160,7 +183,14 @@ export const PHOTO_SCHEMA: LlmJsonSchema = {
       analyse: {
         type: 'object',
         additionalProperties: false,
-        required: ['piece', 'surfaceEstimeeM2', 'objetReference', 'elementsVisibles', 'etat', 'qualitePhoto'],
+        required: [
+          'piece',
+          'surfaceEstimeeM2',
+          'objetReference',
+          'elementsVisibles',
+          'etat',
+          'qualitePhoto',
+        ],
         properties: {
           piece: { type: 'string' },
           surfaceEstimeeM2: { type: ['number', 'null'] },
@@ -177,16 +207,24 @@ export const PHOTO_SCHEMA: LlmJsonSchema = {
 
 /** The model's description of the photos; anything malformed becomes « unknown », never trusted. */
 export function parseAnalysePhoto(value: unknown): AnalysePhoto {
-  const a = (value && typeof value === 'object' ? (value as { analyse?: unknown }).analyse : null) as Record<string, unknown> | null | undefined;
+  const a = (
+    value && typeof value === 'object' ? (value as { analyse?: unknown }).analyse : null
+  ) as Record<string, unknown> | null | undefined;
   const text = (v: unknown, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
   const surface = Number(a?.surfaceEstimeeM2);
   const qualite = a?.qualitePhoto;
   return {
     piece: text(a?.piece) || 'Non identifiée',
-    surfaceEstimeeM2: a?.surfaceEstimeeM2 !== null && Number.isFinite(surface) && surface > 0 && surface <= 5000 ? Math.round(surface * 10) / 10 : null,
+    surfaceEstimeeM2:
+      a?.surfaceEstimeeM2 !== null && Number.isFinite(surface) && surface > 0 && surface <= 5000
+        ? Math.round(surface * 10) / 10
+        : null,
     objetReference: a?.objetReference === true,
     elementsVisibles: shortTexts(a?.elementsVisibles, 12).map((t) => t.slice(0, 120)),
     etat: text(a?.etat, 300),
-    qualitePhoto: qualite === 'BONNE' || qualite === 'MOYENNE' || qualite === 'INSUFFISANTE' ? qualite : 'MOYENNE',
+    qualitePhoto:
+      qualite === 'BONNE' || qualite === 'MOYENNE' || qualite === 'INSUFFISANTE'
+        ? qualite
+        : 'MOYENNE',
   };
 }

@@ -1,4 +1,11 @@
-import { corpsUtile, estAdresseInterne, motsObjet, objetCorrespond, ressembleDemande, sujetPropre } from './email-rules';
+import {
+  corpsUtile,
+  estAdresseInterne,
+  motsObjet,
+  objetCorrespond,
+  ressembleDemande,
+  sujetPropre,
+} from './email-rules';
 
 describe('Prospects par email — règles', () => {
   it('keeps the new text, drops the quoted reply and the signature', () => {
@@ -11,14 +18,18 @@ describe('Prospects par email — règles', () => {
       'Le lun. 20 oct. 2026 à 10:00, Bâtiment Pro <c@bp.fr> a écrit :',
       '> Merci pour votre message',
     ].join('\n');
-    expect(corpsUtile(texte)).toBe('Bonjour,\nJe voudrais un devis pour refaire ma salle de bain (6 m²).');
+    expect(corpsUtile(texte)).toBe(
+      'Bonjour,\nJe voudrais un devis pour refaire ma salle de bain (6 m²).',
+    );
     expect(corpsUtile('Ligne\n> citée\nSuite')).toBe('Ligne\nSuite');
   });
 
   it('recognises a work request without AI', () => {
     expect(ressembleDemande('Demande de devis', '')).toBe(true);
     expect(ressembleDemande('Bonjour', 'Fuite sous l’évier, pouvez-vous passer ?')).toBe(true);
-    expect(ressembleDemande('Votre facture EDF', 'Votre facture du mois est disponible')).toBe(false);
+    expect(ressembleDemande('Votre facture EDF', 'Votre facture du mois est disponible')).toBe(
+      false,
+    );
   });
 
   it('ignores our own addresses and cleans the subject', () => {

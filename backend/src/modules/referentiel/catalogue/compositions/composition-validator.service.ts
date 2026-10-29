@@ -27,7 +27,9 @@ export class CompositionValidator {
         ? this.prisma.materiau.count({ where: { id: { in: materiauIds }, companyId, actif: true } })
         : 0,
       serviceIds.length
-        ? this.prisma.serviceMainOeuvre.count({ where: { id: { in: serviceIds }, companyId, actif: true } })
+        ? this.prisma.serviceMainOeuvre.count({
+            where: { id: { in: serviceIds }, companyId, actif: true },
+          })
         : 0,
     ]);
 
@@ -48,4 +50,6 @@ export class CompositionValidator {
   }
 }
 
-const unique = (ids: (number | undefined)[]) => [...new Set(ids.filter((id): id is number => !!id))];
+const unique = (ids: (number | undefined)[]) => [
+  ...new Set(ids.filter((id): id is number => !!id)),
+];

@@ -261,7 +261,7 @@ export function ChantierDetailPage() {
           <Card>
             <CardHeader title="Client" />
             <dl className="space-y-2 p-5 text-sm">
-              <div><dt className="text-xs text-slate-500">Nom</dt><dd><Link to={`/clients/${c.client.id}`} className="font-medium hover:underline">{fullName(c.client)}</Link></dd></div>
+              <div><dt className="text-xs text-slate-500">Nom</dt><dd>{isBureau ? <Link to={`/clients/${c.client.id}`} className="font-medium hover:underline">{fullName(c.client)}</Link> : <span className="font-medium">{fullName(c.client)}</span>}</dd></div>
               <div><dt className="text-xs text-slate-500">Téléphone</dt><dd>{c.client.telephone ?? '—'}</dd></div>
               {c.client.email !== undefined && <div><dt className="text-xs text-slate-500">Email</dt><dd>{c.client.email ?? '—'}</dd></div>}
             </dl>

@@ -30,7 +30,11 @@ export interface LlmOptions {
 export interface LlmClient {
   readonly name: string;
   /** Returns the parsed JSON object, or throws LlmError. */
-  completeJson(messages: LlmMessage[], schema: LlmJsonSchema, options?: LlmOptions): Promise<unknown>;
+  completeJson(
+    messages: LlmMessage[],
+    schema: LlmJsonSchema,
+    options?: LlmOptions,
+  ): Promise<unknown>;
 }
 
 /** null = no API key configured: the assistant runs in guided mode. */

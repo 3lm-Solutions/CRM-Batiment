@@ -14,3 +14,6 @@ export const BUREAU: Role[] = [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE];
 
 /** External accounts with a restricted portal. */
 export const PORTAL: Role[] = [Role.SOUS_TRAITANT, Role.FOURNISSEUR];
+
+/** Invoicing (create, edit, issue, send, record a payment, cancel, remind): the TECHNICO only reads (29/10). */
+export const FACTURATION: Role[] = [Role.ADMIN, Role.ASSISTANTE];

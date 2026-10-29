@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { type DevisEvent, DevisEvents, type DevisPriceChangedEvent } from '../../commercial/devis/devis.events';
+import {
+  type DevisEvent,
+  DevisEvents,
+  type DevisPriceChangedEvent,
+} from '../../commercial/devis/devis.events';
 import { type FactureEvent, FactureEvents } from '../../finance/factures/facture.events';
-import { CATALOGUE_PRICE_CHANGED, type CataloguePriceChangedEvent } from '../../referentiel/catalogue/catalogue.events';
+import {
+  CATALOGUE_PRICE_CHANGED,
+  type CataloguePriceChangedEvent,
+} from '../../referentiel/catalogue/catalogue.events';
 import { RELANCE_ENVOYEE, type RelanceEnvoyeeEvent } from '../relances/relances.events';
 import { AuditService } from './audit.service';
 

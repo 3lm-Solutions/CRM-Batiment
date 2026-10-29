@@ -16,6 +16,7 @@ export function ClientDetailPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
   const canWrite = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  const isChef = hasRole('CHEF_CHANTIER');
   const client = useClient(id);
   const action = useClientAction();
   const newDevis = useCreateDevis();
@@ -132,20 +133,20 @@ export function ClientDetailPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader title="Devis" description={`${c._count.devis} au total`} />
+            <CardHeader title={isChef ? 'Devis signés de vos chantiers' : 'Devis'} description={`${c._count.devis} au total`} />
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {c.devis.length === 0 && <li className="px-5 py-4 text-sm text-slate-500">Aucun devis.</li>}
               {c.devis.map((d) => (
                 <li key={d.id}>
                   <Link to={`/devis/${d.id}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <span className="font-medium">{d.reference}</span>
-                    <span className="flex items-center gap-3"><span className="tabular-nums">{formatEuros(d.totalTTC)}</span><StatusBadge kind="devis" value={d.statut} /></span>
+                    <span className="flex items-center gap-3">{d.totalTTC !== undefined && <span className="tabular-nums">{formatEuros(d.totalTTC)}</span>}<StatusBadge kind="devis" value={d.statut} /></span>
                   </Link>
                 </li>
               ))}
             </ul>
           </Card>
-          <Card>
+          {!isChef && <Card>
             <CardHeader title="Demandes de devis" description={`${c._count.demandesDevis} au total`} />
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {c.demandesDevis.length === 0 && <li className="px-5 py-4 text-sm text-slate-500">Aucune demande.</li>}
@@ -156,9 +157,9 @@ export function ClientDetailPage() {
                 </li>
               ))}
             </ul>
-          </Card>
+          </Card>}
           <Card>
-            <CardHeader title="Chantiers" description={`${c._count.chantiers} au total · ${c._count.savTickets} ticket(s) SAV`} />
+            <CardHeader title={isChef ? 'Vos chantiers' : 'Chantiers'} description={`${c._count.chantiers} au total · ${c._count.savTickets} ticket(s) SAV`} />
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {c.chantiers.length === 0 && <li className="px-5 py-4 text-sm text-slate-500">Aucun chantier.</li>}
               {c.chantiers.map((ch) => (

@@ -1,10 +1,29 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { DevisLifecycleService } from './devis-lifecycle.service';
 import { DevisService } from './devis.service';
-import { AnnulerDevisDto, CreateDevisDto, QueryDevisDto, ReviserDevisDto, SignerConseillerDto, UpdateDevisDto } from './dto/devis.dto';
+import {
+  AnnulerDevisDto,
+  CreateDevisDto,
+  QueryDevisDto,
+  ReviserDevisDto,
+  SignerConseillerDto,
+  UpdateDevisDto,
+} from './dto/devis.dto';
 
 /**
  * Quotes. Status changes are ACTIONS (POST /devis/:id/envoyer…), never a PATCH of `statut`:
@@ -46,7 +65,11 @@ export class DevisController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Modifier TVA / notes (brouillon ou révision uniquement)' })
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateDevisDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDevisDto,
+  ) {
     return this.devis.update(user, id, dto);
   }
 
@@ -58,7 +81,10 @@ export class DevisController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Supprimer un brouillon jamais envoyé, ou un devis annulé sans facture / commande / chantier' })
+  @ApiOperation({
+    summary:
+      'Supprimer un brouillon jamais envoyé, ou un devis annulé sans facture / commande / chantier',
+  })
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.devis.remove(user, id);
   }
@@ -81,13 +107,21 @@ export class DevisController {
   @Post(':id/reviser')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Nouvelle version (les liens déjà envoyés sont annulés)' })
-  reviser(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: ReviserDevisDto) {
+  reviser(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReviserDevisDto,
+  ) {
     return this.lifecycle.reviser(user, id, dto);
   }
 
   @Post(':id/annuler')
   @HttpCode(HttpStatus.OK)
-  annuler(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: AnnulerDevisDto) {
+  annuler(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AnnulerDevisDto,
+  ) {
     return this.lifecycle.annuler(user, id, dto);
   }
 
@@ -101,7 +135,11 @@ export class DevisController {
   @Post(':id/signer-conseiller')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Signature du conseiller (verbal: true pour un accord oral du client)' })
-  signerConseiller(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: SignerConseillerDto) {
+  signerConseiller(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SignerConseillerDto,
+  ) {
     return this.lifecycle.signerConseiller(user, id, dto);
   }
 }

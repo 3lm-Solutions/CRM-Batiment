@@ -1,4 +1,11 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { STATUS_CODES } from 'node:http';
 import type { ApiErrorResponse } from '../../shared';
@@ -79,15 +86,22 @@ export function toHttpError(exception: unknown): HttpError {
  * ("ThrottlerException: Too Many Requests", "Cannot GET /x", "Validation failed (numeric string
  * is expected)"…): the user gets a French sentence instead. Our own messages are untouched.
  */
-export function frenchFrameworkMessage(status: number, message: string | string[]): string | string[] {
+export function frenchFrameworkMessage(
+  status: number,
+  message: string | string[],
+): string | string[] {
   if (Array.isArray(message)) return message;
-  if (status === 429) return 'Trop de demandes en peu de temps. Patientez une minute puis réessayez.';
+  if (status === 429)
+    return 'Trop de demandes en peu de temps. Patientez une minute puis réessayez.';
   if (status === 413) return 'Fichier ou données trop volumineux.';
   if (/^Cannot (GET|POST|PUT|PATCH|DELETE) /.test(message)) return 'Adresse introuvable.';
-  if (/^Validation failed \((numeric|boolean|uuid|enum)/.test(message)) return 'Identifiant ou paramètre invalide dans l’adresse.';
-  if (/^Unexpected token|JSON/.test(message) && status === 400) return 'Données envoyées illisibles (format JSON invalide).';
+  if (/^Validation failed \((numeric|boolean|uuid|enum)/.test(message))
+    return 'Identifiant ou paramètre invalide dans l’adresse.';
+  if (/^Unexpected token|JSON/.test(message) && status === 400)
+    return 'Données envoyées illisibles (format JSON invalide).';
   if (message === 'Unauthorized') return 'Authentification requise.';
-  if (message === 'Forbidden' || message === 'Forbidden resource') return 'Vous n’avez pas les droits pour cette action.';
+  if (message === 'Forbidden' || message === 'Forbidden resource')
+    return 'Vous n’avez pas les droits pour cette action.';
   if (message === 'Not Found') return 'Ressource introuvable.';
   if (message === 'Bad Request') return 'Requête invalide.';
   return message;
@@ -97,7 +111,11 @@ function fromPrismaError(error: Prisma.PrismaClientKnownRequestError): HttpError
   switch (error.code) {
     case 'P2002': {
       const target = error.meta?.target;
-      const fields = Array.isArray(target) ? target.join(', ') : typeof target === 'string' ? target : '';
+      const fields = Array.isArray(target)
+        ? target.join(', ')
+        : typeof target === 'string'
+          ? target
+          : '';
       return {
         status: HttpStatus.CONFLICT,
         message: fields
@@ -109,7 +127,8 @@ function fromPrismaError(error: Prisma.PrismaClientKnownRequestError): HttpError
     case 'P2003':
       return {
         status: HttpStatus.CONFLICT,
-        message: "Opération impossible : cet élément est utilisé ailleurs. Désactivez-le plutôt que de le supprimer.",
+        message:
+          'Opération impossible : cet élément est utilisé ailleurs. Désactivez-le plutôt que de le supprimer.',
         code: 'RESOURCE_IN_USE',
       };
     case 'P2025':
@@ -119,11 +138,16 @@ function fromPrismaError(error: Prisma.PrismaClientKnownRequestError): HttpError
     case 'P2022':
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Base de données pas à jour : lancez « pnpm db:deploy » dans le dossier backend, puis redémarrez.',
+        message:
+          'Base de données pas à jour : lancez « pnpm db:deploy » dans le dossier backend, puis redémarrez.',
         code: 'BASE_PAS_A_JOUR',
       };
     case 'P2000':
-      return { status: HttpStatus.BAD_REQUEST, message: 'Une valeur est trop longue.', code: 'VALUE_TOO_LONG' };
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'Une valeur est trop longue.',
+        code: 'VALUE_TOO_LONG',
+      };
     default:
       return {
         status: HttpStatus.INTERNAL_SERVER_ERROR,

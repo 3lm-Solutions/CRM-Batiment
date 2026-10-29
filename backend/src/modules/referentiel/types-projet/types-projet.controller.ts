@@ -1,8 +1,24 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
-import { CreateTypeProjetDto, QueryTypesProjetDto, UpdateTypeProjetDto } from './dto/types-projet.dto';
+import {
+  CreateTypeProjetDto,
+  QueryTypesProjetDto,
+  UpdateTypeProjetDto,
+} from './dto/types-projet.dto';
 import { TypesProjetService } from './types-projet.service';
 
 @ApiTags('Types de projet')
@@ -30,7 +46,11 @@ export class TypesProjetController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTypeProjetDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTypeProjetDto,
+  ) {
     return this.typesProjet.update(user, id, dto);
   }
 

@@ -15,13 +15,17 @@ export interface PromptContext {
  * when unsure, collect the prospect's details. The output filter still checks every answer.
  */
 export function buildSystemPrompt(c: PromptContext): string {
-  const contact = [c.entreprise.telephone, c.entreprise.email].filter(Boolean).join(' / ') || 'le formulaire de contact';
+  const contact =
+    [c.entreprise.telephone, c.entreprise.email].filter(Boolean).join(' / ') ||
+    'le formulaire de contact';
   const connu = Object.entries(c.champs)
     .filter(([, v]) => v)
     .map(([k, v]) => `- ${k} : ${String(v)}`)
     .join('\n');
   const savoir = c.connaissances.length
-    ? c.connaissances.map((d, i) => `[${i + 1}] ${d.titre}\n${d.contenu.slice(0, 1200)}`).join('\n\n')
+    ? c.connaissances
+        .map((d, i) => `[${i + 1}] ${d.titre}\n${d.contenu.slice(0, 1200)}`)
+        .join('\n\n')
     : '(aucun document pertinent)';
 
   return `Tu es l'assistant en ligne de l'entreprise du bâtiment « ${c.entreprise.nom} ». Tu parles à un visiteur de son site.
@@ -58,14 +62,35 @@ export const REPONSE_SCHEMA: LlmJsonSchema = {
     required: ['reponse', 'intention', 'besoinHumain', 'champs'],
     properties: {
       reponse: { type: 'string', description: 'Message affiché au visiteur' },
-      intention: { type: 'string', enum: ['demande_devis', 'question_service', 'demande_prix', 'contact_humain', 'autre'] },
+      intention: {
+        type: 'string',
+        enum: ['demande_devis', 'question_service', 'demande_prix', 'contact_humain', 'autre'],
+      },
       besoinHumain: { type: 'boolean' },
       champs: {
         type: 'object',
         additionalProperties: false,
-        required: ['nom', 'prenom', 'email', 'telephone', 'adresse', 'typeProjet', 'description', 'delai'],
+        required: [
+          'nom',
+          'prenom',
+          'email',
+          'telephone',
+          'adresse',
+          'typeProjet',
+          'description',
+          'delai',
+        ],
         properties: Object.fromEntries(
-          ['nom', 'prenom', 'email', 'telephone', 'adresse', 'typeProjet', 'description', 'delai'].map((k) => [k, { type: 'string' }]),
+          [
+            'nom',
+            'prenom',
+            'email',
+            'telephone',
+            'adresse',
+            'typeProjet',
+            'description',
+            'delai',
+          ].map((k) => [k, { type: 'string' }]),
         ),
       },
     },
@@ -84,14 +109,27 @@ export function parseReponse(value: unknown): ReponseModele | null {
   if (!value || typeof value !== 'object') return null;
   const v = value as Record<string, unknown>;
   if (typeof v.reponse !== 'string' || !v.reponse.trim()) return null;
-  const intentions = ['demande_devis', 'question_service', 'demande_prix', 'contact_humain', 'autre'];
+  const intentions = [
+    'demande_devis',
+    'question_service',
+    'demande_prix',
+    'contact_humain',
+    'autre',
+  ];
   return {
     reponse: v.reponse.trim().slice(0, 1500),
-    intention: (intentions.includes(v.intention as string) ? v.intention : 'autre') as ReponseModele['intention'],
+    intention: (intentions.includes(v.intention as string)
+      ? v.intention
+      : 'autre') as ReponseModele['intention'],
     besoinHumain: v.besoinHumain === true,
     champs: v.champs && typeof v.champs === 'object' ? (v.champs as Record<string, string>) : {},
   };
 }
 
 /** Quick replies shown under the chat (spec P3). */
-export const SUGGESTIONS_ACCUEIL = ['Demander un devis', 'Voir les services', 'Délais d’intervention', 'Parler à un conseiller'];
+export const SUGGESTIONS_ACCUEIL = [
+  'Demander un devis',
+  'Voir les services',
+  'Délais d’intervention',
+  'Parler à un conseiller',
+];

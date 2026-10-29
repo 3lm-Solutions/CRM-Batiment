@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DevisModule } from '../../commercial/devis/devis.module';
 import { UploadMulterModule } from '../../core/storage/upload.config';
 import { CatalogueModule } from '../../referentiel/catalogue/catalogue.module';
+import { PrixMarcheModule } from '../../commercial/prix-marche/prix-marche.module';
 import { AssistantModule } from '../assistant/assistant.module';
 import { DevisIaController } from './devis-ia.controller';
 import { DevisIaService } from './devis-ia.service';
@@ -12,7 +13,7 @@ import { DevisIaService } from './devis-ia.service';
  * C37 of 21/10: also from 1 to 3 photos (UploadMulterModule: size limits; photos kept in memory only).
  */
 @Module({
-  imports: [AssistantModule, DevisModule, CatalogueModule, UploadMulterModule],
+  imports: [AssistantModule, DevisModule, CatalogueModule, UploadMulterModule, PrixMarcheModule],
   controllers: [DevisIaController],
   providers: [DevisIaService],
 })

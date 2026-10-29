@@ -8,7 +8,14 @@ import { PortailEvents, type CommandePortailEvent } from '../portails.events';
 import { QueryCommandesPortailDto, ReponseFournisseurDto } from './portail-fournisseur.dto';
 
 /** A draft (CREEE) has not been sent: the supplier must not see it yet. */
-const VISIBLE: CommandeFournisseurStatut[] = ['ENVOYEE', 'EXPEDIEE', 'PARTIELLE', 'RECUE', 'CLOTUREE', 'ANNULEE'];
+const VISIBLE: CommandeFournisseurStatut[] = [
+  'ENVOYEE',
+  'EXPEDIEE',
+  'PARTIELLE',
+  'RECUE',
+  'CLOTUREE',
+  'ANNULEE',
+];
 
 /**
  * Supplier portal. The account is tied to ONE supplier record by Fournisseur.userId
@@ -25,16 +32,31 @@ export class PortailFournisseurService {
   private async fournisseur(user: AuthUser) {
     const f = await this.prisma.fournisseur.findFirst({
       where: { userId: user.id, companyId: user.companyId },
-      select: { id: true, nom: true, contact: true, email: true, telephone: true, adresse: true, delaiLivraison: true, actif: true },
+      select: {
+        id: true,
+        nom: true,
+        contact: true,
+        email: true,
+        telephone: true,
+        adresse: true,
+        delaiLivraison: true,
+        actif: true,
+      },
     });
-    if (!f) throw new ForbiddenException('Ce compte n’est rattaché à aucun fournisseur. Contactez l’entreprise.');
+    if (!f)
+      throw new ForbiddenException(
+        'Ce compte n’est rattaché à aucun fournisseur. Contactez l’entreprise.',
+      );
     return f;
   }
 
   async profil(user: AuthUser) {
     const [fournisseur, entreprise] = await Promise.all([
       this.fournisseur(user),
-      this.prisma.company.findUniqueOrThrow({ where: { id: user.companyId }, select: { nom: true, email: true, telephone: true, adresse: true } }),
+      this.prisma.company.findUniqueOrThrow({
+        where: { id: user.companyId },
+        select: { nom: true, email: true, telephone: true, adresse: true },
+      }),
     ]);
     return { fournisseur, entreprise };
   }
@@ -46,8 +68,11 @@ export class PortailFournisseurService {
       where: { fournisseurId: f.id, statutLivraison: { in: VISIBLE } },
       _count: { _all: true },
     });
-    const count = (s: CommandeFournisseurStatut[]) => grouped.filter((g) => s.includes(g.statutLivraison)).reduce((n, g) => n + g._count._all, 0);
-    const aAccuser = await this.prisma.commandeFournisseur.count({ where: { fournisseurId: f.id, statutLivraison: 'ENVOYEE', dateAccuseReception: null } });
+    const count = (s: CommandeFournisseurStatut[]) =>
+      grouped.filter((g) => s.includes(g.statutLivraison)).reduce((n, g) => n + g._count._all, 0);
+    const aAccuser = await this.prisma.commandeFournisseur.count({
+      where: { fournisseurId: f.id, statutLivraison: 'ENVOYEE', dateAccuseReception: null },
+    });
     return {
       fournisseur: f,
       aAccuser,
@@ -59,7 +84,9 @@ export class PortailFournisseurService {
 
   async commandes(user: AuthUser, query: QueryCommandesPortailDto) {
     const f = await this.fournisseur(user);
-    const statuts = query.statuts?.length ? query.statuts.filter((s) => VISIBLE.includes(s)) : VISIBLE;
+    const statuts = query.statuts?.length
+      ? query.statuts.filter((s) => VISIBLE.includes(s))
+      : VISIBLE;
     const where: Prisma.CommandeFournisseurWhereInput = {
       fournisseurId: f.id,
       statutLivraison: { in: statuts },
@@ -83,7 +110,11 @@ export class PortailFournisseurService {
       this.prisma.commandeFournisseur.count({ where }),
     ]);
     return paginate(
-      rows.map(({ lignes, ...c }) => ({ ...c, nombreLignes: lignes.length, totalHT: sumMoney(lignes.map((l) => l.totalHT)) })),
+      rows.map(({ lignes, ...c }) => ({
+        ...c,
+        nombreLignes: lignes.length,
+        totalHT: sumMoney(lignes.map((l) => l.totalHT)),
+      })),
       total,
       query,
     );
@@ -105,11 +136,24 @@ export class PortailFournisseurService {
         notes: true,
         lignes: {
           orderBy: { id: 'asc' },
-          select: { id: true, materiauNom: true, quantite: true, quantiteRecue: true, unite: true, prixUnitaire: true, totalHT: true },
+          select: {
+            id: true,
+            materiauNom: true,
+            quantite: true,
+            quantiteRecue: true,
+            unite: true,
+            prixUnitaire: true,
+            totalHT: true,
+          },
         },
         // Delivery address only — no client name, no quote amounts
         chantier: { select: { adresse: true } },
-        devis: { select: { chantier: { select: { adresse: true } }, client: { select: { adresseChantier: true, adresseClient: true } } } },
+        devis: {
+          select: {
+            chantier: { select: { adresse: true } },
+            client: { select: { adresseChantier: true, adresseClient: true } },
+          },
+        },
         company: { select: { adresse: true } },
       },
     });
@@ -119,7 +163,12 @@ export class PortailFournisseurService {
       ...rest,
       // Manual order without job site (restocking): delivered to the company
       adresseLivraison:
-        chantier?.adresse ?? devis?.chantier?.adresse ?? devis?.client.adresseChantier ?? devis?.client.adresseClient ?? company.adresse ?? null,
+        chantier?.adresse ??
+        devis?.chantier?.adresse ??
+        devis?.client.adresseChantier ??
+        devis?.client.adresseClient ??
+        company.adresse ??
+        null,
       totalHT: sumMoney(c.lignes.map((l) => l.totalHT)),
     };
   }
@@ -128,7 +177,11 @@ export class PortailFournisseurService {
   async accuserReception(user: AuthUser, id: number, dto: ReponseFournisseurDto) {
     const f = await this.fournisseur(user);
     const c = await this.findOwn(f.id, id);
-    if (c.statutLivraison !== 'ENVOYEE') throw new BusinessException('COMMANDE_DEJA_TRAITEE', 'Cette commande n’attend plus d’accusé de réception.');
+    if (c.statutLivraison !== 'ENVOYEE')
+      throw new BusinessException(
+        'COMMANDE_DEJA_TRAITEE',
+        'Cette commande n’attend plus d’accusé de réception.',
+      );
     await this.prisma.commandeFournisseur.update({
       where: { id },
       data: {
@@ -138,7 +191,14 @@ export class PortailFournisseurService {
       },
     });
     const updated = await this.commande(user, id);
-    this.emit(PortailEvents.COMMANDE_ACCUSEE, user.companyId, updated.id, updated.reference, f.nom, updated.dateLivraisonPrevue);
+    this.emit(
+      PortailEvents.COMMANDE_ACCUSEE,
+      user.companyId,
+      updated.id,
+      updated.reference,
+      f.nom,
+      updated.dateLivraisonPrevue,
+    );
     return updated;
   }
 
@@ -156,9 +216,20 @@ export class PortailFournisseurService {
         ...(dto.commentaire !== undefined && { commentaireFournisseur: dto.commentaire }),
       },
     });
-    if (!count) throw new BusinessException('COMMANDE_MODIFIEE', 'La commande vient de changer de statut. Rechargez.');
+    if (!count)
+      throw new BusinessException(
+        'COMMANDE_MODIFIEE',
+        'La commande vient de changer de statut. Rechargez.',
+      );
     const updated = await this.commande(user, id);
-    this.emit(PortailEvents.COMMANDE_EXPEDIEE, user.companyId, updated.id, updated.reference, f.nom, updated.dateLivraisonPrevue);
+    this.emit(
+      PortailEvents.COMMANDE_EXPEDIEE,
+      user.companyId,
+      updated.id,
+      updated.reference,
+      f.nom,
+      updated.dateLivraisonPrevue,
+    );
     return updated;
   }
 
@@ -171,8 +242,21 @@ export class PortailFournisseurService {
     return c;
   }
 
-  private emit(name: string, companyId: number, commandeId: number, reference: string, fournisseurNom: string, dateLivraisonPrevue: Date | null) {
-    const event: CommandePortailEvent = { companyId, commandeId, reference, fournisseurNom, dateLivraisonPrevue };
+  private emit(
+    name: string,
+    companyId: number,
+    commandeId: number,
+    reference: string,
+    fournisseurNom: string,
+    dateLivraisonPrevue: Date | null,
+  ) {
+    const event: CommandePortailEvent = {
+      companyId,
+      commandeId,
+      reference,
+      fournisseurNom,
+      dateLivraisonPrevue,
+    };
     this.events.emit(name, event);
   }
 }

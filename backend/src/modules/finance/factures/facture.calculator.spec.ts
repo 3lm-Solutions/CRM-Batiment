@@ -1,5 +1,12 @@
-import { BusinessException } from '../../../common';
-import { acompteHT, buildLine, finaleHT, invoiceTotals, negate, situationAmounts } from './facture.calculator';
+import { BusinessException, type Money } from '../../../common';
+import {
+  acompteHT,
+  buildLine,
+  finaleHT,
+  invoiceTotals,
+  negate,
+  situationAmounts,
+} from './facture.calculator';
 import { FactureMachine } from './facture-status';
 
 describe('invoice calculator', () => {
@@ -9,8 +16,19 @@ describe('invoice calculator', () => {
     expect(acompteHT(devisHT, 35).toString()).toBe('3500');
   });
 
-  const situation = (avancementPrecedent: number, avancementCumule: number, acomptesHT: string[], situationsDejaHT: string[]) =>
-    situationAmounts({ devisHT, acomptesHT, avancementPrecedent, avancementCumule, situationsDejaHT });
+  const situation = (
+    avancementPrecedent: number,
+    avancementCumule: number,
+    acomptesHT: string[],
+    situationsDejaHT: string[],
+  ) =>
+    situationAmounts({
+      devisHT,
+      acomptesHT,
+      avancementPrecedent,
+      avancementCumule,
+      situationsDejaHT,
+    });
 
   it('without deposit, progress invoices bill the cumulative progress minus what was already billed', () => {
     expect(situation(0, 40, [], []).netHT.toString()).toBe('4000');
@@ -21,9 +39,17 @@ describe('invoice calculator', () => {
 
   it('with a deposit, each progress invoice repays its share of it (old bug: 105 % billed)', () => {
     const s1 = situation(0, 30, ['3500'], []);
-    expect([s1.brutHT.toString(), s1.remboursementAcompteHT.toString(), s1.netHT.toString()]).toEqual(['3000', '1050', '1950']);
+    expect([
+      s1.brutHT.toString(),
+      s1.remboursementAcompteHT.toString(),
+      s1.netHT.toString(),
+    ]).toEqual(['3000', '1050', '1950']);
     const s2 = situation(30, 70, ['3500'], ['1950']);
-    expect([s2.brutHT.toString(), s2.remboursementAcompteHT.toString(), s2.netHT.toString()]).toEqual(['4000', '1400', '2600']);
+    expect([
+      s2.brutHT.toString(),
+      s2.remboursementAcompteHT.toString(),
+      s2.netHT.toString(),
+    ]).toEqual(['4000', '1400', '2600']);
     const finale = finaleHT(devisHT, ['3500', '1950', '2600']);
     expect(finale.toString()).toBe('1950');
     expect(finale.plus('3500').plus('1950').plus('2600').toString()).toBe('10000');
@@ -35,13 +61,24 @@ describe('invoice calculator', () => {
     const billed: string[] = [];
     let previous = 0;
     for (const p of [33.33, 66.67, 99.99]) {
-      const s = situationAmounts({ devisHT: quote, acomptesHT: [acompte], avancementPrecedent: previous, avancementCumule: p, situationsDejaHT: billed });
+      const s = situationAmounts({
+        devisHT: quote,
+        acomptesHT: [acompte],
+        avancementPrecedent: previous,
+        avancementCumule: p,
+        situationsDejaHT: billed,
+      });
       billed.push(s.netHT.toString());
       previous = p;
     }
     const finale = finaleHT(quote, [acompte, ...billed]);
     expect(finale.gte(0)).toBe(true);
-    expect([acompte, ...billed, finale].reduce((a, b) => a.plus(b), acompteHT(quote, 0)).toString()).toBe('8291.37');
+    // billed holds strings: the sum starts from a Money so that .plus() is always available
+    expect(
+      [acompte, ...billed, finale]
+        .reduce<Money>((a, b) => a.plus(b), acompteHT(quote, 0))
+        .toString(),
+    ).toBe('8291.37');
   });
 
   it('a progress invoice created before the fix (no repayment) is caught up on the next one', () => {
@@ -73,7 +110,11 @@ describe('invoice calculator', () => {
       buildLine({ description: 'B', quantite: 1, prixUnitaireHT: '0.01', tauxTVA: 20 }),
     ];
     const t = invoiceTotals(lines, 20);
-    expect([t.montantHT.toString(), t.montantTVA.toString(), t.montantTTC.toString()]).toEqual(['100', '20', '120']);
+    expect([t.montantHT.toString(), t.montantTVA.toString(), t.montantTTC.toString()]).toEqual([
+      '100',
+      '20',
+      '120',
+    ]);
   });
 
   it('a credit note line is the negated original', () => {

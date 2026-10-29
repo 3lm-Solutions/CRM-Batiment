@@ -120,13 +120,18 @@ export interface SavChantierEligible {
   savPossible: boolean;
   savJusquau: string | null;
   savMotif: string | null;
+  client: { id: number; nom: string; prenom: string | null };
 }
 
-export const useSavChantiers = (clientId: number | null, enabled: boolean) =>
+/**
+ * Job sites that can receive a ticket: of the chosen client (office), or — `mesChantiers`, for the chef
+ * de chantier who has no client list (29/10) — of HIS job sites, all clients.
+ */
+export const useSavChantiers = (clientId: number | null, enabled: boolean, mesChantiers = false) =>
   useQuery({
-    queryKey: ['sav', 'chantiers', clientId],
-    enabled: enabled && !!clientId,
-    queryFn: async () => (await api.get<{ savDureeMois: number; chantiers: SavChantierEligible[] }>('/sav/chantiers', { params: { clientId } })).data,
+    queryKey: ['sav', 'chantiers', mesChantiers ? 'mes-chantiers' : clientId],
+    enabled: enabled && (mesChantiers || !!clientId),
+    queryFn: async () => (await api.get<{ savDureeMois: number; chantiers: SavChantierEligible[] }>('/sav/chantiers', { params: mesChantiers ? {} : { clientId } })).data,
   });
 
 export interface SavInput {

@@ -56,7 +56,11 @@ export function devisSignatureMail(p: DevisMailBase): RenderedMail {
   return { subject, html, text };
 }
 
-export function signatureOtpMail(p: { code: string; reference: string; validityMinutes: number }): RenderedMail {
+export function signatureOtpMail(p: {
+  code: string;
+  reference: string;
+  validityMinutes: number;
+}): RenderedMail {
   const subject = `Code de signature — devis ${p.reference}`;
   const html = layout(
     'Code de confirmation',
@@ -72,8 +76,13 @@ export function signatureOtpMail(p: { code: string; reference: string; validityM
  * Reminder for a quote still waiting for an answer (C3 of 21/10). Carries a NEW link (the
  * previous validation link is cancelled), so it always works even if the first one expired.
  */
-export function devisRelanceMail(p: DevisMailBase & { niveau: number; joursDepuisEnvoi: number }): RenderedMail {
-  const subject = p.niveau >= 2 ? `Dernier rappel : votre devis ${p.reference}` : `Rappel : votre devis ${p.reference}`;
+export function devisRelanceMail(
+  p: DevisMailBase & { niveau: number; joursDepuisEnvoi: number },
+): RenderedMail {
+  const subject =
+    p.niveau >= 2
+      ? `Dernier rappel : votre devis ${p.reference}`
+      : `Rappel : votre devis ${p.reference}`;
   const intro =
     p.niveau >= 2
       ? `Nous revenons vers vous une dernière fois au sujet du devis <strong>${escapeHtml(p.reference)}</strong>`

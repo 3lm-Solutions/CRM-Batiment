@@ -7,7 +7,14 @@ const catalogue: CatalogueForNeeds = {
       {
         base: [{ materiauId: 10, quantiteParUnite: 0.6 }], // ciment
         parChoix: new Map([
-          [100, [{ materiauId: 10, quantiteParUnite: 0.85 }, { materiauId: 11, quantiteParUnite: 1.3 }, { materiauId: null, quantiteParUnite: 1 }]],
+          [
+            100,
+            [
+              { materiauId: 10, quantiteParUnite: 0.85 },
+              { materiauId: 11, quantiteParUnite: 1.3 },
+              { materiauId: null, quantiteParUnite: 1 },
+            ],
+          ],
           [101, []], // choice without its own composition
         ]),
       },
@@ -22,7 +29,10 @@ const catalogue: CatalogueForNeeds = {
 
 describe('computeMaterialNeeds', () => {
   it('uses the base composition without a composition-bearing choice', () => {
-    const r = computeMaterialNeeds([{ quantite: 20, prestationId: 1, materiauId: null, choixIds: [101] }], catalogue);
+    const r = computeMaterialNeeds(
+      [{ quantite: 20, prestationId: 1, materiauId: null, choixIds: [101] }],
+      catalogue,
+    );
     const ciment = r.parFournisseur.get(1)![0];
     expect(ciment.quantite.toNumber()).toBe(12);
     expect(ciment.totalHT.toNumber()).toBe(114);
@@ -30,7 +40,10 @@ describe('computeMaterialNeeds', () => {
   });
 
   it('a choice composition replaces the base one and splits by supplier', () => {
-    const r = computeMaterialNeeds([{ quantite: 20, prestationId: 1, materiauId: null, choixIds: [100] }], catalogue);
+    const r = computeMaterialNeeds(
+      [{ quantite: 20, prestationId: 1, materiauId: null, choixIds: [100] }],
+      catalogue,
+    );
     expect(r.parFournisseur.get(1)![0].quantite.toNumber()).toBe(17);
     expect(r.parFournisseur.get(2)![0].quantite.toNumber()).toBe(26);
   });
@@ -47,12 +60,18 @@ describe('computeMaterialNeeds', () => {
   });
 
   it('reports materials without supplier instead of dropping them', () => {
-    const r = computeMaterialNeeds([{ quantite: 4, prestationId: null, materiauId: 12, choixIds: [] }], catalogue);
+    const r = computeMaterialNeeds(
+      [{ quantite: 4, prestationId: null, materiauId: 12, choixIds: [] }],
+      catalogue,
+    );
     expect(r.sansFournisseur).toEqual([{ materiauId: 12, nom: 'Spot' }]);
   });
 
   it('rounds quantities UP (never under-order)', () => {
-    const r = computeMaterialNeeds([{ quantite: 1.0001, prestationId: null, materiauId: 10, choixIds: [] }], catalogue);
+    const r = computeMaterialNeeds(
+      [{ quantite: 1.0001, prestationId: null, materiauId: 10, choixIds: [] }],
+      catalogue,
+    );
     expect(r.parFournisseur.get(1)![0].quantite.toString()).toBe('1.001');
   });
 });

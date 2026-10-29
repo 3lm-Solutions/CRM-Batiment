@@ -16,7 +16,7 @@ interface DataTableProps<T> {
   loading?: boolean;
   rowKey: (row: T) => string | number;
   onRowClick?: (row: T) => void;
-  empty?: { title: string; description?: string; action?: ReactNode };
+  empty?: { title: string; description?: ReactNode; action?: ReactNode };
 }
 
 /** Every list of the app uses this table: same spacing, loading skeleton, empty state. */

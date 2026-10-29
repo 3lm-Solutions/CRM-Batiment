@@ -1,14 +1,37 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type AuthUser, BusinessException, paginate, ReferencePrefix, ReferenceService, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  ReferencePrefix,
+  ReferenceService,
+  toSkipTake,
+} from '../../../common';
 import { FactureStatut, FactureType, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { MailService } from '../../core/mail/mail.service';
 import { factureMail } from '../../core/mail/templates/finance.templates';
-import { AnnulerFactureDto, CreateSituationDto, EmettreFactureDto, FactureLigneDto, PayerFactureDto, QueryFacturesDto, UpdateFactureDto } from './dto/factures.dto';
+import {
+  AnnulerFactureDto,
+  CreateSituationDto,
+  EmettreFactureDto,
+  FactureLigneDto,
+  PayerFactureDto,
+  QueryFacturesDto,
+  UpdateFactureDto,
+} from './dto/factures.dto';
 import { type FactureEvent, FactureEvents } from './facture.events';
-import { acompteHT, buildLine, finaleHT, type InvoiceLine, invoiceTotals, negate, situationAmounts } from './facture.calculator';
+import {
+  acompteHT,
+  buildLine,
+  finaleHT,
+  type InvoiceLine,
+  invoiceTotals,
+  negate,
+  situationAmounts,
+} from './facture.calculator';
 import { FactureMachine } from './facture-status';
 import { completerQrFacture, FACTURE_CLIENT_SELECT, newPublicToken } from './facture.views';
 
@@ -16,7 +39,23 @@ const ISSUED: FactureStatut[] = ['ENVOYEE', 'PAYEE'];
 
 const INCLUDE = {
   lignes: { orderBy: { ordre: 'asc' } },
-  devis: { select: { id: true, reference: true, totalHT: true, client: { select: { id: true, typeClient: true, nom: true, prenom: true, siret: true, tvaIntracom: true } } } },
+  devis: {
+    select: {
+      id: true,
+      reference: true,
+      totalHT: true,
+      client: {
+        select: {
+          id: true,
+          typeClient: true,
+          nom: true,
+          prenom: true,
+          siret: true,
+          tvaIntracom: true,
+        },
+      },
+    },
+  },
   factureOrigine: { select: { id: true, reference: true } },
   avoirs: { select: { id: true, reference: true, montantTTC: true } },
 } satisfies Prisma.FactureInclude;
@@ -73,21 +112,29 @@ export class FacturesService {
       prixUnitaireHT: acompteHT(devis.totalHT, percent),
       tauxTVA: devis.tauxTVA,
     });
-    const facture = await this.createDraft(tx, devis, 'ACOMPTE', [line], { acomptePercent: percent, acompteMontant: line.montantHT });
+    const facture = await this.createDraft(tx, devis, 'ACOMPTE', [line], {
+      acomptePercent: percent,
+      acompteMontant: line.montantHT,
+    });
     return facture.id;
   }
 
   async creerSituation(user: AuthUser, devisId: number, dto: CreateSituationDto) {
     const id = await this.prisma.$transaction(async (tx) => {
       const devis = await this.getSignedDevis(tx, user, devisId);
-      const factures = await tx.facture.findMany({ where: { devisId, statut: { not: 'ANNULEE' } } });
+      const factures = await tx.facture.findMany({
+        where: { devisId, statut: { not: 'ANNULEE' } },
+      });
 
       if (factures.some((f) => f.typeFacture === 'FINALE')) {
         throw new BusinessException('FINALE_EXISTANTE', 'La facture finale existe déjà.');
       }
       const situations = factures.filter((f) => f.typeFacture === 'SITUATION');
       if (situations.some((f) => f.statut === 'BROUILLON')) {
-        throw new BusinessException('SITUATION_EN_COURS', 'Émettez ou annulez d’abord la situation en brouillon.');
+        throw new BusinessException(
+          'SITUATION_EN_COURS',
+          'Émettez ou annulez d’abord la situation en brouillon.',
+        );
       }
       // The deposit is repaid on progress invoices: it must be issued (or cancelled) first
       const acomptes = factures.filter((f) => f.typeFacture === 'ACOMPTE');
@@ -99,7 +146,10 @@ export class FacturesService {
       }
       const dernier = Math.max(0, ...situations.map((s) => s.avancementCumule?.toNumber() ?? 0));
       if (dto.avancementCumule <= dernier) {
-        throw new BusinessException('AVANCEMENT_INVALIDE', `L’avancement cumulé doit dépasser ${dernier} %.`);
+        throw new BusinessException(
+          'AVANCEMENT_INVALIDE',
+          `L’avancement cumulé doit dépasser ${dernier} %.`,
+        );
       }
 
       const numero = situations.length + 1;
@@ -123,7 +173,10 @@ export class FacturesService {
       if (montants.remboursementAcompteHT.gt(0)) {
         lines.push(
           buildLine({
-            description: `Remboursement de l’acompte ${acomptesEmis.map((f) => f.reference).filter(Boolean).join(', ')} au prorata de l’avancement`,
+            description: `Remboursement de l’acompte ${acomptesEmis
+              .map((f) => f.reference)
+              .filter(Boolean)
+              .join(', ')} au prorata de l’avancement`,
             quantite: 1,
             unite: 'FORFAIT',
             prixUnitaireHT: montants.remboursementAcompteHT.negated(),
@@ -131,7 +184,12 @@ export class FacturesService {
           }),
         );
       }
-      return (await this.createDraft(tx, devis, 'SITUATION', lines, { numeroSituation: numero, avancementCumule: dto.avancementCumule })).id;
+      return (
+        await this.createDraft(tx, devis, 'SITUATION', lines, {
+          numeroSituation: numero,
+          avancementCumule: dto.avancementCumule,
+        })
+      ).id;
     });
     return this.findOne(user, id);
   }
@@ -140,12 +198,19 @@ export class FacturesService {
   async creerFinale(user: AuthUser, devisId: number) {
     const id = await this.prisma.$transaction(async (tx) => {
       const devis = await this.getSignedDevis(tx, user, devisId);
-      const factures = await tx.facture.findMany({ where: { devisId, statut: { not: 'ANNULEE' } } });
+      const factures = await tx.facture.findMany({
+        where: { devisId, statut: { not: 'ANNULEE' } },
+      });
 
       if (factures.some((f) => f.typeFacture === 'FINALE')) {
-        throw new BusinessException('FINALE_EXISTANTE', 'La facture finale existe déjà pour ce devis.');
+        throw new BusinessException(
+          'FINALE_EXISTANTE',
+          'La facture finale existe déjà pour ce devis.',
+        );
       }
-      const anterieures = factures.filter((f) => f.typeFacture === 'ACOMPTE' || f.typeFacture === 'SITUATION');
+      const anterieures = factures.filter(
+        (f) => f.typeFacture === 'ACOMPTE' || f.typeFacture === 'SITUATION',
+      );
       if (anterieures.some((f) => f.statut === 'BROUILLON')) {
         throw new BusinessException(
           'FACTURE_EN_BROUILLON',
@@ -153,7 +218,10 @@ export class FacturesService {
         );
       }
 
-      const lignesDevis = await tx.ligneDevis.findMany({ where: { devisId }, orderBy: { ordre: 'asc' } });
+      const lignesDevis = await tx.ligneDevis.findMany({
+        where: { devisId },
+        orderBy: { ordre: 'asc' },
+      });
       const lines: InvoiceLine[] = lignesDevis.map((l) =>
         buildLine({
           description: l.description ?? 'Prestation',
@@ -175,7 +243,10 @@ export class FacturesService {
         );
       }
       // Guard: never bill more than the quote
-      finaleHT(devis.totalHT, anterieures.filter((f) => ISSUED.includes(f.statut)).map((f) => f.montantHT));
+      finaleHT(
+        devis.totalHT,
+        anterieures.filter((f) => ISSUED.includes(f.statut)).map((f) => f.montantHT),
+      );
       return (await this.createDraft(tx, devis, 'FINALE', lines)).id;
     });
     return this.findOne(user, id);
@@ -208,7 +279,15 @@ export class FacturesService {
       this.prisma.facture.findMany({
         where,
         orderBy: { createdAt: 'desc' },
-        include: { devis: { select: { id: true, reference: true, client: { select: { id: true, nom: true, prenom: true } } } } },
+        include: {
+          devis: {
+            select: {
+              id: true,
+              reference: true,
+              client: { select: { id: true, nom: true, prenom: true } },
+            },
+          },
+        },
         ...toSkipTake(query),
       }),
       this.prisma.facture.count({ where }),
@@ -217,9 +296,13 @@ export class FacturesService {
   }
 
   async findOne(user: AuthUser, id: number) {
-    const facture = await this.prisma.facture.findFirst({ where: { id, ...this.scope(user) }, include: INCLUDE });
+    const facture = await this.prisma.facture.findFirst({
+      where: { id, ...this.scope(user) },
+      include: INCLUDE,
+    });
     if (!facture) throw new NotFoundException(`Facture #${id} introuvable`);
-    if (await completerQrFacture(this.prisma, facture)) return this.prisma.facture.findUniqueOrThrow({ where: { id }, include: INCLUDE });
+    if (await completerQrFacture(this.prisma, facture))
+      return this.prisma.facture.findUniqueOrThrow({ where: { id }, include: INCLUDE });
     return facture;
   }
 
@@ -227,7 +310,11 @@ export class FacturesService {
   async findPublic(token: string) {
     if (!token || token.length > 100) throw new NotFoundException('Facture introuvable');
     const facture = await this.prisma.facture.findFirst({
-      where: { lienPublicToken: token, statut: { in: ['ENVOYEE', 'PAYEE', 'ANNULEE'] }, reference: { not: null } },
+      where: {
+        lienPublicToken: token,
+        statut: { in: ['ENVOYEE', 'PAYEE', 'ANNULEE'] },
+        reference: { not: null },
+      },
       select: { ...FACTURE_CLIENT_SELECT, company: { select: { logo: true } } },
     });
     if (!facture) throw new NotFoundException('Facture introuvable');
@@ -247,7 +334,9 @@ export class FacturesService {
     await this.prisma.$transaction(async (tx) => {
       const facture = await this.getDraft(user, id, tx);
       const ordre = await tx.factureLigne.count({ where: { factureId: id } });
-      await tx.factureLigne.create({ data: { ...buildLine({ ...dto, tauxTVA: facture.tauxTVA }), factureId: id, ordre } });
+      await tx.factureLigne.create({
+        data: { ...buildLine({ ...dto, tauxTVA: facture.tauxTVA }), factureId: id, ordre },
+      });
       await this.recalculate(tx, id);
     });
     return this.findOne(user, id);
@@ -290,7 +379,8 @@ export class FacturesService {
   async emettre(user: AuthUser, id: number, dto: EmettreFactureDto) {
     await this.prisma.$transaction(async (tx) => {
       const facture = await this.getDraft(user, id, tx);
-      if (facture.montantHT.isZero()) throw new BusinessException('FACTURE_VIDE', 'Une facture à 0 € ne peut pas être émise.');
+      if (facture.montantHT.isZero())
+        throw new BusinessException('FACTURE_VIDE', 'Une facture à 0 € ne peut pas être émise.');
       await this.issue(tx, facture.id, facture.statut, facture.companyId, facture.dateEcheance);
     });
     const facture = await this.findOne(user, id);
@@ -304,7 +394,10 @@ export class FacturesService {
   async envoyerEmail(user: AuthUser, id: number): Promise<boolean> {
     const facture = await this.findOne(user, id);
     if (!ISSUED.includes(facture.statut) || !facture.reference) {
-      throw new BusinessException('FACTURE_NON_EMISE', 'Seule une facture émise peut être envoyée.');
+      throw new BusinessException(
+        'FACTURE_NON_EMISE',
+        'Seule une facture émise peut être envoyée.',
+      );
     }
     if (!facture.emailClient) return false;
     const sent = await this.mail.send(
@@ -320,14 +413,18 @@ export class FacturesService {
     );
     // Shown on the invoice (« Envoyée le … à … »): was never recorded before 20/10 (bug B1)
     if (sent) {
-      await this.prisma.facture.update({ where: { id }, data: { dateEnvoiClient: new Date(), emailEnvoiClient: facture.emailClient } });
+      await this.prisma.facture.update({
+        where: { id },
+        data: { dateEnvoiClient: new Date(), emailEnvoiClient: facture.emailClient },
+      });
     }
     return sent;
   }
 
   async marquerPayee(user: AuthUser, id: number, dto: PayerFactureDto) {
     const facture = await this.findOne(user, id);
-    if (facture.typeFacture === 'AVOIR') throw new BusinessException('AVOIR', 'Un avoir ne se « paie » pas.');
+    if (facture.typeFacture === 'AVOIR')
+      throw new BusinessException('AVOIR', 'Un avoir ne se « paie » pas.');
     await this.transition(this.prisma, facture, 'PAYEE', {
       datePaiement: dto.datePaiement ? new Date(dto.datePaiement) : new Date(),
       referencePaiement: dto.referencePaiement,
@@ -343,9 +440,13 @@ export class FacturesService {
    */
   async annuler(user: AuthUser, id: number, dto: AnnulerFactureDto) {
     const avoirId = await this.prisma.$transaction(async (tx) => {
-      const facture = await tx.facture.findFirst({ where: { id, companyId: user.companyId }, include: { lignes: true } });
+      const facture = await tx.facture.findFirst({
+        where: { id, companyId: user.companyId },
+        include: { lignes: true },
+      });
       if (!facture) throw new NotFoundException(`Facture #${id} introuvable`);
-      if (facture.typeFacture === 'AVOIR') throw new BusinessException('AVOIR', 'Un avoir ne s’annule pas.');
+      if (facture.typeFacture === 'AVOIR')
+        throw new BusinessException('AVOIR', 'Un avoir ne s’annule pas.');
 
       if (facture.statut === 'BROUILLON') {
         await this.transition(tx, facture, 'ANNULEE');
@@ -355,7 +456,15 @@ export class FacturesService {
 
       const devis = await tx.devis.findUniqueOrThrow({ where: { id: facture.devisId } });
       const lines = facture.lignes.map((l) =>
-        negate(buildLine({ description: l.description, quantite: l.quantite, unite: l.unite, prixUnitaireHT: l.prixUnitaireHT, tauxTVA: l.tauxTVA })),
+        negate(
+          buildLine({
+            description: l.description,
+            quantite: l.quantite,
+            unite: l.unite,
+            prixUnitaireHT: l.prixUnitaireHT,
+            tauxTVA: l.tauxTVA,
+          }),
+        ),
       );
       const avoir = await this.createDraft(tx, devis, 'AVOIR', lines, {
         factureOrigineId: facture.id,
@@ -375,7 +484,13 @@ export class FacturesService {
   private emit(
     event: string,
     user: AuthUser,
-    f: { id: number; companyId: number; reference: string | null; typeFacture: FactureType; montantTTC: Prisma.Decimal },
+    f: {
+      id: number;
+      companyId: number;
+      reference: string | null;
+      typeFacture: FactureType;
+      montantTTC: Prisma.Decimal;
+    },
   ) {
     this.events.emit(event, {
       companyId: f.companyId,
@@ -408,7 +523,13 @@ export class FacturesService {
     });
   }
 
-  private async issue(tx: DbClient, id: number, from: FactureStatut, companyId: number, dateEcheance: Date | null) {
+  private async issue(
+    tx: DbClient,
+    id: number,
+    from: FactureStatut,
+    companyId: number,
+    dateEcheance: Date | null,
+  ) {
     const facture = await tx.facture.findUniqueOrThrow({
       where: { id },
       include: { devis: { include: { client: true, company: true } } },
@@ -448,20 +569,36 @@ export class FacturesService {
     data: Prisma.FactureUpdateManyMutationInput = {},
   ) {
     FactureMachine.assert(facture.statut, to);
-    const { count } = await db.facture.updateMany({ where: { id: facture.id, statut: facture.statut }, data: { ...data, statut: to } });
-    if (!count) throw new BusinessException('FACTURE_MODIFIEE', 'La facture vient de changer de statut. Rechargez.');
+    const { count } = await db.facture.updateMany({
+      where: { id: facture.id, statut: facture.statut },
+      data: { ...data, statut: to },
+    });
+    if (!count)
+      throw new BusinessException(
+        'FACTURE_MODIFIEE',
+        'La facture vient de changer de statut. Rechargez.',
+      );
   }
 
   private async recalculate(db: DbClient, factureId: number) {
-    const facture = await db.facture.findUniqueOrThrow({ where: { id: factureId }, include: { lignes: true } });
-    await db.facture.update({ where: { id: factureId }, data: invoiceTotals(facture.lignes, facture.tauxTVA) });
+    const facture = await db.facture.findUniqueOrThrow({
+      where: { id: factureId },
+      include: { lignes: true },
+    });
+    await db.facture.update({
+      where: { id: factureId },
+      data: invoiceTotals(facture.lignes, facture.tauxTVA),
+    });
   }
 
   private async getDraft(user: AuthUser, id: number, db: DbClient = this.prisma) {
     const facture = await db.facture.findFirst({ where: { id, companyId: user.companyId } });
     if (!facture) throw new NotFoundException(`Facture #${id} introuvable`);
     if (facture.statut !== 'BROUILLON') {
-      throw new BusinessException('FACTURE_EMISE', 'Une facture émise ne se modifie plus : annulez-la (avoir) si nécessaire.');
+      throw new BusinessException(
+        'FACTURE_EMISE',
+        'Une facture émise ne se modifie plus : annulez-la (avoir) si nécessaire.',
+      );
     }
     return facture;
   }
@@ -469,7 +606,8 @@ export class FacturesService {
   private async getSignedDevis(db: DbClient, user: AuthUser, devisId: number) {
     const devis = await db.devis.findFirst({ where: { id: devisId, companyId: user.companyId } });
     if (!devis) throw new NotFoundException(`Devis #${devisId} introuvable`);
-    if (devis.statut !== 'SIGNE') throw new BusinessException('DEVIS_NON_SIGNE', 'Seul un devis signé se facture.');
+    if (devis.statut !== 'SIGNE')
+      throw new BusinessException('DEVIS_NON_SIGNE', 'Seul un devis signé se facture.');
     return devis;
   }
 
@@ -479,7 +617,11 @@ export class FacturesService {
    */
   private scope(user: AuthUser): Prisma.FactureWhereInput {
     return user.role === Role.CHEF_CHANTIER
-      ? { companyId: user.companyId, statut: { not: 'BROUILLON' }, devis: { chantier: { chefChantierId: user.id } } }
+      ? {
+          companyId: user.companyId,
+          statut: { not: 'BROUILLON' },
+          devis: { chantier: { chefChantierId: user.id } },
+        }
       : { companyId: user.companyId };
   }
 }

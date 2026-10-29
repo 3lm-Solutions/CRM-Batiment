@@ -1,7 +1,7 @@
 import { BusinessException } from '../exceptions/business.exception';
 import { defineStateMachine } from './state-machine';
 
-const M = defineStateMachine('TEST', 'objet', { A: ['B'], B: ['C', 'A'], C: [] } as Record<'A' | 'B' | 'C', ('A' | 'B' | 'C')[]>);
+const M = defineStateMachine('TEST', 'objet', { A: ['B'], B: ['C', 'A'], C: [] });
 
 describe('defineStateMachine', () => {
   it('allows declared transitions only', () => {

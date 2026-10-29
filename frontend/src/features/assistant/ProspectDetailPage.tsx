@@ -1,4 +1,4 @@
-import { ArrowLeft, Bot, CheckCircle2, Mail, RotateCcw, Save, User, XCircle } from 'lucide-react';
+import { ArrowLeft, Bot, Building2, CheckCircle2, Mail, RotateCcw, Save, User, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -6,7 +6,44 @@ import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Input, Load
 import { errorMessage } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatDateTime, fullName } from '@/lib/format';
-import { useProspect, useQualifierProspect, useRejeterProspect, useRouvrirProspect, useUpdateProspect, type Prospect } from './api';
+import { useProspect, useQualifierProspect, useRejeterProspect, useRouvrirProspect, useUpdateProspect, type Prospect, type QualificationInput } from './api';
+
+/** 29/10: private person or company, chosen when qualifying (editable later in « Prospects »). */
+const CATEGORIES = [
+  { value: 'PARTICULIER', label: 'Particulier', hint: 'Une personne', icon: User },
+  { value: 'PROFESSIONNEL', label: 'Professionnel', hint: 'Une entreprise', icon: Building2 },
+] as const;
+const QUALIF_VIDE = { typeClient: 'PARTICULIER' as 'PARTICULIER' | 'PROFESSIONNEL', raisonSociale: '', siret: '', tvaIntracom: '', contactFonction: '' };
+const compact = (s: string) => s.replace(/[\s.-]+/g, '');
+
+/** What the qualification sends: the company fields only for a professional client. */
+function qualificationBody(q: typeof QUALIF_VIDE): QualificationInput {
+  if (q.typeClient !== 'PROFESSIONNEL') return { typeClient: 'PARTICULIER' };
+  return {
+    typeClient: 'PROFESSIONNEL',
+    raisonSociale: q.raisonSociale.trim(),
+    siret: compact(q.siret) || null,
+    tvaIntracom: compact(q.tvaIntracom).toUpperCase() || null,
+    contactFonction: q.contactFonction.trim() || null,
+  };
+}
+
+/** 29/10: what is still missing before the qualification (same rule as the server). */
+function champsManquants(p: Prospect): string[] {
+  const manque: string[] = [];
+  if (!p.clientNom?.trim()) manque.push('le nom');
+  if (!p.clientEmail?.trim() && !p.clientTelephone?.trim()) manque.push('un téléphone ou un email');
+  if ((p.description ?? '').trim().length < 10) manque.push('le besoin (10 caractères au moins)');
+  return manque;
+}
+
+/** Error of the company fields, checked before sending (the server checks them again). */
+function erreurQualification(q: typeof QUALIF_VIDE): string | null {
+  if (q.typeClient !== 'PROFESSIONNEL') return null;
+  if (!q.raisonSociale.trim()) return 'Indiquez la raison sociale de l’entreprise.';
+  if (q.siret.trim() && !/^\d{14}$/.test(compact(q.siret))) return 'Le SIRET doit contenir 14 chiffres.';
+  return null;
+}
 
 const EMPTY = { clientNom: '', clientPrenom: '', clientEmail: '', clientTelephone: '', adresse: '', typeProjet: '', description: '', notesInternes: '' };
 
@@ -76,11 +113,14 @@ export function ProspectDetailPage() {
   const rouvrir = useRouvrirProspect(id);
   const [dialog, setDialog] = useState<'qualifier' | 'rejeter' | null>(null);
   const [motif, setMotif] = useState('');
+  const [qualif, setQualif] = useState(QUALIF_VIDE);
+  const setQ = (k: keyof typeof QUALIF_VIDE) => (e: { target: { value: string } }) => setQualif((s) => ({ ...s, [k]: e.target.value }));
 
   if (prospect.isPending) return <Loading />;
   if (prospect.isError) return <ErrorState error={prospect.error} onRetry={() => void prospect.refetch()} />;
   const p = prospect.data;
   const onError = (e: unknown) => toast.error(errorMessage(e));
+  const manque = champsManquants(p);
   const nom = p.clientNom ? fullName({ nom: p.clientNom, prenom: p.clientPrenom }) : 'Prospect anonyme';
 
   return (
@@ -104,7 +144,15 @@ export function ProspectDetailPage() {
           <>
             {(p.statut === 'A_QUALIFIER' || p.statut === 'NOUVEAU') && (
               <>
-                <Button variant="success" icon={<CheckCircle2 className="size-4" />} onClick={() => setDialog('qualifier')}>Qualifier → demande de devis</Button>
+                <Button
+                  variant="success"
+                  icon={<CheckCircle2 className="size-4" />}
+                  disabled={manque.length > 0}
+                  title={manque.length ? `Il manque ${manque.join(', ')}` : undefined}
+                  onClick={() => { setQualif(QUALIF_VIDE); setDialog('qualifier'); }}
+                >
+                  Qualifier → demande de devis
+                </Button>
                 <Button variant="outline" icon={<XCircle className="size-4" />} onClick={() => setDialog('rejeter')}>Rejeter</Button>
               </>
             )}
@@ -116,6 +164,12 @@ export function ProspectDetailPage() {
           </>
         }
       />
+
+      {manque.length > 0 && (p.statut === 'NOUVEAU' || p.statut === 'A_QUALIFIER') && (
+        <p role="status" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Pour qualifier, il manque {manque.join(', ')}. Lisez la conversation à droite, complétez la fiche puis « Enregistrer ».
+        </p>
+      )}
 
       {(p.client || p.doublonDe || p.demandeDevis || p.motifRejet) && (
         <div className="mb-6 space-y-2">
@@ -167,22 +221,73 @@ export function ProspectDetailPage() {
         message={
           p.client
             ? `Une demande de devis est créée pour le client existant ${fullName(p.client)}.`
-            : 'Le client est retrouvé par email ou téléphone, sinon créé à partir de la fiche ; une demande de devis (origine Chatbot) est créée.'
+            : `Le prospect qualifié apparaît dans « Prospects » (retrouvé par email ou téléphone, sinon créé) ; une demande de devis (origine ${p.source === 'EMAIL' ? 'Email' : 'Chatbot'}) est créée.`
         }
-        confirmLabel="Créer la demande de devis"
+        confirmLabel="Qualifier et créer la demande"
         loading={qualifier.isPending}
-        onConfirm={() =>
-          qualifier.mutate(undefined, {
+        onConfirm={() => {
+          const erreur = p.client ? null : erreurQualification(qualif);
+          if (erreur) return void toast.error(erreur);
+          qualifier.mutate(p.client ? {} : qualificationBody(qualif), {
             onSuccess: (r) => {
-              toast.success(`Demande ${r.demande.reference} créée`);
+              toast.success(`Demande ${r.demande.reference} créée — le prospect est dans « Prospects »`);
               setDialog(null);
               navigate('/demandes');
             },
             onError,
-          })
-        }
+          });
+        }}
       >
-        {p.typeProjet && <Badge tone="blue">{p.typeProjet}</Badge>}
+        <div className="space-y-4">
+          {p.typeProjet && <Badge tone="blue">{p.typeProjet}</Badge>}
+          {!p.client && (
+            <>
+              <div role="radiogroup" aria-label="Type de client" className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {CATEGORIES.map((c) => {
+                  const actif = qualif.typeClient === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={actif}
+                      onClick={() => setQualif((s) => ({ ...s, typeClient: c.value }))}
+                      className={cn(
+                        'flex items-center gap-3 rounded-xl border-2 p-3 text-left transition',
+                        actif
+                          ? 'border-brand-700 bg-brand-100/60 dark:border-blue-400 dark:bg-slate-800'
+                          : 'border-slate-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/60',
+                      )}
+                    >
+                      <c.icon className={cn('size-5', actif ? 'text-brand-700 dark:text-blue-300' : 'text-slate-400')} />
+                      <span>
+                        <span className="block text-sm font-semibold">{c.label}</span>
+                        <span className="block text-xs text-slate-500">{c.hint}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {qualif.typeClient === 'PROFESSIONNEL' && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Input label="Raison sociale" required containerClassName="sm:col-span-2" maxLength={150} value={qualif.raisonSociale} onChange={setQ('raisonSociale')} />
+                  <Input label="SIRET" hint="Facultatif — 14 chiffres" inputMode="numeric" maxLength={20} value={qualif.siret} onChange={setQ('siret')} />
+                  <Input label="N° TVA intracommunautaire" hint="Facultatif" maxLength={20} value={qualif.tvaIntracom} onChange={setQ('tvaIntracom')} />
+                  <Input
+                    label={`Fonction de ${p.clientNom ? fullName({ nom: p.clientNom, prenom: p.clientPrenom }) : 'la personne'}`}
+                    hint="Devient la personne à contacter"
+                    containerClassName="sm:col-span-2"
+                    maxLength={100}
+                    placeholder="Ex. : Gérant, Responsable travaux"
+                    value={qualif.contactFonction}
+                    onChange={setQ('contactFonction')}
+                  />
+                </div>
+              )}
+              <p className="text-xs text-slate-500">Modifiable ensuite dans la fiche du prospect (menu « Prospects »).</p>
+            </>
+          )}
+        </div>
       </ConfirmDialog>
       <ConfirmDialog
         open={dialog === 'rejeter'}

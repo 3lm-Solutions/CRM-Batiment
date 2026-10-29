@@ -19,7 +19,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  const app = await NestFactory.createApplicationContext(AppModule, { logger: ['error', 'warn', 'log'] });
+  const app = await NestFactory.createApplicationContext(AppModule, {
+    logger: ['error', 'warn', 'log'],
+  });
   try {
     const sandbox = app.get(SandboxService);
     const resume = command === 'reset' ? await sandbox.reset() : await sandbox.loadExamples();

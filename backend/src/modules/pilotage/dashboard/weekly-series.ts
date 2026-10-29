@@ -22,7 +22,11 @@ export function weekStart(date: Date): Date {
  * "Devis envoyés / acceptés / refusés" chart: one point per week, oldest first, including
  * empty weeks (a missing week would distort the chart). Quotes are bucketed by send date.
  */
-export function weeklySeries(rows: { dateEnvoi: Date; statut: DevisStatut }[], now: Date, weeks: number): WeekPoint[] {
+export function weeklySeries(
+  rows: { dateEnvoi: Date; statut: DevisStatut }[],
+  now: Date,
+  weeks: number,
+): WeekPoint[] {
   const first = weekStart(now);
   first.setUTCDate(first.getUTCDate() - 7 * (weeks - 1));
 

@@ -22,6 +22,9 @@ describe('Démo en ligne (e2e) — instance normale', () => {
 
   it('refuses the password-less login (404), for every role', async () => {
     await request(t.http).post('/api/v1/public/demo/connexion').send({ role: 'ADMIN' }).expect(404);
-    await request(t.http).post('/api/v1/public/demo/connexion').send({ role: 'PIRATE' }).expect(400);
+    await request(t.http)
+      .post('/api/v1/public/demo/connexion')
+      .send({ role: 'PIRATE' })
+      .expect(400);
   });
 });

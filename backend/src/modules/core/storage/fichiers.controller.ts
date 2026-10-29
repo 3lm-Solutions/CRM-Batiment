@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Header, Param, ParseIntPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Param,
+  ParseIntPipe,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ALL_ROLES, type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
@@ -16,9 +26,19 @@ export class FichiersController {
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ schema: { type: 'object', required: ['file'], properties: { file: { type: 'string', format: 'binary' }, chantierId: { type: 'integer' } } } })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: { file: { type: 'string', format: 'binary' }, chantierId: { type: 'integer' } },
+    },
+  })
   @ApiOperation({ summary: 'Déposer un fichier (JPG, PNG, WebP, PDF)' })
-  upload(@CurrentUser() user: AuthUser, @UploadedFile() file: UploadedBinary | undefined, @Body() dto: UploadFichierDto) {
+  upload(
+    @CurrentUser() user: AuthUser,
+    @UploadedFile() file: UploadedBinary | undefined,
+    @Body() dto: UploadFichierDto,
+  ) {
     return this.fichiers.create(user, file, { chantierId: dto.chantierId });
   }
 
@@ -33,7 +53,10 @@ export class FichiersController {
   @Get(':id/contenu')
   @Header('Cache-Control', 'private, max-age=300')
   @Header('X-Content-Type-Options', 'nosniff')
-  @Header('Content-Security-Policy', "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox")
+  @Header(
+    'Content-Security-Policy',
+    "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
+  )
   download(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.fichiers.download(user, id);
   }

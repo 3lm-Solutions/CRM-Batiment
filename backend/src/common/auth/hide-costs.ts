@@ -27,7 +27,15 @@ const isPlain = (v: unknown): v is Record<string, unknown> => {
  * receives deliveries and rates sous-traitants, he never sees what they cost.
  * `paiements` goes as a whole: a payment list without amounts means nothing.
  */
-const AMOUNT_KEYS = new Set([...COST_KEYS, 'totalHT', 'totalTTC', 'montantHT', 'montantTTC', 'montantTVA', 'paiements']);
+const AMOUNT_KEYS = new Set([
+  ...COST_KEYS,
+  'totalHT',
+  'totalTTC',
+  'montantHT',
+  'montantTTC',
+  'montantTVA',
+  'paiements',
+]);
 
 function strip<T>(data: T, keys: Set<string>): T {
   if (Array.isArray(data)) return data.map((item) => strip(item, keys)) as T;
@@ -58,7 +66,10 @@ export async function costsFor<T>(user: Pick<AuthUser, 'role'>, data: T | Promis
 }
 
 /** Same for supplier orders and sous-traitants: no amount at all for a chef de chantier. */
-export async function amountsFor<T>(user: Pick<AuthUser, 'role'>, data: T | Promise<T>): Promise<T> {
+export async function amountsFor<T>(
+  user: Pick<AuthUser, 'role'>,
+  data: T | Promise<T>,
+): Promise<T> {
   const value = await data;
   return seesCosts(user) ? value : stripAmounts(value);
 }

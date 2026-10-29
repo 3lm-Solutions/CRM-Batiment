@@ -20,7 +20,14 @@ export class AuditController {
 
   @Get(':entite/:entiteId')
   @ApiOperation({ summary: 'Historique d’un élément, ex. /audit/Devis/42' })
-  forEntity(@CurrentUser() user: AuthUser, @Param('entite') entite: string, @Param('entiteId', ParseIntPipe) entiteId: number) {
-    return this.audit.findAll(user, Object.assign(new QueryAuditDto(), { entite, entiteId, page: 1, limit: 100 }));
+  forEntity(
+    @CurrentUser() user: AuthUser,
+    @Param('entite') entite: string,
+    @Param('entiteId', ParseIntPipe) entiteId: number,
+  ) {
+    return this.audit.findAll(
+      user,
+      Object.assign(new QueryAuditDto(), { entite, entiteId, page: 1, limit: 100 }),
+    );
   }
 }

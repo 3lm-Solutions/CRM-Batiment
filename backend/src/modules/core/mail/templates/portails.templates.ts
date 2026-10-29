@@ -5,7 +5,12 @@ const button = (url: string, label: string) =>
   `<p style="margin:24px 0;"><a href="${escapeHtml(url)}" style="background:#1f3a5f;color:#fff;padding:12px 20px;text-decoration:none;display:inline-block;">${escapeHtml(label)}</a></p>`;
 
 /** Link to the client's online space (quotes, invoices, job-site progress, after-sales). */
-export function espaceClientMail(p: { clientNom: string; entreprise: string; url: string; expiresAt: Date }): RenderedMail {
+export function espaceClientMail(p: {
+  clientNom: string;
+  entreprise: string;
+  url: string;
+  expiresAt: Date;
+}): RenderedMail {
   const subject = `Votre espace client — ${p.entreprise}`;
   const html = layout(
     'Votre espace client',
@@ -48,11 +53,14 @@ export function savSuiviClientMail(p: {
   /** false: the client never received (or no longer has) a client-space link */
   avecEspaceClient?: boolean;
 }): RenderedMail {
-  const suite = p.avecEspaceClient === false
-    ? `Pour toute question sur cette demande, contactez ${p.entreprise}.`
-    : `Vous pouvez suivre son avancement et nous répondre depuis votre espace client (lien personnel reçu de ${p.entreprise}).`;
-  const etat = p.statut ? SAV_STATUT_CLIENT[p.statut] ?? p.statut : null;
-  const subject = etat ? `Votre demande ${p.reference} est ${etat}` : `Réponse à votre demande ${p.reference}`;
+  const suite =
+    p.avecEspaceClient === false
+      ? `Pour toute question sur cette demande, contactez ${p.entreprise}.`
+      : `Vous pouvez suivre son avancement et nous répondre depuis votre espace client (lien personnel reçu de ${p.entreprise}).`;
+  const etat = p.statut ? (SAV_STATUT_CLIENT[p.statut] ?? p.statut) : null;
+  const subject = etat
+    ? `Votre demande ${p.reference} est ${etat}`
+    : `Réponse à votre demande ${p.reference}`;
   const html = layout(
     'Suivi de votre demande',
     `<p>Bonjour ${escapeHtml(p.clientNom)},</p>
@@ -105,7 +113,9 @@ export function retourReponseClientMail(p: {
     '',
     'Notre réponse :',
     p.reponse,
-    ...(p.traite ? ['', 'Nous considérons ce point comme traité. N’hésitez pas à nous réécrire si besoin.'] : []),
+    ...(p.traite
+      ? ['', 'Nous considérons ce point comme traité. N’hésitez pas à nous réécrire si besoin.']
+      : []),
     '',
     suite,
   ].join('\n');
@@ -113,7 +123,14 @@ export function retourReponseClientMail(p: {
 }
 
 /** Étape 5 (26/10): alert sent by a client from his space — emailed to the chef of the job site. */
-export function alerteClientChefMail(p: { chefNom: string; clientNom: string; chantier: string; objet: string; message: string; url: string }): RenderedMail {
+export function alerteClientChefMail(p: {
+  chefNom: string;
+  clientNom: string;
+  chantier: string;
+  objet: string;
+  message: string;
+  url: string;
+}): RenderedMail {
   const subject = `⚠ Alerte client — chantier ${p.chantier}`;
   const html = layout(
     'Alerte envoyée par un client',
@@ -122,6 +139,13 @@ export function alerteClientChefMail(p: { chefNom: string; clientNom: string; ch
      <blockquote style="margin:16px 0;padding:12px 16px;background:#fef2f2;border-left:3px solid #b91c1c;white-space:pre-line;">${escapeHtml(p.message)}</blockquote>
      ${button(p.url, 'Voir et répondre')}`,
   );
-  const text = [`Bonjour ${p.chefNom},`, '', `${p.clientNom} signale un problème sur ${p.objet} (chantier ${p.chantier}) :`, p.message, '', `Voir et répondre : ${p.url}`].join('\n');
+  const text = [
+    `Bonjour ${p.chefNom},`,
+    '',
+    `${p.clientNom} signale un problème sur ${p.objet} (chantier ${p.chantier}) :`,
+    p.message,
+    '',
+    `Voir et répondre : ${p.url}`,
+  ].join('\n');
   return { subject, html, text };
 }

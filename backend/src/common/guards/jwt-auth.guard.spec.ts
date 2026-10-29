@@ -10,7 +10,14 @@ import { extractBearerToken, JwtAuthGuard } from './jwt-auth.guard';
 
 const jwt = new JwtService({ secret: 'unit-test-secret-'.padEnd(40, 'x') });
 
-const dbUser = {
+const dbUser: {
+  id: number;
+  email: string;
+  role: Role;
+  companyId: number;
+  actif: boolean;
+  tokenVersion: number;
+} = {
   id: 7,
   email: 'a@b.fr',
   role: Role.TECHNICO,
@@ -25,7 +32,11 @@ function makeGuard(options: { dbUser?: typeof dbUser | null; allowPasswordChange
       key === ALLOW_PASSWORD_CHANGE_TOKEN_KEY ? (options.allowPasswordChange ?? false) : false,
   } as unknown as Reflector;
   const prisma = {
-    user: { findUnique: jest.fn().mockResolvedValue(options.dbUser === undefined ? dbUser : options.dbUser) },
+    user: {
+      findUnique: jest
+        .fn()
+        .mockResolvedValue(options.dbUser === undefined ? dbUser : options.dbUser),
+    },
   } as unknown as PrismaService;
   return new JwtAuthGuard(reflector, new SessionValidator(jwt, prisma));
 }
@@ -78,9 +89,9 @@ describe('JwtAuthGuard', () => {
   });
 
   it('rejects a token issued before a password change (tokenVersion)', async () => {
-    await expect(makeGuard().canActivate(ctxWith(tokenFor({ tokenVersion: 2 })).ctx)).rejects.toThrow(
-      UnauthorizedException,
-    );
+    await expect(
+      makeGuard().canActivate(ctxWith(tokenFor({ tokenVersion: 2 })).ctx),
+    ).rejects.toThrow(UnauthorizedException);
   });
 
   it('rejects a password-change token on a normal route', async () => {

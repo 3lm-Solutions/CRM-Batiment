@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { type AuthUser, BusinessException } from '../../../common';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateTypeProjetDto, QueryTypesProjetDto, UpdateTypeProjetDto } from './dto/types-projet.dto';
+import {
+  CreateTypeProjetDto,
+  QueryTypesProjetDto,
+  UpdateTypeProjetDto,
+} from './dto/types-projet.dto';
 
 const INCLUDE = {
   categories: {
@@ -64,7 +68,10 @@ export class TypesProjetService {
       where: { id },
       data: {
         ...data,
-        categories: categorieIds !== undefined ? { deleteMany: {}, create: toLinks(categorieIds) } : undefined,
+        categories:
+          categorieIds !== undefined
+            ? { deleteMany: {}, create: toLinks(categorieIds) }
+            : undefined,
       },
       include: INCLUDE,
     });
@@ -79,9 +86,14 @@ export class TypesProjetService {
 
   private async assertCategories(companyId: number, ids: number[] | undefined): Promise<void> {
     if (!ids?.length) return;
-    const found = await this.prisma.categoriePrestation.count({ where: { id: { in: ids }, companyId, actif: true } });
+    const found = await this.prisma.categoriePrestation.count({
+      where: { id: { in: ids }, companyId, actif: true },
+    });
     if (found !== ids.length) {
-      throw new BusinessException('CATEGORIE_INVALIDE', 'Une ou plusieurs catégories sont introuvables ou inactives.');
+      throw new BusinessException(
+        'CATEGORIE_INVALIDE',
+        'Une ou plusieurs catégories sont introuvables ou inactives.',
+      );
     }
   }
 }

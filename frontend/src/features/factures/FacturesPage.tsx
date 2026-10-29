@@ -16,9 +16,9 @@ const TABS: { value: string; label: string; statuts?: FactureStatut[] }[] = [
 export function FacturesPage() {
   const navigate = useNavigate();
   const { hasRole } = useAuth();
-  const isBureau = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
-  // The chef only sees issued invoices of his job sites: no « Brouillons » tab for him
-  const tabs = isBureau ? TABS : TABS.filter((t) => t.value !== 'draft');
+  // 29/10: office only (the chef de chantier has no access); the technico reads, ADMIN / ASSISTANTE invoice
+  const lectureSeule = !hasRole('ADMIN', 'ASSISTANTE');
+  const tabs = TABS;
   const [tab, setTab] = useState('unpaid');
   const [query, setQuery] = useState<FacturesQuery>({ page: 1, search: '', type: '', statuts: TABS[0].statuts });
   const factures = useFactures(query);
@@ -27,7 +27,7 @@ export function FacturesPage() {
     <>
       <PageHeader
         title="Factures"
-        description={isBureau ? 'Acomptes, situations de travaux, factures finales et avoirs. Les factures se créent depuis un devis signé.' : 'Factures émises pour vos chantiers (consultation).'}
+        description={`Acomptes, situations de travaux, factures finales et avoirs. Les factures se créent depuis un devis signé.${lectureSeule ? ' Consultation seulement pour votre rôle.' : ''}`}
       />
       <Tabs
         value={tab}

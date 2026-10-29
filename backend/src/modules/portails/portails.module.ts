@@ -3,7 +3,10 @@ import { UploadMulterModule } from '../core/storage/upload.config';
 import { ChantiersModule } from '../execution/chantiers/chantiers.module';
 import { RetoursClientModule } from '../pilotage/retours-client/retours-client.module';
 import { SavModule } from '../pilotage/sav/sav.module';
-import { EspaceClientAdminController, EspaceClientPublicController } from './espace-client/espace-client.controller';
+import {
+  EspaceClientAdminController,
+  EspaceClientPublicController,
+} from './espace-client/espace-client.controller';
 import { EspaceClientService } from './espace-client/espace-client.service';
 import { PortailFournisseurController } from './fournisseur/portail-fournisseur.controller';
 import { PortailFournisseurService } from './fournisseur/portail-fournisseur.service';
@@ -28,6 +31,11 @@ import { PortailSousTraitantService } from './sous-traitant/portail-sous-traitan
     EspaceClientAdminController,
     EspaceClientPublicController,
   ],
-  providers: [PortailSousTraitantService, RapportsService, PortailFournisseurService, EspaceClientService],
+  providers: [
+    PortailSousTraitantService,
+    RapportsService,
+    PortailFournisseurService,
+    EspaceClientService,
+  ],
 })
 export class PortailsModule {}

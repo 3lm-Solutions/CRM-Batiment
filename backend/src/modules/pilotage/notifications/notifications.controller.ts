@@ -1,11 +1,30 @@
-import { Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsOptional } from 'class-validator';
-import { ALL_ROLES, type AuthUser, CurrentUser, PaginationQueryDto, Roles, ToBoolean } from '../../../common';
+import {
+  ALL_ROLES,
+  type AuthUser,
+  CurrentUser,
+  PaginationQueryDto,
+  Roles,
+  ToBoolean,
+} from '../../../common';
 import { NotificationsService } from './notifications.service';
 
 class QueryNotificationsDto extends PaginationQueryDto {
-  @ApiPropertyOptional() @IsOptional() @ToBoolean() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ToBoolean()
+  @IsBoolean()
   nonLues?: boolean;
 }
 
@@ -27,12 +46,14 @@ export class NotificationsController {
     return this.notifications.unreadCount(user);
   }
 
-  @Post('tout-lire') @HttpCode(HttpStatus.OK)
+  @Post('tout-lire')
+  @HttpCode(HttpStatus.OK)
   readAll(@CurrentUser() user: AuthUser) {
     return this.notifications.markAllRead(user);
   }
 
-  @Post(':id/lue') @HttpCode(HttpStatus.OK)
+  @Post(':id/lue')
+  @HttpCode(HttpStatus.OK)
   read(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.notifications.markRead(user, id);
   }

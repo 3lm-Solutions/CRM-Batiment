@@ -9,7 +9,8 @@ export const RENEWAL_WARNING_DAYS = 30;
  */
 export function assuranceStatut(dateExpiration: Date, now: Date = new Date()): AssuranceStatut {
   if (dateExpiration <= now) return 'EXPIREE';
-  if (dateExpiration.getTime() - now.getTime() <= RENEWAL_WARNING_DAYS * 86_400_000) return 'A_RENOUVELER';
+  if (dateExpiration.getTime() - now.getTime() <= RENEWAL_WARNING_DAYS * 86_400_000)
+    return 'A_RENOUVELER';
   return 'VALIDE';
 }
 

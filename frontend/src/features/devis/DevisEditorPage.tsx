@@ -232,7 +232,7 @@ export function DevisEditorPage() {
           description={
             <span className="flex flex-wrap items-center gap-2">
               <StatusBadge kind="devis" value={d.statut} />
-              <Link to={`/clients/${d.client.id}`} className="font-medium text-brand-700 hover:underline">{fullName(d.client)}</Link>
+              {isBureau ? <Link to={`/clients/${d.client.id}`} className="font-medium text-brand-700 hover:underline">{fullName(d.client)}</Link> : <span className="font-medium">{fullName(d.client)}</span>}
               {d.createur && <span>· par {d.createur.prenom} {d.createur.nom}</span>}
               {d.demandeDevis && <span>· demande {d.demandeDevis.reference}</span>}
               {d.chantier && <span>· chantier <Link to={`/chantiers/${d.chantier.id}`} className="font-medium text-brand-700 hover:underline">{d.chantier.reference}</Link></span>}
@@ -269,7 +269,7 @@ export function DevisEditorPage() {
                 )
               }
             />
-            <LignesTable devis={d} editable={editable} seuilMarge={settings.data?.seuilAlerteMargePourcent} />
+            <LignesTable devis={d} editable={editable} seuilMarge={settings.data?.seuilAlerteMargePourcent} prixMarche={isBureau} />
           </Card>
           <Notes devis={d} editable={editable} />
         </div>
@@ -284,7 +284,8 @@ export function DevisEditorPage() {
                 description={AWAITING_CLIENT.includes(d.statut) && !d.client.email ? 'Le client n’a pas d’email : relance impossible.' : 'Automatiques tant que le client n’a pas répondu'}
               />
             )}
-            {d.statut === 'SIGNE' && <DevisFacturesCard devisId={d.id} canWrite={isBureau} />}
+            {/* 29/10: invoices are office-only; the technico reads them, ADMIN / ASSISTANTE invoice */}
+            {isBureau && d.statut === 'SIGNE' && <DevisFacturesCard devisId={d.id} canWrite={hasRole('ADMIN', 'ASSISTANTE')} />}
             <Versions devis={d} />
           </div>
         )}

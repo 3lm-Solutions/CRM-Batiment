@@ -19,6 +19,7 @@ import { ClientsPage } from '@/features/clients/ClientsPage';
 import { CommandeDetailPage } from '@/features/commandes/CommandeDetailPage';
 import { CommandesPage } from '@/features/commandes/CommandesPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { PrixMarchePage } from '@/features/prix-marche/PrixMarchePage';
 import { DemandesPage } from '@/features/demandes/DemandesPage';
 import { DemoRequestsPage } from '@/features/demo/DemoRequestsPage';
 import { PublicDemoPage } from '@/features/demo/PublicDemoPage';
@@ -116,19 +117,20 @@ export const router = createBrowserRouter([
           page('assistant', BUREAU, <AssistantPage />, 'Assistant IA'),
           page('assistant/prospects/:id', BUREAU, <ProspectDetailPage />, 'Prospect'),
           page('demandes', BUREAU, <DemandesPage />, 'Demandes de devis'),
+          page('prix-marche', BUREAU, <PrixMarchePage />, 'Prix de marché'),
           page('devis', STAFF, <DevisListPage />, 'Devis'),
           page('devis/:id', STAFF, <DevisEditorPage />, 'Devis'),
-          page('prospects', STAFF, <ClientsPage mode="prospects" />, 'Prospects'),
-          page('clients', STAFF, <ClientsPage mode="clients" />, 'Clients'),
-          page('clients/:id', STAFF, <ClientDetailPage />, 'Fiche client'),
+          page('prospects', BUREAU, <ClientsPage mode="prospects" />, 'Prospects'),
+          page('clients', BUREAU, <ClientsPage mode="clients" />, 'Clients'),
+          page('clients/:id', BUREAU, <ClientDetailPage />, 'Fiche client'),
 
           // ── opérations ──
           page('chantiers', STAFF, <ChantiersPage />, 'Chantiers'),
           page('chantiers/:id', STAFF, <ChantierDetailPage />, 'Chantier'),
           page('planning', STAFF, <PlanningPage />, 'Planning'),
           page('pointages', STAFF, <PointagesPage />, 'Pointages'),
-          page('factures', STAFF, <FacturesPage />, 'Factures'),
-          page('factures/:id', STAFF, <FactureDetailPage />, 'Facture'),
+          page('factures', BUREAU, <FacturesPage />, 'Factures'),
+          page('factures/:id', BUREAU, <FactureDetailPage />, 'Facture'),
           page('commandes', STAFF, <CommandesPage />, 'Commandes fournisseur'),
           page('commandes/:id', STAFF, <CommandeDetailPage />, 'Commande'),
           page('stock', STAFF, <StockPage />, 'Stock'),

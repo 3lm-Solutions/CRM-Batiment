@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, BUREAU, costsFor, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
@@ -40,7 +53,11 @@ export class PrestationsController {
       'Coût matériaux + main d’œuvre, prix suggéré, prix pour la marge cible, marge et alerte. ' +
       'Un choix ayant sa propre composition remplace la composition de base.',
   })
-  chiffrer(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: ChiffrageDto) {
+  chiffrer(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ChiffrageDto,
+  ) {
     return this.pricing.chiffrer(user, id, dto);
   }
 
@@ -50,8 +67,14 @@ export class PrestationsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Modifier (un changement de prix est historisé ; actif: false pour désactiver)' })
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePrestationDto) {
+  @ApiOperation({
+    summary: 'Modifier (un changement de prix est historisé ; actif: false pour désactiver)',
+  })
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePrestationDto,
+  ) {
     return this.prestations.update(user, id, dto);
   }
 
@@ -63,7 +86,9 @@ export class PrestationsController {
   }
 
   @Put(':id/compositions')
-  @ApiOperation({ summary: 'Remplacer la composition de base (liste complète, opération atomique)' })
+  @ApiOperation({
+    summary: 'Remplacer la composition de base (liste complète, opération atomique)',
+  })
   replaceCompositions(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,

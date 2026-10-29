@@ -30,7 +30,10 @@ describe('RolesGuard', () => {
   });
 
   it('allows a listed role', () => {
-    const { guard, ctx } = setup({ [ROLES_KEY]: [Role.ADMIN, Role.TECHNICO] }, { role: Role.TECHNICO });
+    const { guard, ctx } = setup(
+      { [ROLES_KEY]: [Role.ADMIN, Role.TECHNICO] },
+      { role: Role.TECHNICO },
+    );
     expect(guard.canActivate(ctx)).toBe(true);
   });
 

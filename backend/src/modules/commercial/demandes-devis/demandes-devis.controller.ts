@@ -1,9 +1,25 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { DemandesDevisService } from './demandes-devis.service';
-import { CreateDemandeDevisDto, QueryDemandesDevisDto, UpdateDemandeDevisDto } from './dto/demandes-devis.dto';
+import {
+  CreateDemandeDevisDto,
+  QueryDemandesDevisDto,
+  UpdateDemandeDevisDto,
+} from './dto/demandes-devis.dto';
 
 @ApiTags('Demandes de devis')
 @ApiBearerAuth()
@@ -28,7 +44,11 @@ export class DemandesDevisController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateDemandeDevisDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDemandeDevisDto,
+  ) {
     return this.demandes.update(user, id, dto);
   }
 
@@ -59,7 +79,10 @@ export class DemandesDevisController {
   @Roles(Role.ADMIN, Role.TECHNICO)
   @Post(':id/convertir-en-devis')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'P0.1 — créer le devis brouillon (idempotent : renvoie le même devis si déjà converti)' })
+  @ApiOperation({
+    summary:
+      'P0.1 — créer le devis brouillon (idempotent : renvoie le même devis si déjà converti)',
+  })
   convertir(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.demandes.convertirEnDevis(user, id);
   }

@@ -15,7 +15,8 @@ import { ConsoleMailTransport, MAIL_TRANSPORT, SmtpMailTransport } from './mail.
         const host = config.get('MAIL_HOST', { infer: true });
         // Demo sandbox (visitors type any address) and CLI sample data (example.com addresses):
         // nothing ever leaves the server
-        if (!host || config.get('DEMO_MODE', { infer: true }) || process.env.CRM_CLI) return new ConsoleMailTransport();
+        if (!host || config.get('DEMO_MODE', { infer: true }) || process.env.CRM_CLI)
+          return new ConsoleMailTransport();
         return new SmtpMailTransport(
           {
             host,

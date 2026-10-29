@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { amountsFor, type AuthUser, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
@@ -14,7 +26,8 @@ export class ContratsController {
 
   @Roles(Role.ADMIN, Role.ASSISTANTE, Role.CHEF_CHANTIER)
   @Get()
-  @ApiQuery({ name: 'sousTraitantId', required: false }) @ApiQuery({ name: 'chantierId', required: false })
+  @ApiQuery({ name: 'sousTraitantId', required: false })
+  @ApiQuery({ name: 'chantierId', required: false })
   findAll(
     @CurrentUser() user: AuthUser,
     @Query('sousTraitantId', new ParseIntPipe({ optional: true })) sousTraitantId?: number,
@@ -29,27 +42,35 @@ export class ContratsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateContratDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateContratDto,
+  ) {
     return this.contrats.update(user, id, dto);
   }
 
-  @Post(':id/activer') @HttpCode(HttpStatus.OK)
+  @Post(':id/activer')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Activer (exige une décennale en cours de validité)' })
   activer(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.contrats.transition(user, id, 'ACTIF');
   }
 
-  @Post(':id/terminer') @HttpCode(HttpStatus.OK)
+  @Post(':id/terminer')
+  @HttpCode(HttpStatus.OK)
   terminer(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.contrats.transition(user, id, 'TERMINE');
   }
 
-  @Post(':id/resilier') @HttpCode(HttpStatus.OK)
+  @Post(':id/resilier')
+  @HttpCode(HttpStatus.OK)
   resilier(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.contrats.transition(user, id, 'RESILIE');
   }
 
-  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.contrats.remove(user, id);
   }

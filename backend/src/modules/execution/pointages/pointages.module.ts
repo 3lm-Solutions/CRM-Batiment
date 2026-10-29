@@ -3,5 +3,8 @@ import { PointagesController, PortailPointagesController } from './pointages.con
 import { PointagesService } from './pointages.service';
 
 /** Time tracking of the sous-traitants (21/10). NotificationsService is global. */
-@Module({ controllers: [PointagesController, PortailPointagesController], providers: [PointagesService] })
+@Module({
+  controllers: [PointagesController, PortailPointagesController],
+  providers: [PointagesService],
+})
 export class PointagesModule {}

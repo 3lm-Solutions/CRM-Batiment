@@ -22,13 +22,24 @@ export function jourPhoto(value: string | undefined, now = new Date()): Date {
 
 export function assertJourPhoto(jour: Date, now = new Date()): void {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  if (jour.getTime() > today) throw new BusinessException('DATE_FUTURE', 'La date de la photo ne peut pas être dans le futur.');
+  if (jour.getTime() > today)
+    throw new BusinessException(
+      'DATE_FUTURE',
+      'La date de la photo ne peut pas être dans le futur.',
+    );
   if (today - jour.getTime() > JOURS_RETRO_PHOTO * 86_400_000) {
-    throw new BusinessException('DATE_TROP_ANCIENNE', `Photos limitées aux ${JOURS_RETRO_PHOTO} derniers jours.`);
+    throw new BusinessException(
+      'DATE_TROP_ANCIENNE',
+      `Photos limitées aux ${JOURS_RETRO_PHOTO} derniers jours.`,
+    );
   }
 }
 
 export function assertNombrePhotos(n: number): void {
   if (n === 0) throw new BusinessException('FICHIER_MANQUANT', 'Aucune photo reçue.');
-  if (n > MAX_PHOTOS_ENVOI) throw new BusinessException('TROP_DE_PHOTOS', `${MAX_PHOTOS_ENVOI} photos au maximum par envoi.`);
+  if (n > MAX_PHOTOS_ENVOI)
+    throw new BusinessException(
+      'TROP_DE_PHOTOS',
+      `${MAX_PHOTOS_ENVOI} photos au maximum par envoi.`,
+    );
 }

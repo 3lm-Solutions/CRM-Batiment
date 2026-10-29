@@ -1,7 +1,8 @@
 import { applyDecorators } from '@nestjs/common';
 import { MaxLength, ValidateBy } from 'class-validator';
 
-export const PHONE_MESSAGE = 'Numéro de téléphone invalide : 8 à 15 chiffres (ex. 06 12 34 56 78, +33 6 12 34 56 78, +216 22 123 456).';
+export const PHONE_MESSAGE =
+  'Numéro de téléphone invalide : 8 à 15 chiffres (ex. 06 12 34 56 78, +33 6 12 34 56 78, +216 22 123 456).';
 
 /**
  * French AND foreign numbers: digits with spaces, dots, dashes or brackets, an optional leading +,
@@ -19,6 +20,9 @@ export function isPhone(value: unknown): boolean {
 export function IsPhone() {
   return applyDecorators(
     MaxLength(25, { message: PHONE_MESSAGE }),
-    ValidateBy({ name: 'isPhone', validator: { validate: isPhone, defaultMessage: () => PHONE_MESSAGE } }),
+    ValidateBy({
+      name: 'isPhone',
+      validator: { validate: isPhone, defaultMessage: () => PHONE_MESSAGE },
+    }),
   );
 }

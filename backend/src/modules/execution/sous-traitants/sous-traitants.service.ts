@@ -2,7 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { type AuthUser, BusinessException, paginate, toSkipTake } from '../../../common';
 import { Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateSousTraitantDto, LierCompteDto, QuerySousTraitantsDto, UpdateSousTraitantDto } from './dto/sous-traitants.dto';
+import {
+  CreateSousTraitantDto,
+  LierCompteDto,
+  QuerySousTraitantsDto,
+  UpdateSousTraitantDto,
+} from './dto/sous-traitants.dto';
 
 /** The sous-traitant company record (Step 11 adds the portal view for its own account). */
 @Injectable()
@@ -36,7 +41,9 @@ export class SousTraitantsService {
     const data = rows.map(({ notations, assurances, ...st }) => ({
       ...st,
       noteMoyenne: notations.length
-        ? Math.round((notations.reduce((s, n) => s + n.noteGlobale.toNumber(), 0) / notations.length) * 100) / 100
+        ? Math.round(
+            (notations.reduce((s, n) => s + n.noteGlobale.toNumber(), 0) / notations.length) * 100,
+          ) / 100
         : null,
       assurancesAlerte: assurances.filter((a) => a.statut !== 'VALIDE'),
     }));
@@ -48,11 +55,17 @@ export class SousTraitantsService {
       where: { id, companyId: user.companyId },
       include: {
         utilisateur: { select: { id: true, email: true, actif: true } },
-        contrats: { orderBy: { createdAt: 'desc' }, include: { chantier: { select: { id: true, reference: true } } } },
+        contrats: {
+          orderBy: { createdAt: 'desc' },
+          include: { chantier: { select: { id: true, reference: true } } },
+        },
         assurances: { orderBy: { dateExpiration: 'asc' } },
         paiements: { orderBy: { datePaiement: 'desc' } },
         disponibilites: { orderBy: { dateDebut: 'asc' }, where: { dateFin: { gte: new Date() } } },
-        notations: { orderBy: { createdAt: 'desc' }, include: { chantier: { select: { id: true, reference: true } } } },
+        notations: {
+          orderBy: { createdAt: 'desc' },
+          include: { chantier: { select: { id: true, reference: true } } },
+        },
       },
     });
     if (!st) throw new NotFoundException(`Sous-traitant #${id} introuvable`);
@@ -60,7 +73,9 @@ export class SousTraitantsService {
   }
 
   async assertExists(user: AuthUser, id: number) {
-    const st = await this.prisma.sousTraitant.findFirst({ where: { id, companyId: user.companyId } });
+    const st = await this.prisma.sousTraitant.findFirst({
+      where: { id, companyId: user.companyId },
+    });
     if (!st) throw new NotFoundException(`Sous-traitant #${id} introuvable`);
     return st;
   }
@@ -86,13 +101,20 @@ export class SousTraitantsService {
 
   /** A SOUS_TRAITANT account of the company, not yet linked to another record (clear message instead of a 409). */
   private async assertCompteLibre(user: AuthUser, userId: number, sousTraitantId?: number) {
-    const account = await this.prisma.user.count({ where: { id: userId, companyId: user.companyId, role: Role.SOUS_TRAITANT } });
-    if (!account) throw new BusinessException('COMPTE_INVALIDE', 'Le compte doit avoir le rôle SOUS_TRAITANT.');
+    const account = await this.prisma.user.count({
+      where: { id: userId, companyId: user.companyId, role: Role.SOUS_TRAITANT },
+    });
+    if (!account)
+      throw new BusinessException('COMPTE_INVALIDE', 'Le compte doit avoir le rôle SOUS_TRAITANT.');
     const other = await this.prisma.sousTraitant.findFirst({
       where: { userId, ...(sousTraitantId ? { NOT: { id: sousTraitantId } } : {}) },
       select: { nom: true },
     });
-    if (other) throw new BusinessException('COMPTE_DEJA_LIE', `Ce compte est déjà lié au sous-traitant « ${other.nom} ». Déliez-le d’abord.`);
+    if (other)
+      throw new BusinessException(
+        'COMPTE_DEJA_LIE',
+        `Ce compte est déjà lié au sous-traitant « ${other.nom} ». Déliez-le d’abord.`,
+      );
   }
 
   /** Only without history; otherwise set statut INACTIF. */
@@ -103,7 +125,10 @@ export class SousTraitantsService {
       this.prisma.paiementSousTraitant.count({ where: { sousTraitantId: id } }),
     ]);
     if (contrats || paiements) {
-      throw new BusinessException('SOUS_TRAITANT_AVEC_HISTORIQUE', 'Ce sous-traitant a des contrats ou des paiements : supprimez-les d’abord (un contrat brouillon ou résilié, sans paiement, se supprime) ou passez-le INACTIF.');
+      throw new BusinessException(
+        'SOUS_TRAITANT_AVEC_HISTORIQUE',
+        'Ce sous-traitant a des contrats ou des paiements : supprimez-les d’abord (un contrat brouillon ou résilié, sans paiement, se supprime) ou passez-le INACTIF.',
+      );
     }
     await this.prisma.sousTraitant.delete({ where: { id } });
   }

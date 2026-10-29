@@ -19,6 +19,10 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // react-hooks 7 (React Compiler rules): « reset the form when the window opens » is written
+      // with an effect in many places. It works (one extra render); kept as a warning until those
+      // forms are moved to a `key` that remounts them.
+      'react-hooks/set-state-in-effect': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },

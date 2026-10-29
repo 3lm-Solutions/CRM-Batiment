@@ -24,7 +24,8 @@ describe('DTO transforms', () => {
     class TypedProbe {
       @ToBoolean() actif?: boolean;
     }
-    const parseImplicit = (plain: Record<string, unknown>) => plainToInstance(TypedProbe, plain, { enableImplicitConversion: true });
+    const parseImplicit = (plain: Record<string, unknown>) =>
+      plainToInstance(TypedProbe, plain, { enableImplicitConversion: true });
     expect(parseImplicit({ actif: 'false' }).actif).toBe(false);
     expect(parseImplicit({ actif: '0' }).actif).toBe(false);
     expect(parseImplicit({ actif: 'true' }).actif).toBe(true);

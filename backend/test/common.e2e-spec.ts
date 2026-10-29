@@ -42,7 +42,10 @@ describe('Common layer (e2e)', () => {
     });
 
     it('invalid token: 401', async () => {
-      await request(http).get('/api/v1/probe/admin').set('Authorization', 'Bearer abc.def.ghi').expect(401);
+      await request(http)
+        .get('/api/v1/probe/admin')
+        .set('Authorization', 'Bearer abc.def.ghi')
+        .expect(401);
     });
 
     it('wrong role: 403', async () => {

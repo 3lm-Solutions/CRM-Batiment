@@ -23,7 +23,9 @@ export class StockController {
   }
 
   @Post('mouvements')
-  @ApiOperation({ summary: 'Entrée, sortie (refusée si stock insuffisant) ou ajustement d’inventaire' })
+  @ApiOperation({
+    summary: 'Entrée, sortie (refusée si stock insuffisant) ou ajustement d’inventaire',
+  })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateMouvementDto) {
     return this.stock.createMovement(user, dto);
   }

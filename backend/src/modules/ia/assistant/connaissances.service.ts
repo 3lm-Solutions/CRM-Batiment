@@ -2,7 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { type AuthUser, paginate, toSkipTake } from '../../../common';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateConnaissanceDto, QueryConnaissancesDto, UpdateConnaissanceDto } from './dto/connaissances.dto';
+import {
+  CreateConnaissanceDto,
+  QueryConnaissancesDto,
+  UpdateConnaissanceDto,
+} from './dto/connaissances.dto';
 
 export interface Connaissance {
   id: number;
@@ -51,18 +55,30 @@ export class ConnaissancesService {
       categorie: query.categorie,
       actif: query.actif,
       ...(query.search && {
-        OR: [{ titre: { contains: query.search, mode: 'insensitive' } }, { contenu: { contains: query.search, mode: 'insensitive' } }],
+        OR: [
+          { titre: { contains: query.search, mode: 'insensitive' } },
+          { contenu: { contains: query.search, mode: 'insensitive' } },
+        ],
       }),
     };
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.ragDocument.findMany({ where, orderBy: [{ priorite: 'desc' }, { titre: 'asc' }], ...toSkipTake(query) }),
+      this.prisma.ragDocument.findMany({
+        where,
+        orderBy: [{ priorite: 'desc' }, { titre: 'asc' }],
+        ...toSkipTake(query),
+      }),
       this.prisma.ragDocument.count({ where }),
     ]);
     return paginate(data, total, query);
   }
 
   async categories(user: AuthUser) {
-    const rows = await this.prisma.ragDocument.groupBy({ by: ['categorie'], where: { companyId: user.companyId }, _count: { _all: true }, orderBy: { categorie: 'asc' } });
+    const rows = await this.prisma.ragDocument.groupBy({
+      by: ['categorie'],
+      where: { companyId: user.companyId },
+      _count: { _all: true },
+      orderBy: { categorie: 'asc' },
+    });
     return rows.map((r) => ({ categorie: r.categorie, nombre: r._count._all }));
   }
 

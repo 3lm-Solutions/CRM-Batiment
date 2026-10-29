@@ -53,6 +53,9 @@ export function computeDevisTotals(
 }
 
 /** Margin alert (spec: "alerte marge < 15 %") — never on an empty quote. */
-export function isMarginAlert(totals: Pick<DevisTotals, 'totalHT' | 'margePourcent'>, seuil: DecimalLike): boolean {
+export function isMarginAlert(
+  totals: Pick<DevisTotals, 'totalHT' | 'margePourcent'>,
+  seuil: DecimalLike,
+): boolean {
   return totals.totalHT.gt(0) && totals.margePourcent.lt(seuil);
 }

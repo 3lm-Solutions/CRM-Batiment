@@ -1,4 +1,18 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -57,7 +71,11 @@ export class PortailSousTraitantController {
 
   @Patch('taches/:id')
   @ApiOperation({ summary: 'Mettre à jour l’avancement d’une tâche qui m’est affectée' })
-  avancerTache(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: AvancementTacheDto) {
+  avancerTache(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AvancementTacheDto,
+  ) {
     return this.portail.avancerTache(user, id, dto);
   }
 
@@ -73,7 +91,8 @@ export class PortailSousTraitantController {
     return this.portail.ajouterDisponibilite(user, dto);
   }
 
-  @Delete('disponibilites/:id') @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('disponibilites/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   supprimerDisponibilite(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.portail.supprimerDisponibilite(user, id);
   }
@@ -101,7 +120,11 @@ export class PortailSousTraitantController {
     },
   })
   @ApiOperation({ summary: 'Envoyer un rapport (texte + photos) au bureau' })
-  creerRapport(@CurrentUser() user: AuthUser, @Body() dto: CreateRapportDto, @UploadedFiles() photos: UploadedBinary[] | undefined) {
+  creerRapport(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateRapportDto,
+    @UploadedFiles() photos: UploadedBinary[] | undefined,
+  ) {
     return this.rapports.create(user, dto, photos ?? []);
   }
 }

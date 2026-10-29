@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('CRM Bâtiment — API')
       .setDescription(
-        "API REST du CRM pour société de bâtiment.\n\n" +
+        'API REST du CRM pour société de bâtiment.\n\n' +
           "**Authentification** : système fermé — seul l'Admin crée les comptes.\n" +
           'Utilisez le token JWT : `Authorization: Bearer <token>`.',
       )

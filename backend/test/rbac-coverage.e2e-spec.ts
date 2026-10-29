@@ -46,7 +46,9 @@ describe('RBAC coverage (e2e)', () => {
         if (!isPublic && !roles?.length) {
           const base = String(Reflect.getMetadata(PATH_METADATA, metatype) ?? '');
           const path = String(Reflect.getMetadata(PATH_METADATA, handler) ?? '');
-          missing.push(`${RequestMethod[method]} /${base}/${path}  (${metatype.name}.${methodName})`);
+          missing.push(
+            `${RequestMethod[method]} /${base}/${path}  (${metatype.name}.${methodName})`,
+          );
         }
       }
     }

@@ -7,8 +7,17 @@ export interface ValidationPrestation {
   nom: string;
   prixVenteMin: number;
   prixVenteMax: number;
-  compositions: { materiauId: number | null; serviceMainOeuvreId: number | null; quantiteParUnite: number }[];
-  options: { id: number; nom: string; obligatoire: boolean; choix: { id: number; aComposition: boolean }[] }[];
+  compositions: {
+    materiauId: number | null;
+    serviceMainOeuvreId: number | null;
+    quantiteParUnite: number;
+  }[];
+  options: {
+    id: number;
+    nom: string;
+    obligatoire: boolean;
+    choix: { id: number; aComposition: boolean }[];
+  }[];
 }
 
 export interface CatalogueIssue {
@@ -24,8 +33,10 @@ export function validateCatalogue(activeCategories: number, prestations: Validat
   const err = (i: CatalogueIssue) => errors.push(i);
   const warn = (i: CatalogueIssue) => warnings.push(i);
 
-  if (activeCategories === 0) err({ type: 'CATEGORIES_VIDES', message: 'Aucune catégorie active.' });
-  if (prestations.length === 0) err({ type: 'PRESTATIONS_VIDES', message: 'Aucune prestation active.' });
+  if (activeCategories === 0)
+    err({ type: 'CATEGORIES_VIDES', message: 'Aucune catégorie active.' });
+  if (prestations.length === 0)
+    err({ type: 'PRESTATIONS_VIDES', message: 'Aucune prestation active.' });
 
   for (const p of prestations) {
     const ref = `« ${p.nom} » (#${p.id})`;
@@ -33,19 +44,35 @@ export function validateCatalogue(activeCategories: number, prestations: Validat
       err({ type: 'PRIX_NEGATIF', prestationId: p.id, message: `${ref} a un prix négatif.` });
     }
     if (p.prixVenteMin > p.prixVenteMax) {
-      err({ type: 'FOURCHETTE_INVALIDE', prestationId: p.id, message: `${ref} : prix minimum > prix maximum.` });
+      err({
+        type: 'FOURCHETTE_INVALIDE',
+        prestationId: p.id,
+        message: `${ref} : prix minimum > prix maximum.`,
+      });
     }
 
     const choiceCompositionOptions = p.options.filter((o) => o.choix.some((c) => c.aComposition));
     if (p.compositions.length === 0 && choiceCompositionOptions.length === 0) {
-      warn({ type: 'SANS_COMPOSITION', prestationId: p.id, message: `${ref} n'a aucune composition : coût et marge inconnus.` });
+      warn({
+        type: 'SANS_COMPOSITION',
+        prestationId: p.id,
+        message: `${ref} n'a aucune composition : coût et marge inconnus.`,
+      });
     }
     for (const c of p.compositions) {
       if (!c.materiauId && !c.serviceMainOeuvreId) {
-        err({ type: 'COMPOSANT_MANQUANT', prestationId: p.id, message: `${ref} : ligne sans matériau ni service.` });
+        err({
+          type: 'COMPOSANT_MANQUANT',
+          prestationId: p.id,
+          message: `${ref} : ligne sans matériau ni service.`,
+        });
       }
       if (c.quantiteParUnite <= 0) {
-        err({ type: 'QUANTITE_INVALIDE', prestationId: p.id, message: `${ref} : quantité ≤ 0 dans la composition.` });
+        err({
+          type: 'QUANTITE_INVALIDE',
+          prestationId: p.id,
+          message: `${ref} : quantité ≤ 0 dans la composition.`,
+        });
       }
     }
 

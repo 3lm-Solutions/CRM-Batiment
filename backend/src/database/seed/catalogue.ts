@@ -16,11 +16,18 @@ import { PrismaClient, Unite } from '../../generated/prisma/client';
  * JSON next to this file (tsx, nest build copies them — see nest-cli.json "assets"),
  * else the sources (a plain `tsc` build used by the demo CLI does not copy JSON files).
  */
-const DATA_DIR = [join(__dirname, 'data'), resolve(process.cwd(), 'src/database/seed/data')].find((d) => existsSync(d)) ?? join(__dirname, 'data');
+const DATA_DIR =
+  [join(__dirname, 'data'), resolve(process.cwd(), 'src/database/seed/data')].find((d) =>
+    existsSync(d),
+  ) ?? join(__dirname, 'data');
 
 const unite = z.nativeEnum(Unite);
 const component = z
-  .object({ materiau: z.string().optional(), serviceMo: z.string().optional(), qte: z.number().positive() })
+  .object({
+    materiau: z.string().optional(),
+    serviceMo: z.string().optional(),
+    qte: z.number().positive(),
+  })
   .refine((c) => Boolean(c.materiau) !== Boolean(c.serviceMo), 'materiau OU serviceMo');
 
 const schemas = {
@@ -112,23 +119,30 @@ function checkReferences(data: {
   const problems: string[] = [];
 
   for (const m of data.materiaux) {
-    if (!fournisseurs.has(m.fournisseur)) problems.push(`matériau « ${m.nom} » : fournisseur inconnu « ${m.fournisseur} »`);
+    if (!fournisseurs.has(m.fournisseur))
+      problems.push(`matériau « ${m.nom} » : fournisseur inconnu « ${m.fournisseur} »`);
   }
   const checkComponents = (where: string, list: Component[] = []) => {
     for (const c of list) {
-      if (c.materiau && !materiaux.has(c.materiau)) problems.push(`${where} : matériau inconnu « ${c.materiau} »`);
-      if (c.serviceMo && !services.has(c.serviceMo)) problems.push(`${where} : main d'œuvre inconnue « ${c.serviceMo} »`);
+      if (c.materiau && !materiaux.has(c.materiau))
+        problems.push(`${where} : matériau inconnu « ${c.materiau} »`);
+      if (c.serviceMo && !services.has(c.serviceMo))
+        problems.push(`${where} : main d'œuvre inconnue « ${c.serviceMo} »`);
     }
   };
   for (const cat of data.catalogue)
     for (const sc of cat.sousCategories)
       for (const p of sc.prestations) {
         checkComponents(`prestation « ${p.nom} »`, p.compositions);
-        for (const o of p.options) for (const ch of o.choix) checkComponents(`choix « ${p.nom} / ${ch.nom} »`, ch.compositions);
+        for (const o of p.options)
+          for (const ch of o.choix)
+            checkComponents(`choix « ${p.nom} / ${ch.nom} »`, ch.compositions);
       }
 
   if (problems.length) {
-    throw new Error(`Références introuvables dans src/database/seed/data :\n  - ${problems.join('\n  - ')}`);
+    throw new Error(
+      `Références introuvables dans src/database/seed/data :\n  - ${problems.join('\n  - ')}`,
+    );
   }
 }
 
@@ -178,7 +192,14 @@ export async function seedCatalogue(prisma: PrismaClient, companyId: number) {
     }));
 
   // ── categories → sub-categories → prestations → options → choices ──
-  const counts = { categories: 0, sousCategories: 0, prestations: 0, options: 0, choix: 0, compositions: 0 };
+  const counts = {
+    categories: 0,
+    sousCategories: 0,
+    prestations: 0,
+    options: 0,
+    choix: 0,
+    compositions: 0,
+  };
 
   for (const cat of data.catalogue) {
     const categorie = await prisma.categoriePrestation.upsert({
@@ -203,7 +224,12 @@ export async function seedCatalogue(prisma: PrismaClient, companyId: number) {
         const prestation = existing
           ? await prisma.prestation.update({ where: { id: existing.id }, data: p })
           : await prisma.prestation.create({
-              data: { ...p, companyId, categorieId: categorie.id, sousCategorieId: sousCategorie.id },
+              data: {
+                ...p,
+                companyId,
+                categorieId: categorie.id,
+                sousCategorieId: sousCategorie.id,
+              },
             });
         counts.prestations++;
 
@@ -217,7 +243,12 @@ export async function seedCatalogue(prisma: PrismaClient, companyId: number) {
           const option = await prisma.optionPrestation.upsert({
             where: { prestationId_nom: { prestationId: prestation.id, nom: o.nom } },
             update: { obligatoire: o.obligatoire, ordre: ordreOption },
-            create: { prestationId: prestation.id, nom: o.nom, obligatoire: o.obligatoire, ordre: ordreOption },
+            create: {
+              prestationId: prestation.id,
+              nom: o.nom,
+              obligatoire: o.obligatoire,
+              ordre: ordreOption,
+            },
           });
           counts.options++;
 

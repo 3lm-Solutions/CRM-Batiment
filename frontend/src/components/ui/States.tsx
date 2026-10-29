@@ -2,7 +2,7 @@ import { Inbox, LoaderCircle, TriangleAlert } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { errorMessage } from '@/lib/api';
 
-export function EmptyState({ title, description, action, icon }: { title: string; description?: string; action?: ReactNode; icon?: ReactNode }) {
+export function EmptyState({ title, description, action, icon }: { title: string; description?: ReactNode; action?: ReactNode; icon?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
       <div className="mb-4 rounded-2xl bg-slate-50 p-4 text-slate-300 [&>svg]:size-8 dark:bg-slate-800 dark:text-blue-300">{icon ?? <Inbox className="size-6" />}</div>

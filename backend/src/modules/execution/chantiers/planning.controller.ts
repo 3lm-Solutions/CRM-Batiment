@@ -12,7 +12,9 @@ export class PlanningController {
   constructor(private readonly planning: PlanningService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Tâches datées et indisponibilités des sous-traitants sur une période (45 jours max.)' })
+  @ApiOperation({
+    summary: 'Tâches datées et indisponibilités des sous-traitants sur une période (45 jours max.)',
+  })
   periode(@CurrentUser() user: AuthUser, @Query() query: QueryPlanningDto) {
     return this.planning.periode(user, query);
   }

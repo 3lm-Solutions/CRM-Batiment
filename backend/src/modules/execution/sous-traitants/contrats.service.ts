@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type AuthUser, BusinessException, ReferencePrefix, ReferenceService } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  ReferencePrefix,
+  ReferenceService,
+} from '../../../common';
 import { ContratSousTraitantStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { assertDateRange } from '../chantiers/tache-rules';
@@ -28,23 +33,35 @@ export class ContratsService {
   async create(user: AuthUser, dto: CreateContratDto) {
     assertDateRange(dto.dateDebut, dto.dateFin);
     const [st, chantier] = await Promise.all([
-      this.prisma.sousTraitant.findFirst({ where: { id: dto.sousTraitantId, companyId: user.companyId } }),
+      this.prisma.sousTraitant.findFirst({
+        where: { id: dto.sousTraitantId, companyId: user.companyId },
+      }),
       this.prisma.chantier.count({ where: { id: dto.chantierId, companyId: user.companyId } }),
     ]);
     if (!st) throw new BusinessException('SOUS_TRAITANT_INTROUVABLE', 'Sous-traitant introuvable.');
-    if (st.statut !== 'ACTIF') throw new BusinessException('SOUS_TRAITANT_INACTIF', 'Ce sous-traitant n’est pas actif.');
+    if (st.statut !== 'ACTIF')
+      throw new BusinessException('SOUS_TRAITANT_INACTIF', 'Ce sous-traitant n’est pas actif.');
     if (!chantier) throw new BusinessException('CHANTIER_INTROUVABLE', 'Chantier introuvable.');
 
     return this.prisma.$transaction(async (tx) =>
       tx.contratSousTraitant.create({
-        data: { ...dto, companyId: user.companyId, reference: await this.references.next(ReferencePrefix.CONTRAT_SOUS_TRAITANT, user.companyId, tx) },
+        data: {
+          ...dto,
+          companyId: user.companyId,
+          reference: await this.references.next(
+            ReferencePrefix.CONTRAT_SOUS_TRAITANT,
+            user.companyId,
+            tx,
+          ),
+        },
       }),
     );
   }
 
   async update(user: AuthUser, id: number, dto: UpdateContratDto) {
     const contrat = await this.find(user, id);
-    if (contrat.statut !== 'BROUILLON') throw new BusinessException('CONTRAT_ACTIF', 'Seul un contrat en brouillon se modifie.');
+    if (contrat.statut !== 'BROUILLON')
+      throw new BusinessException('CONTRAT_ACTIF', 'Seul un contrat en brouillon se modifie.');
     assertDateRange(dto.dateDebut ?? contrat.dateDebut, dto.dateFin ?? contrat.dateFin);
     return this.prisma.contratSousTraitant.update({ where: { id }, data: dto });
   }
@@ -60,10 +77,17 @@ export class ContratsService {
 
     if (to === 'ACTIF') {
       const decennale = await this.prisma.assuranceSousTraitant.count({
-        where: { sousTraitantId: contrat.sousTraitantId, typeAssurance: 'DECENNALE', dateExpiration: { gt: new Date() } },
+        where: {
+          sousTraitantId: contrat.sousTraitantId,
+          typeAssurance: 'DECENNALE',
+          dateExpiration: { gt: new Date() },
+        },
       });
       if (!decennale) {
-        throw new BusinessException('DECENNALE_MANQUANTE', 'Activation impossible : aucune assurance décennale en cours de validité.');
+        throw new BusinessException(
+          'DECENNALE_MANQUANTE',
+          'Activation impossible : aucune assurance décennale en cours de validité.',
+        );
       }
     }
 
@@ -71,7 +95,8 @@ export class ContratsService {
       where: { id, statut: contrat.statut },
       data: { statut: to },
     });
-    if (!count) throw new BusinessException('CONTRAT_MODIFIE', 'Le contrat vient de changer. Rechargez.');
+    if (!count)
+      throw new BusinessException('CONTRAT_MODIFIE', 'Le contrat vient de changer. Rechargez.');
     return this.find(user, id);
   }
 
@@ -82,17 +107,25 @@ export class ContratsService {
   async remove(user: AuthUser, id: number): Promise<void> {
     const contrat = await this.find(user, id);
     if (contrat.statut !== 'BROUILLON' && contrat.statut !== 'RESILIE') {
-      throw new BusinessException('CONTRAT_ACTIF', 'Seul un contrat brouillon ou résilié se supprime (résiliez-le d’abord).');
+      throw new BusinessException(
+        'CONTRAT_ACTIF',
+        'Seul un contrat brouillon ou résilié se supprime (résiliez-le d’abord).',
+      );
     }
     const paiements = await this.prisma.paiementSousTraitant.count({ where: { contratId: id } });
     if (paiements) {
-      throw new BusinessException('CONTRAT_AVEC_PAIEMENTS', `Ce contrat a ${paiements} paiement(s) : supprimez-les d’abord (onglet Paiements).`);
+      throw new BusinessException(
+        'CONTRAT_AVEC_PAIEMENTS',
+        `Ce contrat a ${paiements} paiement(s) : supprimez-les d’abord (onglet Paiements).`,
+      );
     }
     await this.prisma.contratSousTraitant.delete({ where: { id } });
   }
 
   private async find(user: AuthUser, id: number) {
-    const contrat = await this.prisma.contratSousTraitant.findFirst({ where: { id, companyId: user.companyId } });
+    const contrat = await this.prisma.contratSousTraitant.findFirst({
+      where: { id, companyId: user.companyId },
+    });
     if (!contrat) throw new NotFoundException(`Contrat #${id} introuvable`);
     return contrat;
   }

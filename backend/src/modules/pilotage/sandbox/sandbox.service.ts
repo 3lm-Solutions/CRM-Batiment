@@ -16,7 +16,13 @@ import type { SessionResponse } from '../../../shared';
 import { type Env, isDemoDatabase } from '../../../config/env.validation';
 import { seedConnaissances } from '../../../database/seed/assistant';
 import { seedCatalogue } from '../../../database/seed/catalogue';
-import { seedCompany, seedPortalProfiles, seedTypesProjet, seedUsers, USERS } from '../../../database/seed/core';
+import {
+  seedCompany,
+  seedPortalProfiles,
+  seedTypesProjet,
+  seedUsers,
+  USERS,
+} from '../../../database/seed/core';
 import type { Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthService } from '../../core/auth/auth.service';
@@ -50,21 +56,30 @@ export class SandboxService implements OnApplicationBootstrap {
     if (!this.enabled || process.env.CRM_CLI) return;
     if ((await this.prisma.company.count()) === 0) {
       this.logger.log('Base de démo vide : chargement des données…');
-      await this.reset().catch((e: unknown) => this.logger.error('Chargement de la démo échoué', e instanceof Error ? e.stack : String(e)));
+      await this.reset().catch((e: unknown) =>
+        this.logger.error('Chargement de la démo échoué', e instanceof Error ? e.stack : String(e)),
+      );
     }
   }
 
   @Cron('0 3 * * *', { name: 'demo-reset', timeZone: 'Europe/Paris' })
   async nightly(): Promise<void> {
     if (!this.enabled) return;
-    await this.reset().catch((e: unknown) => this.logger.error('Réinitialisation de la démo échouée', e instanceof Error ? e.stack : String(e)));
+    await this.reset().catch((e: unknown) =>
+      this.logger.error(
+        'Réinitialisation de la démo échouée',
+        e instanceof Error ? e.stack : String(e),
+      ),
+    );
   }
 
   /** Wipes the WHOLE database and uploaded files, then reloads the demo data. */
   async reset(): Promise<string[]> {
     const url = this.config.get('DATABASE_URL', { infer: true });
     if (!this.enabled || !isDemoDatabase(url)) {
-      throw new ForbiddenException('Réinitialisation refusée : réservée à une instance de démo (DEMO_MODE=true, base « …demo… »).');
+      throw new ForbiddenException(
+        'Réinitialisation refusée : réservée à une instance de démo (DEMO_MODE=true, base « …demo… »).',
+      );
     }
     if (this.resetting) throw new ConflictException('Réinitialisation déjà en cours.');
     this.resetting = true;
@@ -85,7 +100,10 @@ export class SandboxService implements OnApplicationBootstrap {
     if (this.config.get('NODE_ENV', { infer: true }) === 'production' && !this.enabled) {
       throw new ForbiddenException('Données d’exemple refusées en production.');
     }
-    const admin = await this.prisma.user.findFirst({ where: { role: 'ADMIN', actif: true }, orderBy: { id: 'asc' } });
+    const admin = await this.prisma.user.findFirst({
+      where: { role: 'ADMIN', actif: true },
+      orderBy: { id: 'asc' },
+    });
     if (!admin) return ['Aucun compte ADMIN : lancez d’abord pnpm db:seed.'];
     return this.scenario.load(admin.companyId);
   }
@@ -100,7 +118,9 @@ export class SandboxService implements OnApplicationBootstrap {
       (await this.prisma.user.findUnique({ where: { email: seed.email } })) ??
       (await this.prisma.user.findFirst({ where: { role }, orderBy: { id: 'asc' } }));
     if (!user || this.resetting) {
-      throw new ServiceUnavailableException('La démo est en cours de réinitialisation : réessayez dans une minute.');
+      throw new ServiceUnavailableException(
+        'La démo est en cours de réinitialisation : réessayez dans une minute.',
+      );
     }
     // A visitor may have deactivated or modified the shared account: put it back
     const fresh = await this.prisma.user.update({
@@ -127,7 +147,10 @@ export class SandboxService implements OnApplicationBootstrap {
     await seedTypesProjet(this.prisma, company.id);
     await seedCatalogue(this.prisma, company.id);
     await seedConnaissances(this.prisma, company.id);
-    return ['Entreprise, 6 comptes, catalogue, base de connaissances', ...(await this.scenario.load(company.id))];
+    return [
+      'Entreprise, 6 comptes, catalogue, base de connaissances',
+      ...(await this.scenario.load(company.id)),
+    ];
   }
 
   /** Every table except Prisma's migration history, ids restarted at 1. */

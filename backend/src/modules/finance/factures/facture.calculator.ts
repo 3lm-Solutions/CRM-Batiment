@@ -60,7 +60,10 @@ export function situationAmounts(p: {
   const travauxDejaCouverts = percentOf(p.devisHT, p.avancementPrecedent);
   const brutHT = travauxCumules.minus(travauxDejaCouverts);
   if (brutHT.lte(0)) {
-    throw new BusinessException('SITUATION_NULLE', 'Cet avancement est déjà facturé : rien à facturer.');
+    throw new BusinessException(
+      'SITUATION_NULLE',
+      'Cet avancement est déjà facturé : rien à facturer.',
+    );
   }
 
   const acompte = sumMoney(p.acomptesHT);
@@ -71,7 +74,10 @@ export function situationAmounts(p: {
 
   const netHT = brutHT.minus(remboursementAcompteHT);
   if (netHT.lte(0)) {
-    throw new BusinessException('SITUATION_COUVERTE', 'Cet avancement est entièrement couvert par l’acompte : rien à facturer.');
+    throw new BusinessException(
+      'SITUATION_COUVERTE',
+      'Cet avancement est entièrement couvert par l’acompte : rien à facturer.',
+    );
   }
   return { brutHT, remboursementAcompteHT, netHT };
 }
@@ -79,7 +85,10 @@ export function situationAmounts(p: {
 export function finaleHT(devisHT: DecimalLike, deductionsHT: DecimalLike[]): Money {
   const amount = toDecimal(devisHT).minus(sumMoney(deductionsHT));
   if (amount.lt(0)) {
-    throw new BusinessException('FACTURE_NEGATIVE', 'Les acomptes et situations dépassent le montant du devis.');
+    throw new BusinessException(
+      'FACTURE_NEGATIVE',
+      'Les acomptes et situations dépassent le montant du devis.',
+    );
   }
   return amount;
 }

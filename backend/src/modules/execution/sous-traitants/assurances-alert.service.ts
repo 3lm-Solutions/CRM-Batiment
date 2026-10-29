@@ -30,7 +30,10 @@ export class AssurancesAlertService {
         include: { sousTraitant: { select: { nom: true } } },
       });
       if (rows.length) {
-        await this.prisma.assuranceSousTraitant.updateMany({ where: { id: { in: rows.map((r) => r.id) } }, data: { statut } });
+        await this.prisma.assuranceSousTraitant.updateMany({
+          where: { id: { in: rows.map((r) => r.id) } },
+          data: { statut },
+        });
       }
       return rows;
     };
@@ -42,7 +45,10 @@ export class AssurancesAlertService {
       data: { statut: 'VALIDE' },
     });
 
-    for (const [rows, statut] of [[expirees, 'EXPIREE'], [aRenouveler, 'A_RENOUVELER']] as const) {
+    for (const [rows, statut] of [
+      [expirees, 'EXPIREE'],
+      [aRenouveler, 'A_RENOUVELER'],
+    ] as const) {
       for (const a of rows) {
         this.events.emit(SousTraitantEvents.ASSURANCE_STATUT, {
           companyId: a.companyId,
@@ -56,7 +62,9 @@ export class AssurancesAlertService {
       }
     }
 
-    this.logger.log(`Assurances : ${expirees.length} expirée(s), ${aRenouveler.length} à renouveler`);
+    this.logger.log(
+      `Assurances : ${expirees.length} expirée(s), ${aRenouveler.length} à renouveler`,
+    );
     return { expirees: expirees.length, aRenouveler: aRenouveler.length };
   }
 }

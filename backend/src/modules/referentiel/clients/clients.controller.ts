@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ClientsService } from './clients.service';
 import { CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients.dto';
@@ -24,14 +24,12 @@ import { CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients
 export class ClientsController {
   constructor(private readonly clients: ClientsService) {}
 
-  @Roles(...STAFF)
   @Get()
   @ApiOperation({ summary: 'Liste paginée (actifs par défaut, ?archived=true pour les archivés)' })
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryClientsDto) {
     return this.clients.findAll(user, query);
   }
 
-  @Roles(...STAFF)
   @Get(':id')
   @ApiOperation({ summary: 'Fiche client + dernières demandes, devis et chantiers' })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
@@ -44,7 +42,11 @@ export class ClientsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateClientDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateClientDto,
+  ) {
     return this.clients.update(user, id, dto);
   }
 
@@ -63,7 +65,9 @@ export class ClientsController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Suppression définitive — uniquement un client sans historique (sinon archiver)' })
+  @ApiOperation({
+    summary: 'Suppression définitive — uniquement un client sans historique (sinon archiver)',
+  })
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.clients.remove(user, id);
   }

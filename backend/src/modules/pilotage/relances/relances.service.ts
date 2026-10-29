@@ -51,13 +51,22 @@ export class RelancesService {
 
   @Cron('0 8 * * *', { name: 'relances', timeZone: 'Europe/Paris' })
   async cron(): Promise<void> {
-    const companies = await this.prisma.company.findMany({ where: { relancesActives: true }, select: { id: true } });
+    const companies = await this.prisma.company.findMany({
+      where: { relancesActives: true },
+      select: { id: true },
+    });
     for (const { id } of companies) {
       try {
         const r = await this.executer(id);
-        if (r.devis + r.factures > 0) this.logger.log(`Entreprise #${id} : ${r.devis} devis et ${r.factures} facture(s) relancés`);
+        if (r.devis + r.factures > 0)
+          this.logger.log(
+            `Entreprise #${id} : ${r.devis} devis et ${r.factures} facture(s) relancés`,
+          );
       } catch (error) {
-        this.logger.error(`Relances de l’entreprise #${id} interrompues`, error instanceof Error ? error.stack : String(error));
+        this.logger.error(
+          `Relances de l’entreprise #${id} interrompues`,
+          error instanceof Error ? error.stack : String(error),
+        );
       }
     }
   }
@@ -79,7 +88,12 @@ export class RelancesService {
         dateEnvoi: { not: null },
         client: { email: { not: null }, archivedAt: null },
       },
-      select: { id: true, reference: true, dateEnvoi: true, relances: { select: RELANCE_SELECT, orderBy: { createdAt: 'desc' } } },
+      select: {
+        id: true,
+        reference: true,
+        dateEnvoi: true,
+        relances: { select: RELANCE_SELECT, orderBy: { createdAt: 'desc' } },
+      },
     });
     for (const d of devis) {
       const niveau = niveauDu(
@@ -95,7 +109,9 @@ export class RelancesService {
         result.devis++;
       } catch (error) {
         result.erreurs++;
-        this.logger.warn(`Relance du devis ${d.reference} impossible : ${error instanceof Error ? error.message : String(error)}`);
+        this.logger.warn(
+          `Relance du devis ${d.reference} impossible : ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
 
@@ -109,7 +125,11 @@ export class RelancesService {
         emailClient: { not: null },
         devis: { client: { archivedAt: null } },
       },
-      select: { id: true, dateEcheance: true, relances: { select: RELANCE_SELECT, orderBy: { createdAt: 'desc' } } },
+      select: {
+        id: true,
+        dateEcheance: true,
+        relances: { select: RELANCE_SELECT, orderBy: { createdAt: 'desc' } },
+      },
     });
     for (const f of factures) {
       const niveau = niveauDu(
@@ -125,7 +145,9 @@ export class RelancesService {
         result.factures++;
       } catch (error) {
         result.erreurs++;
-        this.logger.warn(`Relance de la facture #${f.id} impossible : ${error instanceof Error ? error.message : String(error)}`);
+        this.logger.warn(
+          `Relance de la facture #${f.id} impossible : ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }
 
@@ -133,12 +155,13 @@ export class RelancesService {
       await this.notifications.notifyRoles(companyId, [Role.ADMIN, Role.ASSISTANTE], {
         type: 'RELANCES_ENVOYEES',
         titre: 'Relances envoyées',
-        message: [
-          result.devis && `${result.devis} devis sans réponse`,
-          result.factures && `${result.factures} facture(s) impayée(s)`,
-        ]
-          .filter(Boolean)
-          .join(' et ') + ' relancé(s) par email.',
+        message:
+          [
+            result.devis && `${result.devis} devis sans réponse`,
+            result.factures && `${result.factures} facture(s) impayée(s)`,
+          ]
+            .filter(Boolean)
+            .join(' et ') + ' relancé(s) par email.',
         lien: result.factures ? '/factures' : '/devis',
       });
     }
@@ -148,13 +171,19 @@ export class RelancesService {
   // ── manual « Relancer maintenant » ──────────────────────────────────────
 
   async relancerDevis(user: AuthUser, id: number) {
-    const devis = await this.prisma.devis.findFirst({ where: { id, companyId: user.companyId }, select: { id: true, reference: true } });
+    const devis = await this.prisma.devis.findFirst({
+      where: { id, companyId: user.companyId },
+      select: { id: true, reference: true },
+    });
     if (!devis) throw new NotFoundException(`Devis #${id} introuvable`);
     return this.envoyerDevis(user.companyId, devis.id, devis.reference, 0, user.id);
   }
 
   async relancerFacture(user: AuthUser, id: number) {
-    const facture = await this.prisma.facture.findFirst({ where: { id, companyId: user.companyId }, select: { id: true } });
+    const facture = await this.prisma.facture.findFirst({
+      where: { id, companyId: user.companyId },
+      select: { id: true },
+    });
     if (!facture) throw new NotFoundException(`Facture #${id} introuvable`);
     return this.envoyerFacture(user.companyId, facture.id, 0, user.id, new Date());
   }
@@ -162,7 +191,8 @@ export class RelancesService {
   // ── reads and settings ──────────────────────────────────────────────────
 
   liste(user: AuthUser, q: { devisId?: number; factureId?: number }) {
-    if (!q.devisId && !q.factureId) throw new BusinessException('FILTRE_REQUIS', 'Indiquez un devis ou une facture.');
+    if (!q.devisId && !q.factureId)
+      throw new BusinessException('FILTRE_REQUIS', 'Indiquez un devis ou une facture.');
     return this.prisma.relance.findMany({
       where: { companyId: user.companyId, devisId: q.devisId, factureId: q.factureId },
       orderBy: { createdAt: 'desc' },
@@ -201,21 +231,60 @@ export class RelancesService {
 
   // ── helpers ─────────────────────────────────────────────────────────────
 
-  private async envoyerDevis(companyId: number, devisId: number, reference: string, niveau: number, userId: number | null) {
-    const { destinataire, emailSent } = await this.lifecycle.relancer(companyId, devisId, Math.max(niveau, 1));
+  private async envoyerDevis(
+    companyId: number,
+    devisId: number,
+    reference: string,
+    niveau: number,
+    userId: number | null,
+  ) {
+    const { destinataire, emailSent } = await this.lifecycle.relancer(
+      companyId,
+      devisId,
+      Math.max(niveau, 1),
+    );
     const relance = await this.prisma.relance.create({
-      data: { companyId, type: 'DEVIS', devisId, niveau, automatique: niveau > 0, destinataire, emailEnvoye: emailSent, userId },
+      data: {
+        companyId,
+        type: 'DEVIS',
+        devisId,
+        niveau,
+        automatique: niveau > 0,
+        destinataire,
+        emailEnvoye: emailSent,
+        userId,
+      },
     });
-    this.emit({ companyId, userId, type: 'DEVIS', entiteId: devisId, reference, niveau, automatique: niveau > 0, destinataire, emailEnvoye: emailSent });
+    this.emit({
+      companyId,
+      userId,
+      type: 'DEVIS',
+      entiteId: devisId,
+      reference,
+      niveau,
+      automatique: niveau > 0,
+      destinataire,
+      emailEnvoye: emailSent,
+    });
     return relance;
   }
 
-  private async envoyerFacture(companyId: number, factureId: number, niveau: number, userId: number | null, now: Date) {
+  private async envoyerFacture(
+    companyId: number,
+    factureId: number,
+    niveau: number,
+    userId: number | null,
+    now: Date,
+  ) {
     const f = await this.prisma.facture.findFirstOrThrow({ where: { id: factureId, companyId } });
     if (f.statut !== 'ENVOYEE' || f.typeFacture === 'AVOIR' || !f.reference) {
-      throw new BusinessException('FACTURE_NON_RELANCABLE', 'Seule une facture émise et non payée peut être relancée.');
+      throw new BusinessException(
+        'FACTURE_NON_RELANCABLE',
+        'Seule une facture émise et non payée peut être relancée.',
+      );
     }
-    if (!f.emailClient) throw new BusinessException('CLIENT_SANS_EMAIL', 'Cette facture n’a pas d’email client.');
+    if (!f.emailClient)
+      throw new BusinessException('CLIENT_SANS_EMAIL', 'Cette facture n’a pas d’email client.');
 
     const echeance = f.dateEcheance ?? f.dateEmission ?? now;
     const emailSent = await this.mail.send(
@@ -235,9 +304,28 @@ export class RelancesService {
       }),
     );
     const relance = await this.prisma.relance.create({
-      data: { companyId, type: 'FACTURE', factureId, niveau, automatique: niveau > 0, destinataire: f.emailClient, emailEnvoye: emailSent, userId },
+      data: {
+        companyId,
+        type: 'FACTURE',
+        factureId,
+        niveau,
+        automatique: niveau > 0,
+        destinataire: f.emailClient,
+        emailEnvoye: emailSent,
+        userId,
+      },
     });
-    this.emit({ companyId, userId, type: 'FACTURE', entiteId: factureId, reference: f.reference, niveau, automatique: niveau > 0, destinataire: f.emailClient, emailEnvoye: emailSent });
+    this.emit({
+      companyId,
+      userId,
+      type: 'FACTURE',
+      entiteId: factureId,
+      reference: f.reference,
+      niveau,
+      automatique: niveau > 0,
+      destinataire: f.emailClient,
+      emailEnvoye: emailSent,
+    });
     return relance;
   }
 

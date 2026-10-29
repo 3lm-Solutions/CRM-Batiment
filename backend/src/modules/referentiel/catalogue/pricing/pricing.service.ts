@@ -32,9 +32,16 @@ export class PricingService {
   ) {}
 
   /** HTTP-facing: the pricing result plus a short prestation header. */
-  async chiffrer(user: AuthUser, prestationId: number, dto: ChiffrageDto): Promise<PricingResult & { prestation: object }> {
+  async chiffrer(
+    user: AuthUser,
+    prestationId: number,
+    dto: ChiffrageDto,
+  ): Promise<PricingResult & { prestation: object }> {
     const { prestation, result } = await this.price(user, prestationId, dto);
-    return { prestation: { id: prestation.id, nom: prestation.nom, unite: prestation.unite }, ...result };
+    return {
+      prestation: { id: prestation.id, nom: prestation.nom, unite: prestation.unite },
+      ...result,
+    };
   }
 
   /** Used by quote lines: also returns the full prestation and the selected choices. */
@@ -45,7 +52,10 @@ export class PricingService {
     ]);
 
     if (!prestation.actif) {
-      throw new BusinessException('PRESTATION_INACTIVE', `La prestation « ${prestation.nom} » est désactivée.`);
+      throw new BusinessException(
+        'PRESTATION_INACTIVE',
+        `La prestation « ${prestation.nom} » est désactivée.`,
+      );
     }
     const allChoices = prestation.options.flatMap((o) =>
       o.choix.filter((c) => c.actif).map((c) => ({ ...c, optionId: o.id, optionNom: o.nom })),
@@ -53,7 +63,10 @@ export class PricingService {
     const selected = (dto.choixIds ?? []).map((id) => {
       const choix = allChoices.find((c) => c.id === id);
       if (!choix) {
-        throw new BusinessException('CHOIX_INVALIDE', `Le choix #${id} n'appartient pas à cette prestation.`);
+        throw new BusinessException(
+          'CHOIX_INVALIDE',
+          `Le choix #${id} n'appartient pas à cette prestation.`,
+        );
       }
       return choix;
     });
@@ -112,5 +125,8 @@ function toComponent(row: ComponentRow): PricingComponent {
       quantiteParUnite: row.quantiteParUnite,
     };
   }
-  throw new BusinessException('COMPOSITION_INVALIDE', `Composition #${row.id} sans matériau ni service.`);
+  throw new BusinessException(
+    'COMPOSITION_INVALIDE',
+    `Composition #${row.id} sans matériau ni service.`,
+  );
 }

@@ -13,7 +13,9 @@ export class PublicFacturesController {
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Get(':token')
-  @ApiOperation({ summary: 'Facture émise, en lecture seule (lien / QR code imprimé sur la facture)' })
+  @ApiOperation({
+    summary: 'Facture émise, en lecture seule (lien / QR code imprimé sur la facture)',
+  })
   voir(@Param('token') token: string) {
     return this.factures.findPublic(token);
   }

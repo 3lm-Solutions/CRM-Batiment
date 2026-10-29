@@ -4,7 +4,8 @@ export const MIN_JOURS_ENTRE_RELANCES = 2;
 export const DAY_MS = 86_400_000;
 
 /** Whole days elapsed since `from` (0 the same day, negative before). */
-export const joursDepuis = (from: Date, now: Date) => Math.floor((now.getTime() - from.getTime()) / DAY_MS);
+export const joursDepuis = (from: Date, now: Date) =>
+  Math.floor((now.getTime() - from.getTime()) / DAY_MS);
 
 /**
  * Which automatic reminder is due today, if any (C3 of 21/10).
@@ -18,7 +19,13 @@ export const joursDepuis = (from: Date, now: Date) => Math.floor((now.getTime() 
  * One level per run: if the job did not run for days, it catches up one level a day instead
  * of sending three emails at once.
  */
-export function niveauDu(jours: number, delais: readonly number[], dejaEnvoyes: readonly number[], derniere: Date | null, now: Date): number | null {
+export function niveauDu(
+  jours: number,
+  delais: readonly number[],
+  dejaEnvoyes: readonly number[],
+  derniere: Date | null,
+  now: Date,
+): number | null {
   const sorted = [...new Set(delais)].filter((d) => d >= 0).sort((a, b) => a - b);
   const niveau = (dejaEnvoyes.length ? Math.max(...dejaEnvoyes) : 0) + 1;
   if (niveau > sorted.length) return null;

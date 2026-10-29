@@ -1,12 +1,31 @@
-import { ForbiddenException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { LoginResponse, SessionResponse, SessionUser } from '../../../shared';
-import { type AuthUser, BusinessException, buildJwtPayload, type TokenSubject } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  buildJwtPayload,
+  type TokenSubject,
+} from '../../../common';
 import type { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { passwordResetCodeMail } from '../mail/templates/auth.templates';
-import { ChangePasswordDto, ForgotPasswordDto, LoginDto, ResetPasswordDto, SaveSignatureDto, UpdateProfileDto, VerifyResetCodeDto } from './dto/auth.dto';
+import {
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginDto,
+  ResetPasswordDto,
+  SaveSignatureDto,
+  UpdateProfileDto,
+  VerifyResetCodeDto,
+} from './dto/auth.dto';
 import { PasswordService } from './password.service';
 
 const INVALID_CREDENTIALS = 'Email ou mot de passe incorrect';
@@ -80,7 +99,10 @@ export class AuthService {
 
     // 422, not 401: a 401 would make the frontend log the user out
     if (!(await this.passwords.verify(dto.currentPassword, user.password))) {
-      throw new BusinessException('MOT_DE_PASSE_ACTUEL_INCORRECT', 'Le mot de passe actuel est incorrect.');
+      throw new BusinessException(
+        'MOT_DE_PASSE_ACTUEL_INCORRECT',
+        'Le mot de passe actuel est incorrect.',
+      );
     }
     if (dto.currentPassword === dto.newPassword) {
       throw new BusinessException(
@@ -155,7 +177,11 @@ export class AuthService {
 
   private async checkResetCode(email: string, code: string) {
     const invalid = () =>
-      new BusinessException('CODE_INVALIDE', 'Code de vérification invalide ou expiré.', HttpStatus.BAD_REQUEST);
+      new BusinessException(
+        'CODE_INVALIDE',
+        'Code de vérification invalide ou expiré.',
+        HttpStatus.BAD_REQUEST,
+      );
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (
@@ -185,7 +211,10 @@ export class AuthService {
   // ── Own profile & signature ─────────────────────────────────────────────
 
   me(authUser: AuthUser) {
-    return this.prisma.user.findUniqueOrThrow({ where: { id: authUser.id }, select: PROFILE_SELECT });
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id: authUser.id },
+      select: PROFILE_SELECT,
+    });
   }
 
   async updateMe(authUser: AuthUser, dto: UpdateProfileDto) {
@@ -194,7 +223,10 @@ export class AuthService {
     if (data.email && data.email !== authUser.email) {
       const user = await this.prisma.user.findUniqueOrThrow({ where: { id: authUser.id } });
       if (!(await this.passwords.verify(currentPassword ?? '', user.password))) {
-        throw new BusinessException('MOT_DE_PASSE_ACTUEL_INCORRECT', 'Le mot de passe actuel est incorrect.');
+        throw new BusinessException(
+          'MOT_DE_PASSE_ACTUEL_INCORRECT',
+          'Le mot de passe actuel est incorrect.',
+        );
       }
     }
 

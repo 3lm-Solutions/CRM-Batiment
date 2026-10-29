@@ -9,7 +9,10 @@ import { PASSWORD_POLICY } from '../../shared';
  */
 export function IsAppPassword(description = 'Nouveau mot de passe') {
   return applyDecorators(
-    ApiProperty({ description: `${description}. ${PASSWORD_POLICY.description}`, example: 'Chantier2026' }),
+    ApiProperty({
+      description: `${description}. ${PASSWORD_POLICY.description}`,
+      example: 'Chantier2026',
+    }),
     IsString(),
     MaxLength(72),
     IsStrongPassword(

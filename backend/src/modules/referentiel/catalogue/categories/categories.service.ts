@@ -1,7 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { AuthUser } from '../../../../common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { CreateCategorieDto, CreateSousCategorieDto, QueryCategoriesDto, UpdateCategorieDto, UpdateSousCategorieDto } from './categories.dto';
+import {
+  CreateCategorieDto,
+  CreateSousCategorieDto,
+  QueryCategoriesDto,
+  UpdateCategorieDto,
+  UpdateSousCategorieDto,
+} from './categories.dto';
 
 /**
  * Categories and their sub-categories.
@@ -43,7 +49,9 @@ export class CategoriesService {
 
   async createSousCategorie(user: AuthUser, categorieId: number, dto: CreateSousCategorieDto) {
     await this.findCategorie(user, categorieId);
-    return this.prisma.sousCategorie.create({ data: { ...dto, categorieId, companyId: user.companyId } });
+    return this.prisma.sousCategorie.create({
+      data: { ...dto, categorieId, companyId: user.companyId },
+    });
   }
 
   async updateSousCategorie(user: AuthUser, id: number, dto: UpdateSousCategorieDto) {
@@ -58,13 +66,17 @@ export class CategoriesService {
   }
 
   private async findCategorie(user: AuthUser, id: number) {
-    const row = await this.prisma.categoriePrestation.findFirst({ where: { id, companyId: user.companyId } });
+    const row = await this.prisma.categoriePrestation.findFirst({
+      where: { id, companyId: user.companyId },
+    });
     if (!row) throw new NotFoundException(`Catégorie #${id} introuvable`);
     return row;
   }
 
   private async findSousCategorie(user: AuthUser, id: number) {
-    const row = await this.prisma.sousCategorie.findFirst({ where: { id, companyId: user.companyId } });
+    const row = await this.prisma.sousCategorie.findFirst({
+      where: { id, companyId: user.companyId },
+    });
     if (!row) throw new NotFoundException(`Sous-catégorie #${id} introuvable`);
     return row;
   }

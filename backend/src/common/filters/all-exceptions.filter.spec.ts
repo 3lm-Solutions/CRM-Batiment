@@ -8,7 +8,10 @@ const prismaError = (code: string, meta?: Record<string, unknown>) =>
 
 describe('toHttpError', () => {
   it('keeps Nest HTTP exceptions', () => {
-    expect(toHttpError(new ForbiddenException('Non'))).toMatchObject({ status: 403, message: 'Non' });
+    expect(toHttpError(new ForbiddenException('Non'))).toMatchObject({
+      status: 403,
+      message: 'Non',
+    });
     expect(toHttpError(new NotFoundException()).status).toBe(404);
   });
 
@@ -27,12 +30,18 @@ describe('toHttpError', () => {
   });
 
   it('maps a foreign-key violation (Restrict) to 409 RESOURCE_IN_USE', () => {
-    expect(toHttpError(prismaError('P2003'))).toMatchObject({ status: 409, code: 'RESOURCE_IN_USE' });
+    expect(toHttpError(prismaError('P2003'))).toMatchObject({
+      status: 409,
+      code: 'RESOURCE_IN_USE',
+    });
   });
 
   it('maps record-not-found to 404', () => {
     expect(toHttpError(prismaError('P2025'))).toMatchObject({ status: 404, code: 'NOT_FOUND' });
-    expect(toHttpError(prismaError('P2022'))).toMatchObject({ status: 500, code: 'BASE_PAS_A_JOUR' });
+    expect(toHttpError(prismaError('P2022'))).toMatchObject({
+      status: 500,
+      code: 'BASE_PAS_A_JOUR',
+    });
   });
 
   it('hides unknown errors behind a generic 500', () => {
@@ -44,9 +53,13 @@ describe('toHttpError', () => {
   });
 
   it('translates English messages written by the framework', () => {
-    expect(frenchFrameworkMessage(429, 'ThrottlerException: Too Many Requests')).toMatch(/Trop de demandes/);
+    expect(frenchFrameworkMessage(429, 'ThrottlerException: Too Many Requests')).toMatch(
+      /Trop de demandes/,
+    );
     expect(frenchFrameworkMessage(404, 'Cannot GET /api/v1/nope')).toBe('Adresse introuvable.');
-    expect(frenchFrameworkMessage(400, 'Validation failed (numeric string is expected)')).toMatch(/Identifiant/);
+    expect(frenchFrameworkMessage(400, 'Validation failed (numeric string is expected)')).toMatch(
+      /Identifiant/,
+    );
     expect(frenchFrameworkMessage(422, 'Pas de lignes')).toBe('Pas de lignes');
   });
 });

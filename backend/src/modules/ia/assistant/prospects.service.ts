@@ -1,5 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type AuthUser, BusinessException, paginate, ReferencePrefix, ReferenceService, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  ReferencePrefix,
+  ReferenceService,
+  toSkipTake,
+} from '../../../common';
 import type { Prisma, ProspectStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { QualifierProspectDto, QueryProspectsDto, UpdateProspectDto } from './dto/assistant.dto';
@@ -59,7 +66,12 @@ export class ProspectsService {
       }),
     };
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.chatSession.findMany({ where, select: LIST_SELECT, orderBy: { derniereActivite: 'desc' }, ...toSkipTake(query) }),
+      this.prisma.chatSession.findMany({
+        where,
+        select: LIST_SELECT,
+        orderBy: { derniereActivite: 'desc' },
+        ...toSkipTake(query),
+      }),
       this.prisma.chatSession.count({ where }),
     ]);
     return paginate(data, total, query);
@@ -77,7 +89,10 @@ export class ProspectsService {
         client: { select: { id: true, nom: true, prenom: true, email: true, telephone: true } },
         demandeDevis: { select: { id: true, reference: true, statut: true } },
         doublonDe: { select: { id: true, clientNom: true, statut: true, createdAt: true } },
-        messages: { orderBy: { createdAt: 'asc' }, select: { id: true, role: true, contenu: true, createdAt: true } },
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          select: { id: true, role: true, contenu: true, createdAt: true },
+        },
         feedbacks: { select: { rating: true, commentaire: true, createdAt: true } },
       },
     });
@@ -88,12 +103,30 @@ export class ProspectsService {
   /** The sales team completes or corrects the details before qualifying. */
   async update(user: AuthUser, id: number, dto: UpdateProspectDto) {
     const p = await this.findOne(user, id);
-    if (p.statut === 'QUALIFIE') throw new BusinessException('PROSPECT_QUALIFIE', 'Prospect déjà transformé : modifiez la demande de devis.');
-    const email = dto.clientEmail === undefined ? undefined : dto.clientEmail === null ? null : normalizeEmail(dto.clientEmail);
-    const tel = dto.clientTelephone === undefined ? undefined : dto.clientTelephone === null ? null : normalizePhone(dto.clientTelephone);
+    if (p.statut === 'QUALIFIE')
+      throw new BusinessException(
+        'PROSPECT_QUALIFIE',
+        'Prospect déjà transformé : modifiez la demande de devis.',
+      );
+    const email =
+      dto.clientEmail === undefined
+        ? undefined
+        : dto.clientEmail === null
+          ? null
+          : normalizeEmail(dto.clientEmail);
+    const tel =
+      dto.clientTelephone === undefined
+        ? undefined
+        : dto.clientTelephone === null
+          ? null
+          : normalizePhone(dto.clientTelephone);
     if (dto.clientEmail && !email) throw new BusinessException('EMAIL_INVALIDE', 'Email invalide.');
-    if (dto.clientTelephone && !tel) throw new BusinessException('TELEPHONE_INVALIDE', 'Numéro de téléphone invalide.');
-    await this.prisma.chatSession.update({ where: { id }, data: { ...dto, clientEmail: email, clientTelephone: tel } });
+    if (dto.clientTelephone && !tel)
+      throw new BusinessException('TELEPHONE_INVALIDE', 'Numéro de téléphone invalide.');
+    await this.prisma.chatSession.update({
+      where: { id },
+      data: { ...dto, clientEmail: email, clientTelephone: tel },
+    });
     return this.findOne(user, id);
   }
 
@@ -104,27 +137,61 @@ export class ProspectsService {
   async qualifier(user: AuthUser, id: number, dto: QualifierProspectDto) {
     const p = await this.findOne(user, id);
     ProspectMachine.assert(p.statut, 'QUALIFIE');
-    const fields = { nom: p.clientNom, email: p.clientEmail, telephone: p.clientTelephone, description: p.description };
+    const fields = {
+      nom: p.clientNom,
+      email: p.clientEmail,
+      telephone: p.clientTelephone,
+      description: p.description,
+    };
     if (!isComplete(fields)) {
-      throw new BusinessException('PROSPECT_INCOMPLET', 'Complétez le nom, un moyen de contact et la description avant de qualifier.');
+      throw new BusinessException(
+        'PROSPECT_INCOMPLET',
+        'Complétez le nom, un moyen de contact et la description avant de qualifier.',
+      );
+    }
+
+    if (dto.typeClient === 'PROFESSIONNEL' && !dto.raisonSociale) {
+      throw new BusinessException(
+        'RAISON_SOCIALE_REQUISE',
+        'Indiquez la raison sociale de l’entreprise.',
+      );
     }
 
     const demande = await this.prisma.$transaction(async (tx) => {
       let clientId = dto.clientId ?? p.clientId ?? null;
       if (dto.clientId) {
-        const ok = await tx.client.count({ where: { id: dto.clientId, companyId: user.companyId, archivedAt: null } });
-        if (!ok) throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
+        const ok = await tx.client.count({
+          where: { id: dto.clientId, companyId: user.companyId, archivedAt: null },
+        });
+        if (!ok)
+          throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
       }
-      clientId ??= (await this.dedup.findClient(user.companyId, p.clientEmail, p.clientTelephone, tx))?.id ?? null;
+      clientId ??=
+        (await this.dedup.findClient(user.companyId, p.clientEmail, p.clientTelephone, tx))?.id ??
+        null;
       if (!clientId) {
         const type = p.typeProjet
-          ? await tx.typeProjet.findFirst({ where: { companyId: user.companyId, nom: p.typeProjet }, select: { id: true } })
+          ? await tx.typeProjet.findFirst({
+              where: { companyId: user.companyId, nom: p.typeProjet },
+              select: { id: true },
+            })
           : null;
+        // 29/10: private person or company, chosen when qualifying (company: the person who wrote
+        // becomes the contact, the company name becomes the client's name)
+        const pro = dto.typeClient === 'PROFESSIONNEL';
+        const personne = [p.clientPrenom, p.clientNom].filter(Boolean).join(' ');
         const client = await tx.client.create({
           data: {
             companyId: user.companyId,
-            nom: p.clientNom!,
-            prenom: p.clientPrenom,
+            typeClient: pro ? 'PROFESSIONNEL' : 'PARTICULIER',
+            nom: pro ? dto.raisonSociale! : p.clientNom!,
+            prenom: pro ? null : p.clientPrenom,
+            ...(pro && {
+              siret: dto.siret ?? null,
+              tvaIntracom: dto.tvaIntracom ?? null,
+              contactNom: personne || null,
+              contactFonction: dto.contactFonction ?? null,
+            }),
             email: p.clientEmail,
             telephone: p.clientTelephone,
             adresseChantier: p.adresse,
@@ -148,7 +215,12 @@ export class ProspectsService {
           // CHATBOT or EMAIL (22/10): the request keeps where the prospect came from
           source: p.source,
           description: p.description!,
-          besoinStructure: { typeProjet: p.typeProjet, delai: p.delai, adresse: p.adresse, conversationId: p.id } as Prisma.InputJsonValue,
+          besoinStructure: {
+            typeProjet: p.typeProjet,
+            delai: p.delai,
+            adresse: p.adresse,
+            conversationId: p.id,
+          },
           reference: await this.references.next(ReferencePrefix.DEMANDE, user.companyId, tx),
         },
         select: { id: true, reference: true },
@@ -156,9 +228,16 @@ export class ProspectsService {
       // Conditional: two people qualifying at once → only one demande
       const { count } = await tx.chatSession.updateMany({
         where: { id, statut: { in: ProspectMachine.sources('QUALIFIE') } },
-        data: { statut: 'QUALIFIE', clientId, demandeDevisId: created.id, traiteParId: user.id, traiteLe: new Date() },
+        data: {
+          statut: 'QUALIFIE',
+          clientId,
+          demandeDevisId: created.id,
+          traiteParId: user.id,
+          traiteLe: new Date(),
+        },
       });
-      if (!count) throw new BusinessException('PROSPECT_DEJA_TRAITE', 'Ce prospect vient d’être traité.');
+      if (!count)
+        throw new BusinessException('PROSPECT_DEJA_TRAITE', 'Ce prospect vient d’être traité.');
       return created;
     });
     return { prospect: await this.findOne(user, id), demande };
@@ -177,12 +256,30 @@ export class ProspectsService {
     const [parStatut, conversations, feedbacks, erreurs] = await Promise.all([
       this.prisma.chatSession.groupBy({
         by: ['statut'],
-        where: { companyId: user.companyId, createdAt: { gte: since }, messages: { some: { role: 'user' } } },
+        where: {
+          companyId: user.companyId,
+          createdAt: { gte: since },
+          messages: { some: { role: 'user' } },
+        },
         _count: { _all: true },
       }),
-      this.prisma.chatSession.count({ where: { companyId: user.companyId, createdAt: { gte: since }, messages: { some: { role: 'user' } } } }),
-      this.prisma.assistantFeedback.groupBy({ by: ['rating'], where: { companyId: user.companyId, createdAt: { gte: since } }, _count: { _all: true } }),
-      this.prisma.assistantErreur.groupBy({ by: ['type'], where: { companyId: user.companyId, createdAt: { gte: since } }, _count: { _all: true } }),
+      this.prisma.chatSession.count({
+        where: {
+          companyId: user.companyId,
+          createdAt: { gte: since },
+          messages: { some: { role: 'user' } },
+        },
+      }),
+      this.prisma.assistantFeedback.groupBy({
+        by: ['rating'],
+        where: { companyId: user.companyId, createdAt: { gte: since } },
+        _count: { _all: true },
+      }),
+      this.prisma.assistantErreur.groupBy({
+        by: ['type'],
+        where: { companyId: user.companyId, createdAt: { gte: since } },
+        _count: { _all: true },
+      }),
     ]);
     return {
       periodeJours: 30,
@@ -203,14 +300,23 @@ export class ProspectsService {
     });
   }
 
-  private async transition(user: AuthUser, id: number, to: ProspectStatut, data: Prisma.ChatSessionUpdateManyMutationInput) {
+  private async transition(
+    user: AuthUser,
+    id: number,
+    to: ProspectStatut,
+    data: Prisma.ChatSessionUpdateManyMutationInput,
+  ) {
     const p = await this.findOne(user, id);
     ProspectMachine.assert(p.statut, to);
     const { count } = await this.prisma.chatSession.updateMany({
       where: { id, statut: p.statut },
       data: { ...data, statut: to, traiteParId: user.id, traiteLe: new Date() },
     });
-    if (!count) throw new BusinessException('PROSPECT_DEJA_TRAITE', 'Ce prospect vient d’être modifié. Rechargez.');
+    if (!count)
+      throw new BusinessException(
+        'PROSPECT_DEJA_TRAITE',
+        'Ce prospect vient d’être modifié. Rechargez.',
+      );
     return this.findOne(user, id);
   }
 }

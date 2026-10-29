@@ -34,6 +34,7 @@ import { ReferenceService } from './references/reference.service';
       useFactory: (config: ConfigService<Env, true>) => ({
         secret: config.get('JWT_SECRET', { infer: true }),
         signOptions: {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- ms-style string (« 7d ») typed as StringValue by @nestjs/jwt
           expiresIn: config.get('JWT_EXPIRES_IN', { infer: true }) as JwtSignOptions['expiresIn'],
         },
       }),

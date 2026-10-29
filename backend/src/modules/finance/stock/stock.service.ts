@@ -39,12 +39,17 @@ export class StockService {
     if (input.type === 'AJUSTEMENT') {
       const rows = await db.$queryRaw<{ stockActuel: Prisma.Decimal }[]>`
         SELECT "stockActuel" FROM "materiaux" WHERE "id" = ${input.materiauId} AND "companyId" = ${input.companyId} FOR UPDATE`;
-      if (!rows.length) throw new BusinessException('MATERIAU_INTROUVABLE', `Matériau #${input.materiauId} introuvable.`);
+      if (!rows.length)
+        throw new BusinessException(
+          'MATERIAU_INTROUVABLE',
+          `Matériau #${input.materiauId} introuvable.`,
+        );
       delta = q.minus(rows[0].stockActuel);
       stockApres = q;
       await db.materiau.update({ where, data: { stockActuel: q } });
     } else {
-      if (q.lte(0)) throw new BusinessException('QUANTITE_INVALIDE', 'La quantité doit être supérieure à 0.');
+      if (q.lte(0))
+        throw new BusinessException('QUANTITE_INVALIDE', 'La quantité doit être supérieure à 0.');
       delta = input.type === 'ENTREE' ? q : q.negated();
 
       const { count } = await db.materiau.updateMany({
@@ -55,10 +60,17 @@ export class StockService {
         const exists = await db.materiau.count({ where });
         throw exists
           ? new BusinessException('STOCK_INSUFFISANT', 'Stock insuffisant pour cette sortie.')
-          : new BusinessException('MATERIAU_INTROUVABLE', `Matériau #${input.materiauId} introuvable.`);
+          : new BusinessException(
+              'MATERIAU_INTROUVABLE',
+              `Matériau #${input.materiauId} introuvable.`,
+            );
       }
-      stockApres = (await db.materiau.findUniqueOrThrow({ where: { id: input.materiauId }, select: { stockActuel: true } }))
-        .stockActuel;
+      stockApres = (
+        await db.materiau.findUniqueOrThrow({
+          where: { id: input.materiauId },
+          select: { stockActuel: true },
+        })
+      ).stockActuel;
     }
 
     return db.mouvementStock.create({
@@ -79,8 +91,14 @@ export class StockService {
 
   async createMovement(user: AuthUser, dto: CreateMouvementDto) {
     if (dto.chantierId) {
-      const ok = await this.prisma.chantier.count({ where: { id: dto.chantierId, companyId: user.companyId } });
-      if (!ok) throw new BusinessException('CHANTIER_INTROUVABLE', `Chantier #${dto.chantierId} introuvable.`);
+      const ok = await this.prisma.chantier.count({
+        where: { id: dto.chantierId, companyId: user.companyId },
+      });
+      if (!ok)
+        throw new BusinessException(
+          'CHANTIER_INTROUVABLE',
+          `Chantier #${dto.chantierId} introuvable.`,
+        );
     }
     return this.prisma.$transaction((tx) =>
       this.move(tx, { ...dto, companyId: user.companyId, userId: user.id }),

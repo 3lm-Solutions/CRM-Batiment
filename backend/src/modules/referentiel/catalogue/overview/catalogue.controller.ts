@@ -12,7 +12,10 @@ export class CatalogueController {
 
   @Roles(...STAFF)
   @Get('tree')
-  @ApiOperation({ summary: 'Catalogue actif en arbre (catégories → sous-catégories → prestations → options → choix)' })
+  @ApiOperation({
+    summary:
+      'Catalogue actif en arbre (catégories → sous-catégories → prestations → options → choix)',
+  })
   tree(@CurrentUser() user: AuthUser) {
     return costsFor(user, this.overview.tree(user));
   }

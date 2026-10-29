@@ -65,6 +65,9 @@ CREATE TYPE "ChantierStatut" AS ENUM ('PLANIFIE', 'EN_COURS', 'SUSPENDU', 'TERMI
 CREATE TYPE "TacheStatut" AS ENUM ('A_FAIRE', 'EN_COURS', 'BLOQUEE', 'TERMINEE');
 
 -- CreateEnum
+CREATE TYPE "TypePrix" AS ENUM ('VENTE', 'ACHAT');
+
+-- CreateEnum
 CREATE TYPE "Unite" AS ENUM ('M2', 'ML', 'M3', 'PIECE', 'JOUR', 'HEURE', 'LITRE', 'KG', 'FORFAIT');
 
 -- CreateEnum
@@ -128,6 +131,7 @@ CREATE TABLE "companies" (
     "relanceDevisJours" INTEGER[] DEFAULT ARRAY[7, 14]::INTEGER[],
     "relanceFactureJours" INTEGER[] DEFAULT ARRAY[1, 15, 30]::INTEGER[],
     "savDureeMois" INTEGER NOT NULL DEFAULT 12,
+    "prixMarcheMois" INTEGER NOT NULL DEFAULT 12,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -1147,6 +1151,23 @@ CREATE TABLE "client_espace_liens" (
     CONSTRAINT "client_espace_liens_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "prix_references" (
+    "id" SERIAL NOT NULL,
+    "companyId" INTEGER NOT NULL,
+    "prestationId" INTEGER,
+    "materiauId" INTEGER,
+    "type" "TypePrix" NOT NULL DEFAULT 'VENTE',
+    "unite" "Unite" NOT NULL,
+    "prixMin" DECIMAL(12,2) NOT NULL,
+    "prixMax" DECIMAL(12,2) NOT NULL,
+    "source" TEXT,
+    "importeParId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "prix_references_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "companies_siret_key" ON "companies"("siret");
 
@@ -1554,6 +1575,12 @@ CREATE UNIQUE INDEX "client_espace_liens_tokenHash_key" ON "client_espace_liens"
 
 -- CreateIndex
 CREATE INDEX "client_espace_liens_clientId_idx" ON "client_espace_liens"("clientId");
+
+-- CreateIndex
+CREATE INDEX "prix_references_companyId_prestationId_idx" ON "prix_references"("companyId", "prestationId");
+
+-- CreateIndex
+CREATE INDEX "prix_references_companyId_materiauId_idx" ON "prix_references"("companyId", "materiauId");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -2016,4 +2043,16 @@ ALTER TABLE "client_espace_liens" ADD CONSTRAINT "client_espace_liens_clientId_f
 
 -- AddForeignKey
 ALTER TABLE "client_espace_liens" ADD CONSTRAINT "client_espace_liens_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "prix_references" ADD CONSTRAINT "prix_references_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "companies"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "prix_references" ADD CONSTRAINT "prix_references_prestationId_fkey" FOREIGN KEY ("prestationId") REFERENCES "prestations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "prix_references" ADD CONSTRAINT "prix_references_materiauId_fkey" FOREIGN KEY ("materiauId") REFERENCES "materiaux"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "prix_references" ADD CONSTRAINT "prix_references_importeParId_fkey" FOREIGN KEY ("importeParId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 

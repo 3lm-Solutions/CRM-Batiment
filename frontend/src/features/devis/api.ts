@@ -3,6 +3,7 @@ import type { CompanySettings, PaginatedResponse } from '@/shared';
 import { api } from '@/lib/api';
 import type { Unite } from '../catalogue/api';
 import type { ClientPro } from '../clients/api';
+import type { PositionPrix, PrixMarche } from '../prix-marche/api';
 
 export type DevisStatut = 'BROUILLON' | 'ENVOYE' | 'RENVOYE' | 'ACCEPTE' | 'SIGNE' | 'REFUSE' | 'REVISE' | 'ANNULE';
 export const DEVIS_STATUTS: DevisStatut[] = ['BROUILLON', 'ENVOYE', 'RENVOYE', 'ACCEPTE', 'SIGNE', 'REFUSE', 'REVISE', 'ANNULE'];
@@ -184,6 +185,9 @@ export interface LigneProposee {
   prixUnitaireHT: number;
   totalHT: number;
   justification: string;
+  /** 29/10: range of the company's signed prices (or imported list); null = not enough data */
+  marche?: PrixMarche | null;
+  positionMarche?: PositionPrix | null;
 }
 
 export interface PropositionIa {
@@ -226,6 +230,17 @@ export const useProposerPhotoIa = (id: number) =>
       if (description.trim()) body.append('description', description.trim());
       photos.forEach((p) => body.append('photos', p));
       return (await api.post<PropositionIa>(`/devis/${id}/ia/proposer-photo`, body, { timeout: 120_000 })).data;
+    },
+  });
+
+/** Devis vocal (29/10): one recording → text (Whisper on the server). The audio is not stored. */
+export const useTranscrireIa = (id: number) =>
+  useMutation({
+    mutationFn: async (audio: Blob) => {
+      const body = new FormData();
+      const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
+      body.append('audio', audio, `dictee.${ext}`);
+      return (await api.post<{ texte: string }>(`/devis/${id}/ia/transcrire`, body, { timeout: 90_000 })).data;
     },
   });
 

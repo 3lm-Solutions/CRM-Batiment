@@ -14,7 +14,8 @@ export function normalizeTaskProgress(
 
   if (change.statut === 'TERMINEE') avancement = 100;
   else if (change.avancement === 100) statut = 'TERMINEE';
-  else if (statut === 'TERMINEE' && avancement < 100) statut = 'EN_COURS'; // progress lowered: reopened
+  else if (statut === 'TERMINEE' && avancement < 100)
+    statut = 'EN_COURS'; // progress lowered: reopened
   else if (statut === 'A_FAIRE' && avancement > 0) statut = 'EN_COURS';
 
   return { statut, avancement };
@@ -22,7 +23,10 @@ export function normalizeTaskProgress(
 
 export function assertDateRange(debut?: Date | string | null, fin?: Date | string | null): void {
   if (debut && fin && new Date(fin) < new Date(debut)) {
-    throw new BusinessException('DATES_INVALIDES', 'La date de fin ne peut pas précéder la date de début.');
+    throw new BusinessException(
+      'DATES_INVALIDES',
+      'La date de fin ne peut pas précéder la date de début.',
+    );
   }
 }
 

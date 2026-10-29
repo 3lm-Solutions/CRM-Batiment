@@ -22,7 +22,9 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Authentification requise');
 
     request.user = await this.sessions.validate(token, {
-      allowPasswordChange: this.reflector.getAllAndOverride<boolean>(ALLOW_PASSWORD_CHANGE_TOKEN_KEY, targets) ?? false,
+      allowPasswordChange:
+        this.reflector.getAllAndOverride<boolean>(ALLOW_PASSWORD_CHANGE_TOKEN_KEY, targets) ??
+        false,
     });
     return true;
   }

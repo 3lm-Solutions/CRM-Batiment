@@ -1,13 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsInt, IsNumber, IsOptional, IsPositive, Min, ValidateNested } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 /** One line of a bill of materials: exactly one of materiauId / serviceMainOeuvreId. */
 export class CompositionItemDto {
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   materiauId?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   serviceMainOeuvreId?: number;
 
   @ApiProperty({ example: 1.05, description: 'Quantité consommée pour UNE unité de prestation' })

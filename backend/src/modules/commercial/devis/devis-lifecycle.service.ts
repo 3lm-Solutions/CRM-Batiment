@@ -5,7 +5,11 @@ import { DevisStatut, ModeValidation, Prisma } from '../../../generated/prisma/c
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { MailService } from '../../core/mail/mail.service';
-import { devisRelanceMail, devisSignatureMail, devisValidationMail } from '../../core/mail/templates/devis.templates';
+import {
+  devisRelanceMail,
+  devisSignatureMail,
+  devisValidationMail,
+} from '../../core/mail/templates/devis.templates';
 import { type DevisEvent, DevisEvents } from './devis.events';
 import { DevisHooks } from './devis-hooks';
 import { type DevisRow, DevisService } from './devis.service';
@@ -43,7 +47,10 @@ export class DevisLifecycleService {
       await this.assertSendable(tx, devis);
 
       await this.snapshotVersion(tx, devis, user.id, 'Envoi au client');
-      await this.transition(tx, devis, to, { dateEnvoi: new Date(), modeValidation: ModeValidation.EMAIL });
+      await this.transition(tx, devis, to, {
+        dateEnvoi: new Date(),
+        modeValidation: ModeValidation.EMAIL,
+      });
       await promouvoirClient(tx, devis.clientId, 'QUALIFIE'); // 27/10
       const lien = await this.liens.create(tx, devis, 'VALIDATION', devis.client.email!);
       return { devis, lien };
@@ -62,9 +69,13 @@ export class DevisLifecycleService {
     const { devis, lien } = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(user.companyId, id, tx);
       if (!AWAITING_CLIENT_STATUTS.includes(devis.statut)) {
-        throw new BusinessException('DEVIS_NON_ENVOYE', 'Le devis doit être envoyé et en attente de réponse.');
+        throw new BusinessException(
+          'DEVIS_NON_ENVOYE',
+          'Le devis doit être envoyé et en attente de réponse.',
+        );
       }
-      if (!devis.client.email) throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
+      if (!devis.client.email)
+        throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
       return { devis, lien: await this.liens.create(tx, devis, 'VALIDATION', devis.client.email) };
     });
     const emailSent = await this.mail.send(
@@ -79,19 +90,35 @@ export class DevisLifecycleService {
    * (the previous one is cancelled, so an expired first link is not a dead end) and a reminder
    * email. Used by the daily job (no user) and by « Relancer maintenant ».
    */
-  async relancer(companyId: number, id: number, niveau: number): Promise<{ destinataire: string; emailSent: boolean }> {
+  async relancer(
+    companyId: number,
+    id: number,
+    niveau: number,
+  ): Promise<{ destinataire: string; emailSent: boolean }> {
     const { devis, lien } = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(companyId, id, tx);
       if (!AWAITING_CLIENT_STATUTS.includes(devis.statut)) {
-        throw new BusinessException('DEVIS_NON_ENVOYE', 'Seul un devis envoyé et en attente de réponse peut être relancé.');
+        throw new BusinessException(
+          'DEVIS_NON_ENVOYE',
+          'Seul un devis envoyé et en attente de réponse peut être relancé.',
+        );
       }
-      if (!devis.client.email) throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
+      if (!devis.client.email)
+        throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
       return { devis, lien: await this.liens.create(tx, devis, 'VALIDATION', devis.client.email) };
     });
-    const joursDepuisEnvoi = devis.dateEnvoi ? Math.max(0, Math.floor((Date.now() - devis.dateEnvoi.getTime()) / 86_400_000)) : 0;
+    const joursDepuisEnvoi = devis.dateEnvoi
+      ? Math.max(0, Math.floor((Date.now() - devis.dateEnvoi.getTime()) / 86_400_000))
+      : 0;
     const emailSent = await this.mail.send(
       devis.client.email!,
-      devisRelanceMail({ ...this.mailContext(devis), url: lien.url, expiresAt: lien.expiresAt, niveau, joursDepuisEnvoi }),
+      devisRelanceMail({
+        ...this.mailContext(devis),
+        url: lien.url,
+        expiresAt: lien.expiresAt,
+        niveau,
+        joursDepuisEnvoi,
+      }),
     );
     return { destinataire: devis.client.email!, emailSent };
   }
@@ -102,7 +129,10 @@ export class DevisLifecycleService {
       const devis = await this.devis.getForUpdate(user.companyId, id, tx);
       assertTransition(devis.statut, 'REVISE');
       await this.snapshotVersion(tx, devis, user.id, dto.justification);
-      await this.transition(tx, devis, 'REVISE', { versionCourante: { increment: 1 }, motifRefus: null });
+      await this.transition(tx, devis, 'REVISE', {
+        versionCourante: { increment: 1 },
+        motifRefus: null,
+      });
       await this.liens.cancelAll(tx, id);
     });
     return this.devis.findOne(user, id);
@@ -111,7 +141,9 @@ export class DevisLifecycleService {
   async annuler(user: AuthUser, id: number, dto: AnnulerDevisDto) {
     const devis = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(user.companyId, id, tx);
-      const notes = dto.motif ? `${devis.notes ? `${devis.notes}\n` : ''}Annulé : ${dto.motif}` : undefined;
+      const notes = dto.motif
+        ? `${devis.notes ? `${devis.notes}\n` : ''}Annulé : ${dto.motif}`
+        : undefined;
       await this.transition(tx, devis, 'ANNULE', { notes });
       await this.liens.cancelAll(tx, id);
       return devis;
@@ -125,10 +157,15 @@ export class DevisLifecycleService {
     const { devis, lien } = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(user.companyId, id, tx);
       if (devis.statut !== 'ACCEPTE') {
-        throw new BusinessException('DEVIS_NON_ACCEPTE', 'La signature en ligne se demande sur un devis accepté.');
+        throw new BusinessException(
+          'DEVIS_NON_ACCEPTE',
+          'La signature en ligne se demande sur un devis accepté.',
+        );
       }
-      if (devis.signatureClientBase64) throw new BusinessException('DEJA_SIGNE', 'Le client a déjà signé ce devis.');
-      if (!devis.client.email) throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
+      if (devis.signatureClientBase64)
+        throw new BusinessException('DEJA_SIGNE', 'Le client a déjà signé ce devis.');
+      if (!devis.client.email)
+        throw new BusinessException('CLIENT_SANS_EMAIL', 'Le client n’a pas d’adresse email.');
       await tx.devis.update({ where: { id }, data: { modeValidation: ModeValidation.SIGNATURE } });
       return { devis, lien: await this.liens.create(tx, devis, 'SIGNATURE', devis.client.email) };
     });
@@ -152,24 +189,39 @@ export class DevisLifecycleService {
       select: { signatureBase64: true },
     });
     if (!conseiller.signatureBase64) {
-      throw new BusinessException('SIGNATURE_CONSEILLER_MANQUANTE', 'Enregistrez d’abord votre signature dans votre profil.');
+      throw new BusinessException(
+        'SIGNATURE_CONSEILLER_MANQUANTE',
+        'Enregistrez d’abord votre signature dans votre profil.',
+      );
     }
 
     const signed = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(user.companyId, id, tx);
       const now = new Date();
-      const signature = { signatureConseillerBase64: conseiller.signatureBase64, signatureConseillerDate: now };
+      const signature = {
+        signatureConseillerBase64: conseiller.signatureBase64,
+        signatureConseillerDate: now,
+      };
 
       if (dto.verbal) {
         if (!AWAITING_CLIENT_STATUTS.includes(devis.statut)) {
-          throw new BusinessException('DEVIS_NON_ENVOYE', 'Un accord verbal se constate sur un devis envoyé.');
+          throw new BusinessException(
+            'DEVIS_NON_ENVOYE',
+            'Un accord verbal se constate sur un devis envoyé.',
+          );
         }
-        await this.finaliserSignature(tx, devis, { ...signature, modeValidation: ModeValidation.VERBAL });
+        await this.finaliserSignature(tx, devis, {
+          ...signature,
+          modeValidation: ModeValidation.VERBAL,
+        });
         return devis;
       }
 
       if (devis.statut !== 'ACCEPTE') {
-        throw new BusinessException('DEVIS_NON_ACCEPTE', 'Le devis doit être accepté par le client (ou cochez « accord verbal »).');
+        throw new BusinessException(
+          'DEVIS_NON_ACCEPTE',
+          'Le devis doit être accepté par le client (ou cochez « accord verbal »).',
+        );
       }
       if (devis.signatureClientBase64) {
         await this.finaliserSignature(tx, devis, signature);
@@ -182,7 +234,9 @@ export class DevisLifecycleService {
     if (signed) this.emit(DevisEvents.SIGNE, signed, user.id);
     return {
       devis: await this.devis.findOne(user, id),
-      message: signed ? 'Devis signé.' : 'Signature enregistrée — en attente de la signature du client.',
+      message: signed
+        ? 'Devis signé.'
+        : 'Signature enregistrée — en attente de la signature du client.',
     };
   }
 
@@ -191,7 +245,10 @@ export class DevisLifecycleService {
   async accepterParClient(link: ResolvedLink): Promise<void> {
     const devis = await this.prisma.$transaction(async (tx) => {
       const devis = await this.devis.getForUpdate(link.devis.companyId, link.devisId, tx);
-      await this.transition(tx, devis, 'ACCEPTE', { dateValidation: new Date(), modeValidation: ModeValidation.EMAIL });
+      await this.transition(tx, devis, 'ACCEPTE', {
+        dateValidation: new Date(),
+        modeValidation: ModeValidation.EMAIL,
+      });
       await this.markUsed(tx, link.id);
       await this.hooks.runAccepted(tx, devis); // P0.4: supplier orders, same transaction
       return devis;
@@ -224,7 +281,10 @@ export class DevisLifecycleService {
         return devis;
       }
       // Conditional on the status too: a concurrent cancellation wins
-      const { count } = await tx.devis.updateMany({ where: { id: devis.id, statut: 'ACCEPTE' }, data: signature });
+      const { count } = await tx.devis.updateMany({
+        where: { id: devis.id, statut: 'ACCEPTE' },
+        data: signature,
+      });
       if (!count) throw this.concurrentChange();
       return null;
     });
@@ -242,7 +302,11 @@ export class DevisLifecycleService {
    * A second concurrent signature fails on the conditional update BEFORE reaching the hooks,
    * so nothing can be created twice.
    */
-  private async finaliserSignature(tx: DbClient, devis: DevisRow, data: Prisma.DevisUpdateManyMutationInput) {
+  private async finaliserSignature(
+    tx: DbClient,
+    devis: DevisRow,
+    data: Prisma.DevisUpdateManyMutationInput,
+  ) {
     await this.transition(tx, devis, 'SIGNE', { ...data, dateValidation: new Date() });
     // 27/10: the first signed quote turns the prospect into a client
     await promouvoirClient(tx, devis.clientId, 'CLIENT');
@@ -275,16 +339,32 @@ export class DevisLifecycleService {
   /** P0.6: no lines, or a quote worth 0 € (the old placeholder line passed this check), cannot be sent. */
   private async assertSendable(db: DbClient, devis: DevisRow): Promise<void> {
     if (!devis.client.email) {
-      throw new BusinessException('CLIENT_SANS_EMAIL', 'Ajoutez une adresse email au client avant l’envoi.');
+      throw new BusinessException(
+        'CLIENT_SANS_EMAIL',
+        'Ajoutez une adresse email au client avant l’envoi.',
+      );
     }
     const lignes = await db.ligneDevis.count({ where: { devisId: devis.id } });
-    if (lignes === 0) throw new BusinessException('DEVIS_SANS_LIGNES', 'Impossible d’envoyer un devis sans lignes.');
-    if (devis.totalHT.lte(0)) throw new BusinessException('DEVIS_A_ZERO', 'Impossible d’envoyer un devis à 0 €.');
+    if (lignes === 0)
+      throw new BusinessException(
+        'DEVIS_SANS_LIGNES',
+        'Impossible d’envoyer un devis sans lignes.',
+      );
+    if (devis.totalHT.lte(0))
+      throw new BusinessException('DEVIS_A_ZERO', 'Impossible d’envoyer un devis à 0 €.');
   }
 
   /** Records exactly what the client was sent (or what is being revised). Idempotent per version. */
-  private async snapshotVersion(db: DbClient, devis: DevisRow, auteurId: number, justification: string) {
-    const lignes = await db.ligneDevis.findMany({ where: { devisId: devis.id }, orderBy: { ordre: 'asc' } });
+  private async snapshotVersion(
+    db: DbClient,
+    devis: DevisRow,
+    auteurId: number,
+    justification: string,
+  ) {
+    const lignes = await db.ligneDevis.findMany({
+      where: { devisId: devis.id },
+      orderBy: { ordre: 'asc' },
+    });
     const snapshot = {
       totalHT: devis.totalHT,
       totalTTC: devis.totalTTC,
@@ -294,13 +374,22 @@ export class DevisLifecycleService {
     };
     await db.versionDevis.upsert({
       where: { devisId_numeroVersion: { devisId: devis.id, numeroVersion: devis.versionCourante } },
-      create: { devisId: devis.id, numeroVersion: devis.versionCourante, auteurId, justification, ...snapshot },
+      create: {
+        devisId: devis.id,
+        numeroVersion: devis.versionCourante,
+        auteurId,
+        justification,
+        ...snapshot,
+      },
       update: { justification },
     });
   }
 
   private async markUsed(db: DbClient, linkId: number) {
-    await db.devisLienClient.update({ where: { id: linkId }, data: { statut: 'UTILISE', usedAt: new Date() } });
+    await db.devisLienClient.update({
+      where: { id: linkId },
+      data: { statut: 'UTILISE', usedAt: new Date() },
+    });
   }
 
   private mailContext(devis: DevisRow) {
@@ -309,11 +398,17 @@ export class DevisLifecycleService {
       reference: devis.reference,
       totalTTC: devis.totalTTC.toNumber(),
       entreprise: devis.company.nom,
-      conseiller: devis.createur ? `${devis.createur.prenom} ${devis.createur.nom}` : 'Votre conseiller',
+      conseiller: devis.createur
+        ? `${devis.createur.prenom} ${devis.createur.nom}`
+        : 'Votre conseiller',
     };
   }
 
-  private emit(event: string, devis: Pick<DevisRow, 'id' | 'companyId' | 'reference'>, userId: number | null) {
+  private emit(
+    event: string,
+    devis: Pick<DevisRow, 'id' | 'companyId' | 'reference'>,
+    userId: number | null,
+  ) {
     this.events.emit(event, {
       companyId: devis.companyId,
       devisId: devis.id,

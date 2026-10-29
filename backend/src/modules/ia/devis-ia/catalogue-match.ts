@@ -111,18 +111,26 @@ const NUMBER = String.raw`(\d+(?:[.,]\d+)?)`;
 
 /** "8 m²", "8m2", "8 mètres carrés" → 8 (the first one written). */
 export function extractSurface(text: string): number | null {
-  const m = new RegExp(`${NUMBER}\\s*(?:m²|m2|m 2|metres? carres?|mètres? carrés?)`, 'i').exec(text);
+  const m = new RegExp(`${NUMBER}\\s*(?:m²|m2|m 2|metres? carres?|mètres? carrés?)`, 'i').exec(
+    text,
+  );
   return m ? Number(m[1].replace(',', '.')) : null;
 }
 
 /** "12 ml", "12 mètres linéaires" → 12. */
 export function extractLength(text: string): number | null {
-  const m = new RegExp(`${NUMBER}\\s*(?:ml\\b|metres? lineaires?|mètres? linéaires?)`, 'i').exec(text);
+  const m = new RegExp(`${NUMBER}\\s*(?:ml\\b|metres? lineaires?|mètres? linéaires?)`, 'i').exec(
+    text,
+  );
   return m ? Number(m[1].replace(',', '.')) : null;
 }
 
 /** Quantity for a line in guided mode: the surface for M2, the length for ML, else 1. */
-export function guessQuantity(unite: string, surface: number | null, longueur: number | null): number {
+export function guessQuantity(
+  unite: string,
+  surface: number | null,
+  longueur: number | null,
+): number {
   if (unite === 'M2' && surface) return surface;
   if (unite === 'ML' && longueur) return longueur;
   return 1;

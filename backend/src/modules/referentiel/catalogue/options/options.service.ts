@@ -17,14 +17,23 @@ export class OptionsService {
   ) {}
 
   async createOption(user: AuthUser, prestationId: number, dto: CreateOptionDto) {
-    const prestation = await this.prisma.prestation.count({ where: { id: prestationId, companyId: user.companyId } });
+    const prestation = await this.prisma.prestation.count({
+      where: { id: prestationId, companyId: user.companyId },
+    });
     if (!prestation) throw new NotFoundException(`Prestation #${prestationId} introuvable`);
-    return this.prisma.optionPrestation.create({ data: { ...dto, prestationId }, include: { choix: true } });
+    return this.prisma.optionPrestation.create({
+      data: { ...dto, prestationId },
+      include: { choix: true },
+    });
   }
 
   async updateOption(user: AuthUser, id: number, dto: UpdateOptionDto) {
     await this.findOption(user, id);
-    return this.prisma.optionPrestation.update({ where: { id }, data: dto, include: { choix: true } });
+    return this.prisma.optionPrestation.update({
+      where: { id },
+      data: dto,
+      include: { choix: true },
+    });
   }
 
   async removeOption(user: AuthUser, id: number): Promise<void> {
@@ -60,7 +69,10 @@ export class OptionsService {
         data: this.compositions.toRows(dto.items).map((row) => ({ ...row, choixOptionId: id })),
       }),
     ]);
-    return this.prisma.choixOption.findUniqueOrThrow({ where: { id }, include: { compositions: true } });
+    return this.prisma.choixOption.findUniqueOrThrow({
+      where: { id },
+      include: { compositions: true },
+    });
   }
 
   private async findOption(user: AuthUser, id: number) {

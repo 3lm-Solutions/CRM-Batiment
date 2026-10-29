@@ -1,5 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type AuthUser, BusinessException, paginate, parseSort, ReferencePrefix, ReferenceService, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  parseSort,
+  ReferencePrefix,
+  ReferenceService,
+  toSkipTake,
+} from '../../../common';
 import { Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
@@ -62,7 +70,10 @@ export class DevisService {
             totalHT,
             totalTTC,
             margePourcent,
-            alerteMarge: isMarginAlert({ totalHT, margePourcent }, settings.seuilAlerteMargePourcent),
+            alerteMarge: isMarginAlert(
+              { totalHT, margePourcent },
+              settings.seuilAlerteMargePourcent,
+            ),
           },
     );
     return paginate(data, total, query);
@@ -71,13 +82,19 @@ export class DevisService {
   /** Internal detail (costs and margins), or the site view for a chef de chantier. */
   async findOne(user: AuthUser, id: number) {
     if (user.role === Role.CHEF_CHANTIER) {
-      const devis = await this.prisma.devis.findFirst({ where: { id, ...this.scope(user) }, select: DEVIS_CHANTIER_SELECT });
+      const devis = await this.prisma.devis.findFirst({
+        where: { id, ...this.scope(user) },
+        select: DEVIS_CHANTIER_SELECT,
+      });
       if (!devis) throw new NotFoundException(`Devis #${id} introuvable`);
       return devis;
     }
 
     const [devis, settings] = await Promise.all([
-      this.prisma.devis.findFirst({ where: { id, companyId: user.companyId }, select: DEVIS_DETAIL_SELECT }),
+      this.prisma.devis.findFirst({
+        where: { id, companyId: user.companyId },
+        select: DEVIS_DETAIL_SELECT,
+      }),
       this.company.getSettingsRecord(user.companyId),
     ]);
     if (!devis) throw new NotFoundException(`Devis #${id} introuvable`);
@@ -118,8 +135,11 @@ export class DevisService {
    * in ONE transaction (the old conversion could leave a quote without updating the demande).
    */
   async createDraft(db: DbClient, user: AuthUser, dto: CreateDevisDto & { notes?: string | null }) {
-    const client = await db.client.findFirst({ where: { id: dto.clientId, companyId: user.companyId } });
-    if (!client) throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
+    const client = await db.client.findFirst({
+      where: { id: dto.clientId, companyId: user.companyId },
+    });
+    if (!client)
+      throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
     if (client.archivedAt) throw new BusinessException('CLIENT_ARCHIVE', 'Ce client est archivé.');
 
     if (dto.demandeDevisId) {
@@ -127,11 +147,15 @@ export class DevisService {
         where: { id: dto.demandeDevisId, companyId: user.companyId, clientId: dto.clientId },
       });
       if (!demande) {
-        throw new BusinessException('DEMANDE_INVALIDE', 'Demande introuvable ou rattachée à un autre client.');
+        throw new BusinessException(
+          'DEMANDE_INVALIDE',
+          'Demande introuvable ou rattachée à un autre client.',
+        );
       }
     }
 
-    const tauxTVA = dto.tauxTVA ?? (await this.company.getSettingsRecord(user.companyId, db)).tvaDefaut;
+    const tauxTVA =
+      dto.tauxTVA ?? (await this.company.getSettingsRecord(user.companyId, db)).tvaDefaut;
     return db.devis.create({
       data: {
         companyId: user.companyId,
@@ -159,7 +183,10 @@ export class DevisService {
   async duplicate(user: AuthUser, id: number) {
     const copy = await this.prisma.$transaction(async (tx) => {
       const source = await this.getForUpdate(user.companyId, id, tx);
-      const lignes = await tx.ligneDevis.findMany({ where: { devisId: id }, orderBy: { ordre: 'asc' } });
+      const lignes = await tx.ligneDevis.findMany({
+        where: { devisId: id },
+        orderBy: { ordre: 'asc' },
+      });
 
       const draft = await this.createDraft(tx, user, {
         clientId: source.clientId,
@@ -167,11 +194,20 @@ export class DevisService {
         notes: `Copie de ${source.reference}${source.notes ? `\n${source.notes}` : ''}`,
       });
       await tx.ligneDevis.createMany({
-        data: lignes.map(({ id: _id, devisId: _devisId, createdAt: _c, updatedAt: _u, optionsChoisies, ...ligne }) => ({
-          ...ligne,
-          optionsChoisies: (optionsChoisies as Prisma.InputJsonValue | null) ?? Prisma.JsonNull,
-          devisId: draft.id,
-        })),
+        data: lignes.map(
+          ({
+            id: _id,
+            devisId: _devisId,
+            createdAt: _c,
+            updatedAt: _u,
+            optionsChoisies,
+            ...ligne
+          }) => ({
+            ...ligne,
+            optionsChoisies: (optionsChoisies as Prisma.InputJsonValue | null) ?? Prisma.JsonNull,
+            devisId: draft.id,
+          }),
+        ),
       });
       await this.recalculate(tx, draft.id);
       return draft;
@@ -223,7 +259,10 @@ export class DevisService {
       db.devis.findUniqueOrThrow({ where: { id: devisId }, select: { tauxTVA: true } }),
       db.ligneDevis.findMany({ where: { devisId }, select: { totalHT: true, coutTotal: true } }),
     ]);
-    await db.devis.update({ where: { id: devisId }, data: computeDevisTotals(lignes, devis.tauxTVA) });
+    await db.devis.update({
+      where: { id: devisId },
+      data: computeDevisTotals(lignes, devis.tauxTVA),
+    });
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────

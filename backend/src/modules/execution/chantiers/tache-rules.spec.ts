@@ -6,23 +6,36 @@ describe('task rules', () => {
   const base = { statut: 'A_FAIRE' as const, avancement: 0 };
 
   it('TERMINEE forces 100 % and 100 % forces TERMINEE', () => {
-    expect(normalizeTaskProgress(base, { statut: 'TERMINEE' })).toEqual({ statut: 'TERMINEE', avancement: 100 });
-    expect(normalizeTaskProgress(base, { avancement: 100 })).toEqual({ statut: 'TERMINEE', avancement: 100 });
+    expect(normalizeTaskProgress(base, { statut: 'TERMINEE' })).toEqual({
+      statut: 'TERMINEE',
+      avancement: 100,
+    });
+    expect(normalizeTaskProgress(base, { avancement: 100 })).toEqual({
+      statut: 'TERMINEE',
+      avancement: 100,
+    });
   });
 
   it('progress on a task to do starts it', () => {
-    expect(normalizeTaskProgress(base, { avancement: 30 })).toEqual({ statut: 'EN_COURS', avancement: 30 });
+    expect(normalizeTaskProgress(base, { avancement: 30 })).toEqual({
+      statut: 'EN_COURS',
+      avancement: 30,
+    });
   });
 
   it('lowering progress of a finished task reopens it', () => {
-    expect(normalizeTaskProgress({ statut: 'TERMINEE', avancement: 100 }, { avancement: 80 })).toEqual({
+    expect(
+      normalizeTaskProgress({ statut: 'TERMINEE', avancement: 100 }, { avancement: 80 }),
+    ).toEqual({
       statut: 'EN_COURS',
       avancement: 80,
     });
   });
 
   it('a blocked task keeps its status', () => {
-    expect(normalizeTaskProgress({ statut: 'BLOQUEE', avancement: 40 }, { avancement: 50 }).statut).toBe('BLOQUEE');
+    expect(
+      normalizeTaskProgress({ statut: 'BLOQUEE', avancement: 40 }, { avancement: 50 }).statut,
+    ).toBe('BLOQUEE');
   });
 
   it('refuses an end date before the start date', () => {

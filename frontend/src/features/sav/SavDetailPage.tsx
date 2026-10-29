@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Badge, Button, Card, CardHeader, ConfirmDialog, ErrorState, Loading, PageHeader, StatusBadge, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
 import { formatDate, formatDateTime, fullName } from '@/lib/format';
+import { useAuth } from '../auth/auth-context';
 import { SAV_CATEGORIES, useAddSavNote, useSavAction, useSavTicket, type SavAction, type SavStatut } from './api';
 import { SavFormModal } from './SavFormModal';
 import { SavPhotosCard } from './SavPhotosCard';
@@ -19,6 +20,8 @@ const ACTIONS: Record<SavStatut, { action: SavAction; label: string; variant?: '
 
 export function SavDetailPage() {
   const id = Number(useParams().id);
+  // 29/10: the client page and the invoices are office-only
+  const isBureau = useAuth().hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
   const ticket = useSavTicket(id);
   const action = useSavAction(id);
   const addNote = useAddSavNote(id);
@@ -122,12 +125,12 @@ export function SavDetailPage() {
         <Card>
           <CardHeader title="Informations" />
           <dl className="space-y-3 p-5 text-sm">
-            <div><dt className="text-xs text-slate-500">Client</dt><dd><Link to={`/clients/${t.client.id}`} className="font-medium hover:underline">{fullName(t.client)}</Link>{t.client.telephone && ` · ${t.client.telephone}`}</dd></div>
+            <div><dt className="text-xs text-slate-500">Client</dt><dd>{isBureau ? <Link to={`/clients/${t.client.id}`} className="font-medium hover:underline">{fullName(t.client)}</Link> : <span className="font-medium">{fullName(t.client)}</span>}{t.client.telephone && ` · ${t.client.telephone}`}</dd></div>
             <div><dt className="text-xs text-slate-500">Assigné à</dt><dd>{t.assignedTo ? fullName(t.assignedTo) : '—'}</dd></div>
             <div><dt className="text-xs text-slate-500">Échéance</dt><dd>{formatDate(t.dateEcheance)}</dd></div>
             {t.chantier && <div><dt className="text-xs text-slate-500">Chantier</dt><dd><Link to={`/chantiers/${t.chantier.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{t.chantier.reference}</Link></dd></div>}
             {t.devis && <div><dt className="text-xs text-slate-500">Devis</dt><dd><Link to={`/devis/${t.devis.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{t.devis.reference}</Link></dd></div>}
-            {t.facture && <div><dt className="text-xs text-slate-500">Facture</dt><dd><Link to={`/factures/${t.facture.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{t.facture.reference ?? 'Brouillon'}</Link></dd></div>}
+            {isBureau && t.facture && <div><dt className="text-xs text-slate-500">Facture</dt><dd><Link to={`/factures/${t.facture.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{t.facture.reference ?? 'Brouillon'}</Link></dd></div>}
             {t.dateResolution && <div><dt className="text-xs text-slate-500">Résolu le</dt><dd>{formatDateTime(t.dateResolution)}</dd></div>}
           </dl>
         </Card>

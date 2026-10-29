@@ -15,12 +15,20 @@ export class DevisLignesController {
 
   @Post()
   @ApiOperation({ summary: 'Ajouter une ligne (prestation du catalogue + choix, ou ligne libre)' })
-  add(@CurrentUser() user: AuthUser, @Param('devisId', ParseIntPipe) devisId: number, @Body() dto: AddLigneDto) {
+  add(
+    @CurrentUser() user: AuthUser,
+    @Param('devisId', ParseIntPipe) devisId: number,
+    @Body() dto: AddLigneDto,
+  ) {
     return this.lignes.add(user, devisId, dto);
   }
 
   @Put('ordre')
-  reorder(@CurrentUser() user: AuthUser, @Param('devisId', ParseIntPipe) devisId: number, @Body() dto: ReordonnerLignesDto) {
+  reorder(
+    @CurrentUser() user: AuthUser,
+    @Param('devisId', ParseIntPipe) devisId: number,
+    @Body() dto: ReordonnerLignesDto,
+  ) {
     return this.lignes.reorder(user, devisId, dto);
   }
 

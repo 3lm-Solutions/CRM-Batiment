@@ -1,11 +1,29 @@
-import { Body, Controller, Delete, Get, Headers, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { type AuthUser, CurrentUser, Public, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ChatbotService } from './chatbot.service';
 import { ConnaissancesService } from './connaissances.service';
-import { CreateConnaissanceDto, QueryConnaissancesDto, RechercheConnaissanceDto, UpdateConnaissanceDto } from './dto/connaissances.dto';
+import {
+  CreateConnaissanceDto,
+  QueryConnaissancesDto,
+  RechercheConnaissanceDto,
+  UpdateConnaissanceDto,
+} from './dto/connaissances.dto';
 import {
   CoordonneesDto,
   FeedbackDto,
@@ -26,7 +44,11 @@ const TOKEN = 'x-chat-token';
  * start) is the credential. Rate-limited per IP; each message may cost an AI call.
  */
 @ApiTags('Assistant IA — chatbot public')
-@ApiHeader({ name: TOKEN, required: false, description: 'Jeton de la conversation (sauf pour démarrer)' })
+@ApiHeader({
+  name: TOKEN,
+  required: false,
+  description: 'Jeton de la conversation (sauf pour démarrer)',
+})
 @Public()
 @Controller('public/assistant/sessions')
 export class ChatbotController {
@@ -45,21 +67,36 @@ export class ChatbotController {
   }
 
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
-  @Post(':id/messages') @HttpCode(HttpStatus.OK)
-  message(@Param('id', ParseIntPipe) id: number, @Headers(TOKEN) token: string, @Body() dto: PostMessageDto) {
+  @Post(':id/messages')
+  @HttpCode(HttpStatus.OK)
+  message(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers(TOKEN) token: string,
+    @Body() dto: PostMessageDto,
+  ) {
     return this.chatbot.message(id, token, dto.contenu);
   }
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  @Post(':id/coordonnees') @HttpCode(HttpStatus.OK)
+  @Post(':id/coordonnees')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Formulaire structuré « Demander un devis »' })
-  coordonnees(@Param('id', ParseIntPipe) id: number, @Headers(TOKEN) token: string, @Body() dto: CoordonneesDto) {
+  coordonnees(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers(TOKEN) token: string,
+    @Body() dto: CoordonneesDto,
+  ) {
     return this.chatbot.coordonnees(id, token, dto);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  @Post(':id/feedback') @HttpCode(HttpStatus.OK)
-  feedback(@Param('id', ParseIntPipe) id: number, @Headers(TOKEN) token: string, @Body() dto: FeedbackDto) {
+  @Post(':id/feedback')
+  @HttpCode(HttpStatus.OK)
+  feedback(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers(TOKEN) token: string,
+    @Body() dto: FeedbackDto,
+  ) {
     return this.chatbot.feedback(id, token, dto);
   }
 }
@@ -93,7 +130,8 @@ export class ProspectsController {
   }
 
   @Roles(Role.ADMIN)
-  @Post('emails/relever') @HttpCode(HttpStatus.OK)
+  @Post('emails/relever')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Lire maintenant les emails non lus de la boîte (sinon automatique)' })
   releverEmails() {
     return this.emails.relever();
@@ -112,22 +150,37 @@ export class ProspectsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProspectDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProspectDto,
+  ) {
     return this.prospects.update(user, id, dto);
   }
 
-  @Post(':id/qualifier') @HttpCode(HttpStatus.OK)
+  @Post(':id/qualifier')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Transformer en demande de devis (client retrouvé ou créé)' })
-  qualifier(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: QualifierProspectDto) {
+  qualifier(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: QualifierProspectDto,
+  ) {
     return this.prospects.qualifier(user, id, dto);
   }
 
-  @Post(':id/rejeter') @HttpCode(HttpStatus.OK)
-  rejeter(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: RejeterProspectDto) {
+  @Post(':id/rejeter')
+  @HttpCode(HttpStatus.OK)
+  rejeter(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RejeterProspectDto,
+  ) {
     return this.prospects.rejeter(user, id, dto.motif);
   }
 
-  @Post(':id/rouvrir') @HttpCode(HttpStatus.OK)
+  @Post(':id/rouvrir')
+  @HttpCode(HttpStatus.OK)
   rouvrir(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.prospects.rouvrir(user, id);
   }
@@ -165,11 +218,16 @@ export class ConnaissancesController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateConnaissanceDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateConnaissanceDto,
+  ) {
     return this.connaissances.update(user, id, dto);
   }
 
-  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.connaissances.remove(user, id);
   }

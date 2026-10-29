@@ -13,7 +13,11 @@ import { signatureOtpMail } from '../../../core/mail/templates/devis.templates';
  */
 export interface OtpSender {
   readonly canal: CanalEnvoi;
-  send(destinataire: string, code: string, context: { reference: string; validityMinutes: number }): Promise<boolean>;
+  send(
+    destinataire: string,
+    code: string,
+    context: { reference: string; validityMinutes: number },
+  ): Promise<boolean>;
 }
 
 export const OTP_SENDERS = Symbol('OTP_SENDERS');
@@ -24,7 +28,11 @@ export class EmailOtpSender implements OtpSender {
 
   constructor(private readonly mail: MailService) {}
 
-  send(destinataire: string, code: string, context: { reference: string; validityMinutes: number }) {
+  send(
+    destinataire: string,
+    code: string,
+    context: { reference: string; validityMinutes: number },
+  ) {
     return this.mail.send(destinataire, signatureOtpMail({ code, ...context }));
   }
 }

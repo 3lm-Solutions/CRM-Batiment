@@ -37,12 +37,14 @@ export const NormalizeEmail = () =>
  * `boolean` property before this transform runs (catalogue « Inactifs » filter bug, 20/10).
  */
 export const ToBoolean = () =>
-  Transform(({ value, obj, key }: { value: unknown; obj: Record<string, unknown>; key: string }) => {
-    const raw = obj && typeof obj === 'object' && key in obj ? obj[key] : value;
-    if (raw === 'true' || raw === '1' || raw === true) return true;
-    if (raw === 'false' || raw === '0' || raw === false) return false;
-    return raw;
-  });
+  Transform(
+    ({ value, obj, key }: { value: unknown; obj: Record<string, unknown>; key: string }) => {
+      const raw = obj && typeof obj === 'object' && key in obj ? obj[key] : value;
+      if (raw === 'true' || raw === '1' || raw === true) return true;
+      if (raw === 'false' || raw === '0' || raw === false) return false;
+      return raw;
+    },
+  );
 
 /** "1,2,3" or ["1","2"] → [1, 2, 3] (query strings and bodies alike). */
 export const ToIntArray = () =>

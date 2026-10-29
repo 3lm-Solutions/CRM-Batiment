@@ -16,6 +16,9 @@ export const DEMANDE_TRANSITIONS: Record<DemandeStatut, readonly DemandeStatut[]
 
 export function assertDemandeTransition(from: DemandeStatut, to: DemandeStatut): void {
   if (!DEMANDE_TRANSITIONS[from].includes(to)) {
-    throw new BusinessException('TRANSITION_DEMANDE_INTERDITE', `Une demande ${from} ne peut pas passer à ${to}.`);
+    throw new BusinessException(
+      'TRANSITION_DEMANDE_INTERDITE',
+      `Une demande ${from} ne peut pas passer à ${to}.`,
+    );
   }
 }

@@ -3,7 +3,12 @@ import { computeDevisTotals, computeLine, isMarginAlert } from './devis.calculat
 
 describe('devis calculator', () => {
   it('computes a line from unit prices', () => {
-    const l = computeLine({ quantite: '14.5', prixUnitaireVente: '48.90', prixAchat: '12.40', mainOeuvre: '18' });
+    const l = computeLine({
+      quantite: '14.5',
+      prixUnitaireVente: '48.90',
+      prixAchat: '12.40',
+      mainOeuvre: '18',
+    });
     expect(l.totalHT.toString()).toBe('709.05');
     expect(l.coutTotal.toString()).toBe('440.8');
   });
@@ -32,7 +37,9 @@ describe('devis calculator', () => {
 
   it('alerts below the margin threshold, never on an empty quote', () => {
     expect(isMarginAlert({ totalHT: toDecimal(100), margePourcent: toDecimal(12) }, 15)).toBe(true);
-    expect(isMarginAlert({ totalHT: toDecimal(100), margePourcent: toDecimal(20) }, 15)).toBe(false);
+    expect(isMarginAlert({ totalHT: toDecimal(100), margePourcent: toDecimal(20) }, 15)).toBe(
+      false,
+    );
     expect(isMarginAlert({ totalHT: toDecimal(0), margePourcent: toDecimal(0) }, 15)).toBe(false);
   });
 });

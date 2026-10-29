@@ -25,7 +25,9 @@ export class NotificationsGateway implements OnGatewayConnection {
       const user = await this.sessions.validate(token);
       await client.join(`user:${user.id}`);
     } catch (error) {
-      this.logger.debug(`Connexion websocket refusée : ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.debug(
+        `Connexion websocket refusée : ${error instanceof Error ? error.message : String(error)}`,
+      );
       client.disconnect(true);
     }
   }

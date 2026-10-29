@@ -4,7 +4,14 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { FichiersService } from '../../core/storage/fichiers.service';
 import { assertDateRange } from '../chantiers/tache-rules';
 import { assuranceStatut, noteGlobale } from './assurance-status';
-import { CreateAssuranceDto, CreateDisponibiliteDto, CreateNotationDto, CreatePaiementDto, UpdateAssuranceDto, UpdatePaiementDto } from './dto/sous-traitants.dto';
+import {
+  CreateAssuranceDto,
+  CreateDisponibiliteDto,
+  CreateNotationDto,
+  CreatePaiementDto,
+  UpdateAssuranceDto,
+  UpdatePaiementDto,
+} from './dto/sous-traitants.dto';
 import { SousTraitantsService } from './sous-traitants.service';
 
 /** Insurance certificates, payments, availability and ratings of a sous-traitant. */
@@ -23,7 +30,13 @@ export class DossierService {
     if (dto.fichierId) await this.fichiers.assertAttachable(user, dto.fichierId);
     const dateExpiration = new Date(dto.dateExpiration);
     return this.prisma.assuranceSousTraitant.create({
-      data: { ...dto, dateExpiration, statut: assuranceStatut(dateExpiration), companyId: user.companyId, sousTraitantId: stId },
+      data: {
+        ...dto,
+        dateExpiration,
+        statut: assuranceStatut(dateExpiration),
+        companyId: user.companyId,
+        sousTraitantId: stId,
+      },
     });
   }
 
@@ -34,7 +47,10 @@ export class DossierService {
     return this.prisma.assuranceSousTraitant.update({
       where: { id },
       // Renewal (new date) resets the status — the old code never did
-      data: { ...dto, ...(dateExpiration && { dateExpiration, statut: assuranceStatut(dateExpiration) }) },
+      data: {
+        ...dto,
+        ...(dateExpiration && { dateExpiration, statut: assuranceStatut(dateExpiration) }),
+      },
     });
   }
 
@@ -54,7 +70,12 @@ export class DossierService {
       statut: dto.statut ?? 'REGLE',
     });
     return this.prisma.paiementSousTraitant.create({
-      data: { ...dto, datePaiement: new Date(dto.datePaiement), companyId: user.companyId, sousTraitantId: stId },
+      data: {
+        ...dto,
+        datePaiement: new Date(dto.datePaiement),
+        companyId: user.companyId,
+        sousTraitantId: stId,
+      },
     });
   }
 
@@ -93,16 +114,26 @@ export class DossierService {
     ignoreId?: number,
   ) {
     if (p.montantTTC < p.montantHT) {
-      throw new BusinessException('MONTANTS_INCOHERENTS', 'Le montant TTC ne peut pas être inférieur au HT.');
+      throw new BusinessException(
+        'MONTANTS_INCOHERENTS',
+        'Le montant TTC ne peut pas être inférieur au HT.',
+      );
     }
     if (!p.contratId) return;
     const contrat = await this.prisma.contratSousTraitant.findFirst({
       where: { id: p.contratId, sousTraitantId: stId, companyId: user.companyId },
       include: {
-        paiements: { where: { statut: { not: 'ANNULE' }, ...(ignoreId ? { id: { not: ignoreId } } : {}) }, select: { montantHT: true } },
+        paiements: {
+          where: { statut: { not: 'ANNULE' }, ...(ignoreId ? { id: { not: ignoreId } } : {}) },
+          select: { montantHT: true },
+        },
       },
     });
-    if (!contrat) throw new BusinessException('CONTRAT_INVALIDE', 'Ce contrat n’appartient pas à ce sous-traitant.');
+    if (!contrat)
+      throw new BusinessException(
+        'CONTRAT_INVALIDE',
+        'Ce contrat n’appartient pas à ce sous-traitant.',
+      );
     if (p.statut === 'ANNULE') return;
     const dejaPaye = sumMoney(contrat.paiements.map((x) => x.montantHT));
     if (dejaPaye.plus(p.montantHT).gt(contrat.montantHT)) {
@@ -119,7 +150,13 @@ export class DossierService {
     await this.sousTraitants.assertExists(user, stId);
     assertDateRange(dto.dateDebut, dto.dateFin);
     return this.prisma.disponibiliteSousTraitant.create({
-      data: { ...dto, dateDebut: new Date(dto.dateDebut), dateFin: new Date(dto.dateFin), companyId: user.companyId, sousTraitantId: stId },
+      data: {
+        ...dto,
+        dateDebut: new Date(dto.dateDebut),
+        dateFin: new Date(dto.dateFin),
+        companyId: user.companyId,
+        sousTraitantId: stId,
+      },
     });
   }
 
@@ -133,7 +170,9 @@ export class DossierService {
   async addNotation(user: AuthUser, stId: number, dto: CreateNotationDto) {
     await this.sousTraitants.assertExists(user, stId);
     if (dto.chantierId) {
-      const ok = await this.prisma.chantier.count({ where: { id: dto.chantierId, companyId: user.companyId } });
+      const ok = await this.prisma.chantier.count({
+        where: { id: dto.chantierId, companyId: user.companyId },
+      });
       if (!ok) throw new BusinessException('CHANTIER_INTROUVABLE', 'Chantier introuvable.');
     }
     // One rating per sous-traitant and job site -> P2002 -> 409
@@ -153,14 +192,21 @@ export class DossierService {
   }
 
   private async findChild(
-    model: 'assuranceSousTraitant' | 'paiementSousTraitant' | 'disponibiliteSousTraitant' | 'notationSousTraitant',
+    model:
+      | 'assuranceSousTraitant'
+      | 'paiementSousTraitant'
+      | 'disponibiliteSousTraitant'
+      | 'notationSousTraitant',
     user: AuthUser,
     sousTraitantId: number,
     id: number,
   ) {
     const where = { id, sousTraitantId, companyId: user.companyId };
     // Each delegate has the same shape for this query
-    const delegate = this.prisma[model] as unknown as { count(args: { where: typeof where }): Promise<number> };
-    if (!(await delegate.count({ where }))) throw new NotFoundException(`Élément #${id} introuvable pour ce sous-traitant`);
+    const delegate = this.prisma[model] as unknown as {
+      count(args: { where: typeof where }): Promise<number>;
+    };
+    if (!(await delegate.count({ where })))
+      throw new NotFoundException(`Élément #${id} introuvable pour ce sous-traitant`);
   }
 }

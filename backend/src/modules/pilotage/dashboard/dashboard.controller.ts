@@ -13,9 +13,16 @@ export class DashboardController {
 
   @Get()
   @ApiQuery({ name: 'jours', required: false, description: 'Période d’analyse (défaut 30)' })
-  @ApiOperation({ summary: 'Indicateurs : prospects, devis, conversion, CA, impayés, retards, commandes, marge, SAV, stock' })
-  get(@CurrentUser() user: AuthUser, @Query('jours', new DefaultValuePipe(30), ParseIntPipe) jours: number) {
-    if (jours < 1 || jours > 365) throw new BusinessException('PERIODE_INVALIDE', 'La période doit être entre 1 et 365 jours.');
+  @ApiOperation({
+    summary:
+      'Indicateurs : prospects, devis, conversion, CA, impayés, retards, commandes, marge, SAV, stock',
+  })
+  get(
+    @CurrentUser() user: AuthUser,
+    @Query('jours', new DefaultValuePipe(30), ParseIntPipe) jours: number,
+  ) {
+    if (jours < 1 || jours > 365)
+      throw new BusinessException('PERIODE_INVALIDE', 'La période doit être entre 1 et 365 jours.');
     return this.dashboard.get(user, jours);
   }
 }

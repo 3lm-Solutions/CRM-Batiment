@@ -41,7 +41,11 @@ describe('validateEnv', () => {
   it('demo sandbox: only on a database whose name contains "demo" (wiped every night)', () => {
     expect(validateEnv(validEnv).DEMO_MODE).toBe(false);
     expect(() => validateEnv({ ...validEnv, DEMO_MODE: 'true' })).toThrow(/DEMO_MODE/);
-    const demo = validateEnv({ ...validEnv, DEMO_MODE: 'true', DATABASE_URL: 'postgresql://crm:crm@localhost:5432/crm_batiment_demo?schema=public' });
+    const demo = validateEnv({
+      ...validEnv,
+      DEMO_MODE: 'true',
+      DATABASE_URL: 'postgresql://crm:crm@localhost:5432/crm_batiment_demo?schema=public',
+    });
     expect(demo.DEMO_MODE).toBe(true);
     // the user or host name does not count, only the database name
     expect(isDemoDatabase('postgresql://demo:demo@demo-host:5432/crm_batiment')).toBe(false);

@@ -97,6 +97,8 @@ export function ChatWidget({ companyId, onClose, className }: { companyId: numbe
   const end = useRef<HTMLDivElement>(null);
   // React StrictMode runs effects twice in dev: never open two conversations
   const started = useRef(false);
+  // « Réessayer » calls the latest `begin` (a function cannot name itself inside its own useCallback)
+  const beginRef = useRef<() => Promise<void>>(async () => undefined);
 
   const begin = useCallback(async () => {
     setPending(true);
@@ -111,11 +113,14 @@ export function ChatWidget({ companyId, onClose, className }: { companyId: numbe
       setSuggestions(s.suggestions);
       setEnregistre(false);
     } catch (e) {
-      setError({ text: errorMessage(e), retry: () => void begin() });
+      setError({ text: errorMessage(e), retry: () => void beginRef.current() });
     } finally {
       setPending(false);
     }
   }, [companyId]);
+  useEffect(() => {
+    beginRef.current = begin;
+  }, [begin]);
 
   // Resume the conversation of this browser session, or start one
   useEffect(() => {

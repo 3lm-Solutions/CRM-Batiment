@@ -7,7 +7,13 @@ import { ACCEPTED_LABEL, detectFileType, sanitizeFileName } from './file-type';
 import { StorageService } from './storage.service';
 import type { UploadedBinary } from './upload.config';
 
-export const FICHIER_SELECT = { id: true, nom: true, mime: true, taille: true, createdAt: true } satisfies Prisma.FichierSelect;
+export const FICHIER_SELECT = {
+  id: true,
+  nom: true,
+  mime: true,
+  taille: true,
+  createdAt: true,
+} satisfies Prisma.FichierSelect;
 
 export interface FichierLinks {
   chantierId?: number;
@@ -57,16 +63,25 @@ export class FichiersService {
     db: DbClient = this.prisma,
     options: { imagesOnly?: boolean } = {},
   ) {
-    if (!file?.buffer?.length) throw new BusinessException('FICHIER_MANQUANT', 'Aucun fichier reçu.');
+    if (!file?.buffer?.length)
+      throw new BusinessException('FICHIER_MANQUANT', 'Aucun fichier reçu.');
     const type = detectFileType(file.buffer);
-    if (!type) throw new BusinessException('FICHIER_TYPE_REFUSE', `Format non accepté (${ACCEPTED_LABEL}).`);
+    if (!type)
+      throw new BusinessException('FICHIER_TYPE_REFUSE', `Format non accepté (${ACCEPTED_LABEL}).`);
     if (options.imagesOnly && !type.mime.startsWith('image/')) {
-      throw new BusinessException('FICHIER_TYPE_REFUSE', 'Seules les photos sont acceptées (JPEG, PNG, WebP).');
+      throw new BusinessException(
+        'FICHIER_TYPE_REFUSE',
+        'Seules les photos sont acceptées (JPEG, PNG, WebP).',
+      );
     }
 
     if (links.chantierId) {
       const ok = await db.chantier.count({ where: { id: links.chantierId, companyId } });
-      if (!ok) throw new BusinessException('CHANTIER_INTROUVABLE', `Chantier #${links.chantierId} introuvable.`);
+      if (!ok)
+        throw new BusinessException(
+          'CHANTIER_INTROUVABLE',
+          `Chantier #${links.chantierId} introuvable.`,
+        );
     }
 
     const cle = await this.storage.save(companyId, type.ext, file.buffer);
@@ -120,8 +135,13 @@ export class FichiersService {
       where: { id: fichierId, companyId: user.companyId },
       include: { document: { select: { id: true } } },
     });
-    if (!fichier) throw new BusinessException('FICHIER_INTROUVABLE', `Fichier #${fichierId} introuvable.`);
-    if (fichier.document) throw new BusinessException('FICHIER_DEJA_UTILISE', 'Ce fichier est déjà joint à un document.');
+    if (!fichier)
+      throw new BusinessException('FICHIER_INTROUVABLE', `Fichier #${fichierId} introuvable.`);
+    if (fichier.document)
+      throw new BusinessException(
+        'FICHIER_DEJA_UTILISE',
+        'Ce fichier est déjà joint à un document.',
+      );
     return fichier;
   }
 
@@ -140,11 +160,14 @@ export class FichiersService {
       where: { id, companyId: user.companyId },
       include: {
         rapport: { select: { chantierId: true } },
-        savTicket: { select: { assignedToId: true, chantier: { select: { chefChantierId: true } } } },
+        savTicket: {
+          select: { assignedToId: true, chantier: { select: { chefChantierId: true } } },
+        },
       },
     });
     // 404 rather than 403: never confirm that someone else's file exists
-    if (!fichier || !(await this.canRead(user, fichier))) throw new NotFoundException(`Fichier #${id} introuvable`);
+    if (!fichier || !(await this.canRead(user, fichier)))
+      throw new NotFoundException(`Fichier #${id} introuvable`);
     const { rapport: _r, savTicket: _s, ...rest } = fichier;
     return rest;
   }
@@ -155,7 +178,10 @@ export class FichiersService {
       chantierId: number | null;
       uploadedById: number | null;
       rapport: { chantierId: number } | null;
-      savTicket?: { assignedToId: number | null; chantier: { chefChantierId: number | null } | null } | null;
+      savTicket?: {
+        assignedToId: number | null;
+        chantier: { chefChantierId: number | null } | null;
+      } | null;
     },
   ): Promise<boolean> {
     if (BUREAU.includes(user.role)) return true;
@@ -164,7 +190,10 @@ export class FichiersService {
 
     // After-sales photo (C42): same scope as the ticket itself (a chef: assigned to it, or chef of its job site)
     if (f.savTicket) {
-      return user.role === Role.CHEF_CHANTIER && (f.savTicket.assignedToId === user.id || f.savTicket.chantier?.chefChantierId === user.id);
+      return (
+        user.role === Role.CHEF_CHANTIER &&
+        (f.savTicket.assignedToId === user.id || f.savTicket.chantier?.chefChantierId === user.id)
+      );
     }
 
     const chantierId = f.chantierId ?? f.rapport?.chantierId ?? null;

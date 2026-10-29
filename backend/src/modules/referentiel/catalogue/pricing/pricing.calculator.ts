@@ -117,8 +117,12 @@ export function computePricing(input: PricingInput): PricingResult {
     };
   });
 
-  const coutMateriaux = sumMoney(lignes.filter((l) => l.kind === 'MATERIAU').map((l) => l.coutTotal));
-  const coutMainOeuvre = sumMoney(lignes.filter((l) => l.kind === 'MAIN_OEUVRE').map((l) => l.coutTotal));
+  const coutMateriaux = sumMoney(
+    lignes.filter((l) => l.kind === 'MATERIAU').map((l) => l.coutTotal),
+  );
+  const coutMainOeuvre = sumMoney(
+    lignes.filter((l) => l.kind === 'MAIN_OEUVRE').map((l) => l.coutTotal),
+  );
   const coutTotal = coutMateriaux.plus(coutMainOeuvre);
   const coutParUnite = roundMoney(coutTotal.div(quantite));
 
@@ -141,7 +145,9 @@ export function computePricing(input: PricingInput): PricingResult {
 
   const avertissements: string[] = [];
   if (components.length === 0) {
-    avertissements.push('Prestation sans composition : coût inconnu, la marge affichée n’est pas fiable.');
+    avertissements.push(
+      'Prestation sans composition : coût inconnu, la marge affichée n’est pas fiable.',
+    );
   }
   if (toDecimal(input.prixVenteMin).gt(input.prixVenteMax)) {
     avertissements.push('Fourchette de prix incohérente (minimum > maximum).');

@@ -166,9 +166,19 @@ export type ProspectInput = Partial<Pick<Prospect, 'clientNom' | 'clientPrenom' 
 export const useUpdateProspect = (id: number) =>
   useAssistantWrite(async (body: ProspectInput) => (await api.patch<Prospect>(`/assistant/prospects/${id}`, body)).data);
 
+/** 29/10: category of the client created by the qualification (ignored for an existing client). */
+export interface QualificationInput {
+  clientId?: number;
+  typeClient?: 'PARTICULIER' | 'PROFESSIONNEL';
+  raisonSociale?: string;
+  siret?: string | null;
+  tvaIntracom?: string | null;
+  contactFonction?: string | null;
+}
+
 export const useQualifierProspect = (id: number) =>
-  useAssistantWrite(async (clientId?: number) =>
-    (await api.post<{ prospect: Prospect; demande: { id: number; reference: string } }>(`/assistant/prospects/${id}/qualifier`, clientId ? { clientId } : {})).data,
+  useAssistantWrite(async (body: QualificationInput = {}) =>
+    (await api.post<{ prospect: Prospect; demande: { id: number; reference: string } }>(`/assistant/prospects/${id}/qualifier`, body)).data,
   );
 
 export const useRejeterProspect = (id: number) =>

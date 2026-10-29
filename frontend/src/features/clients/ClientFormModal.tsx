@@ -62,13 +62,13 @@ export function ClientFormModal({
   onClose,
   client,
   onSaved,
-  statutInitial = 'PROSPECT',
+  statutInitial = 'QUALIFIE',
 }: {
   open: boolean;
   onClose: () => void;
   client?: Client;
   onSaved?: (c: Client) => void;
-  /** New contact from the « Prospects » page (PROSPECT) or the « Clients » page (CLIENT) — 27/10 */
+  /** New contact from the « Prospects » page (QUALIFIE, 29/10) or the « Clients » page (CLIENT) — 27/10 */
   statutInitial?: StatutClient;
 }) {
   const save = useSaveClient();
@@ -91,8 +91,8 @@ export function ClientFormModal({
         typeProjetIds: v.typeProjetIds,
         // A company has no first name; a private person no company fields (the API applies the same rule)
         prenom: estPro ? null : nullIfEmpty(v.prenom),
-        siret: estPro ? nullIfEmpty(v.siret.replace(/[\s.\-]+/g, '')) : null,
-        tvaIntracom: estPro ? nullIfEmpty(v.tvaIntracom.replace(/[\s.\-]+/g, '').toUpperCase()) : null,
+        siret: estPro ? nullIfEmpty(v.siret.replace(/[\s.-]+/g, '')) : null,
+        tvaIntracom: estPro ? nullIfEmpty(v.tvaIntracom.replace(/[\s.-]+/g, '').toUpperCase()) : null,
         contactNom: estPro ? nullIfEmpty(v.contactNom) : null,
         contactFonction: estPro ? nullIfEmpty(v.contactFonction) : null,
         email: nullIfEmpty(v.email),
@@ -177,8 +177,11 @@ export function ClientFormModal({
         <div className="grid gap-4 sm:grid-cols-2">
           <Select
             label="Étape"
-            hint="Change tout seul : devis envoyé → qualifié, devis signé → client"
-            options={Object.entries(STATUTS_CLIENT).map(([value, label]) => ({ value, label }))}
+            hint="Devient client tout seul à la signature d’un devis"
+            // 29/10: « Prospect » (not qualified) only for an older contact still at that stage
+            options={Object.entries(STATUTS_CLIENT)
+              .filter(([value]) => value !== 'PROSPECT' || client?.statut === 'PROSPECT')
+              .map(([value, label]) => ({ value, label }))}
             {...form.register('statut')}
           />
           <Select label="Origine" options={LEAD_SOURCE_OPTIONS} {...form.register('source')} />

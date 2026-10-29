@@ -1,8 +1,26 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
-import { CreateCategorieDto, CreateSousCategorieDto, QueryCategoriesDto, UpdateCategorieDto, UpdateSousCategorieDto } from './categories.dto';
+import {
+  CreateCategorieDto,
+  CreateSousCategorieDto,
+  QueryCategoriesDto,
+  UpdateCategorieDto,
+  UpdateSousCategorieDto,
+} from './categories.dto';
 import { CategoriesService } from './categories.service';
 
 @ApiTags('Catalogue — catégories')
@@ -25,7 +43,11 @@ export class CategoriesController {
   }
 
   @Patch('categories/:id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCategorieDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCategorieDto,
+  ) {
     return this.categories.update(user, id, dto);
   }
 

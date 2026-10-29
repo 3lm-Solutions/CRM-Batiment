@@ -3,20 +3,32 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-va
 import { Trim } from '../../../../common';
 
 export class CreateChecklistItemDto {
-  @ApiProperty({ example: 'Poser le primaire d’accrochage' }) @Trim() @IsString() @IsNotEmpty() @MaxLength(200)
+  @ApiProperty({ example: 'Poser le primaire d’accrochage' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   libelle: string;
 }
 
 export class UpdateChecklistItemDto {
-  @ApiPropertyOptional() @IsOptional() @Trim() @IsString() @IsNotEmpty() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   libelle?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   fait?: boolean;
 }
 
 /** From the sous-traitant portal: he only ticks / unticks. */
 export class CocherChecklistItemDto {
-  @ApiProperty() @IsBoolean()
+  @ApiProperty()
+  @IsBoolean()
   fait: boolean;
 }

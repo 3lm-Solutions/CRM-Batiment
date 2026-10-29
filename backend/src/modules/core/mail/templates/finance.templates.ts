@@ -6,7 +6,13 @@ export function commandeFournisseurMail(p: {
   entreprise: string;
   reference: string;
   dateLivraisonPrevue: Date | null;
-  lignes: { materiauNom: string; quantite: string; unite: string; prixUnitaire: number; totalHT: number }[];
+  lignes: {
+    materiauNom: string;
+    quantite: string;
+    unite: string;
+    prixUnitaire: number;
+    totalHT: number;
+  }[];
   totalHT: number;
 }): RenderedMail {
   const rows = p.lignes
@@ -22,7 +28,9 @@ export function commandeFournisseurMail(p: {
     `Bon de commande ${p.reference}`,
     `<p>Bonjour ${escapeHtml(p.fournisseur)},</p>
      <p>Merci de bien vouloir traiter la commande suivante${
-       p.dateLivraisonPrevue ? `, livraison souhaitée le ${escapeHtml(formatDate(p.dateLivraisonPrevue))}` : ''
+       p.dateLivraisonPrevue
+         ? `, livraison souhaitée le ${escapeHtml(formatDate(p.dateLivraisonPrevue))}`
+         : ''
      } :</p>
      <table style="width:100%;border-collapse:collapse;font-size:14px;">
        <tr><th style="text-align:left;padding:6px;">Article</th><th style="text-align:right;padding:6px;">Quantité</th><th style="text-align:right;padding:6px;">Total HT</th></tr>
@@ -34,7 +42,9 @@ export function commandeFournisseurMail(p: {
   const text = [
     `Bonjour ${p.fournisseur},`,
     `Bon de commande ${p.reference} :`,
-    ...p.lignes.map((l) => `- ${l.materiauNom} : ${l.quantite} ${l.unite} (${formatEuros(l.totalHT)} HT)`),
+    ...p.lignes.map(
+      (l) => `- ${l.materiauNom} : ${l.quantite} ${l.unite} (${formatEuros(l.totalHT)} HT)`,
+    ),
     `Total HT : ${formatEuros(p.totalHT)}`,
   ].join('\n');
   return { subject, html, text };
@@ -86,10 +96,10 @@ export function factureRelanceMail(p: {
     p.joursRetard <= 0
       ? 'Nous vous rappelons simplement cette échéance.'
       : p.niveau >= 3
-      ? 'Malgré nos précédents rappels, nous n’avons toujours pas reçu votre règlement. Merci de régulariser la situation sans délai.'
-      : p.niveau === 2
-        ? 'Sauf erreur de notre part, ce règlement ne nous est toujours pas parvenu. Merci d’y procéder dans les meilleurs délais.'
-        : 'Sauf erreur de notre part, nous n’avons pas encore reçu ce règlement. S’il s’agit d’un oubli, merci d’y procéder dès que possible.';
+        ? 'Malgré nos précédents rappels, nous n’avons toujours pas reçu votre règlement. Merci de régulariser la situation sans délai.'
+        : p.niveau === 2
+          ? 'Sauf erreur de notre part, ce règlement ne nous est toujours pas parvenu. Merci d’y procéder dans les meilleurs délais.'
+          : 'Sauf erreur de notre part, nous n’avons pas encore reçu ce règlement. S’il s’agit d’un oubli, merci d’y procéder dès que possible.';
   const subject =
     p.joursRetard <= 0
       ? `Rappel d’échéance : ${p.type.toLowerCase()} ${p.reference}`
@@ -116,7 +126,9 @@ export function factureRelanceMail(p: {
       ? `${p.type} ${p.reference} : ${formatEuros(p.montantTTC)} TTC, à régler le ${formatDate(p.dateEcheance)} (${p.joursRetard} jour(s) de retard).`
       : `${p.type} ${p.reference} : ${formatEuros(p.montantTTC)} TTC, à régler avant le ${formatDate(p.dateEcheance)}.`,
     ton,
-    ...(p.communicationPaiement ? [`Référence à indiquer sur votre virement : ${p.communicationPaiement}`] : []),
+    ...(p.communicationPaiement
+      ? [`Référence à indiquer sur votre virement : ${p.communicationPaiement}`]
+      : []),
     'Si votre paiement a été effectué entre-temps, merci de ne pas tenir compte de ce message.',
     ...(contact ? [`Pour toute question : ${contact}.`] : []),
     '',

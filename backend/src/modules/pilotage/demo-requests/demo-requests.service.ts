@@ -3,7 +3,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type AuthUser, BusinessException, paginate, toSkipTake } from '../../../common';
 import { DemoRequestStatut, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateDemoRequestDto, QueryDemoRequestsDto, UpdateDemoRequestDto } from './demo-requests.dto';
+import {
+  CreateDemoRequestDto,
+  QueryDemoRequestsDto,
+  UpdateDemoRequestDto,
+} from './demo-requests.dto';
 import { DemoEvents, type DemoRequestEvent } from './demo.events';
 import { DemoMachine } from './demo-status';
 
@@ -21,15 +25,22 @@ export class DemoRequestsService {
    * (single-company install). A bot filling the honeypot gets the same answer, nothing is stored.
    */
   async createPublic(dto: CreateDemoRequestDto) {
-    const message = { message: 'Merci ! Nous vous recontactons très rapidement pour organiser votre démonstration.' };
+    const message = {
+      message: 'Merci ! Nous vous recontactons très rapidement pour organiser votre démonstration.',
+    };
     const { website, ...data } = dto;
     if (website) {
       this.logger.warn(`Demande de démo ignorée (honeypot rempli) : ${dto.email}`);
       return message;
     }
 
-    const company = await this.prisma.company.findFirst({ orderBy: { id: 'asc' }, select: { id: true } });
-    const request = await this.prisma.demoRequest.create({ data: { ...data, companyId: company?.id } });
+    const company = await this.prisma.company.findFirst({
+      orderBy: { id: 'asc' },
+      select: { id: true },
+    });
+    const request = await this.prisma.demoRequest.create({
+      data: { ...data, companyId: company?.id },
+    });
     if (company) {
       this.events.emit(DemoEvents.NOUVELLE, {
         companyId: company.id,
@@ -78,9 +89,18 @@ export class DemoRequestsService {
     await this.findOne(user, id);
     if (dto.assignedToId) {
       const ok = await this.prisma.user.count({
-        where: { id: dto.assignedToId, companyId: user.companyId, actif: true, role: { in: [Role.ADMIN, Role.TECHNICO] } },
+        where: {
+          id: dto.assignedToId,
+          companyId: user.companyId,
+          actif: true,
+          role: { in: [Role.ADMIN, Role.TECHNICO] },
+        },
       });
-      if (!ok) throw new BusinessException('ASSIGNATION_INVALIDE', 'Assignez la demande à un admin ou un technico actif.');
+      if (!ok)
+        throw new BusinessException(
+          'ASSIGNATION_INVALIDE',
+          'Assignez la demande à un admin ou un technico actif.',
+        );
     }
     await this.prisma.demoRequest.update({ where: { id }, data: dto });
     return this.findOne(user, id);
@@ -90,7 +110,8 @@ export class DemoRequestsService {
   async transition(user: AuthUser, id: number, to: DemoRequestStatut, dateDemo?: string) {
     const request = await this.findOne(user, id);
     DemoMachine.assert(request.statut, to);
-    if (to === 'SCHEDULED' && !dateDemo) throw new BusinessException('DATE_DEMO_REQUISE', 'Indiquez la date de la démonstration.');
+    if (to === 'SCHEDULED' && !dateDemo)
+      throw new BusinessException('DATE_DEMO_REQUISE', 'Indiquez la date de la démonstration.');
 
     const { count } = await this.prisma.demoRequest.updateMany({
       where: { id, statut: request.statut },
@@ -101,7 +122,8 @@ export class DemoRequestsService {
         ...(!request.assignedTo && { assignedToId: user.id }),
       },
     });
-    if (!count) throw new BusinessException('DEMANDE_MODIFIEE', 'La demande vient de changer. Rechargez.');
+    if (!count)
+      throw new BusinessException('DEMANDE_MODIFIEE', 'La demande vient de changer. Rechargez.');
     return this.findOne(user, id);
   }
 }

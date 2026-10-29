@@ -6,6 +6,8 @@ import { errorMessage } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatEuros, formatNumber, formatPercent, formatUnite } from '@/lib/format';
 import { useRemoveLigne, useReorderLignes, useUpdateLigne, type DevisDetail, type LigneDevis } from './api';
+import { usePrixMarcheDevis } from '../prix-marche/api';
+import { PrixMarcheBadge } from '../prix-marche/PrixMarcheBadge';
 
 /** Number field saved on blur / Enter, only when the value actually changed. */
 function InlineNumber({ value, onSave, label, step = '0.01' }: { value: number; onSave: (v: number) => void; label: string; step?: string }) {
@@ -36,11 +38,14 @@ const lineMargin = (l: LigneDevis) => (l.totalHT && l.coutTotal !== undefined ? 
  * Quote lines. Editable (quantity, unit price, delete, reorder) only in BROUILLON / REVISE.
  * Cost and margin columns are internal: hidden on print and for the chef de chantier.
  */
-export function LignesTable({ devis, editable, seuilMarge }: { devis: DevisDetail; editable: boolean; seuilMarge?: number }) {
+export function LignesTable({ devis, editable, seuilMarge, prixMarche = false }: { devis: DevisDetail; editable: boolean; seuilMarge?: number; prixMarche?: boolean }) {
   const update = useUpdateLigne(devis.id);
   const remove = useRemoveLigne(devis.id);
   const reorder = useReorderLignes(devis.id);
   const showPrices = devis.totalHT !== undefined;
+  // 29/10: market range under each catalogue price (office only), refreshed when a price changes
+  const marche = usePrixMarcheDevis(devis.id, devis.lignes.map((l) => `${l.id}:${l.prixUnitaireVente}:${l.unite}`).join(','), prixMarche && showPrices);
+  const marcheParLigne = new Map((marche.data?.lignes ?? []).map((m) => [m.ligneId, m]));
   const onError = (e: unknown) => toast.error(errorMessage(e));
 
   const move = (index: number, delta: number) => {
@@ -99,6 +104,9 @@ export function LignesTable({ devis, editable, seuilMarge }: { devis: DevisDetai
                       <InlineNumber key={`p-${l.id}-${l.prixUnitaireVente}`} label="Prix unitaire HT" value={l.prixUnitaireVente ?? 0} onSave={(prixUnitaireVente) => update.mutate({ ligneId: l.id, prixUnitaireVente }, { onError })} />
                     ) : (
                       formatEuros(l.prixUnitaireVente)
+                    )}
+                    {marcheParLigne.has(l.id) && (
+                      <PrixMarcheBadge marche={marcheParLigne.get(l.id)!.vente} position={marcheParLigne.get(l.id)!.position} periodeMois={marche.data?.periodeMois} className="mt-1" />
                     )}
                   </td>
                 )}

@@ -1,7 +1,11 @@
 import { Logger, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../../../config/env.validation';
-import { ChatbotController, ConnaissancesController, ProspectsController } from './assistant.controller';
+import {
+  ChatbotController,
+  ConnaissancesController,
+  ProspectsController,
+} from './assistant.controller';
 import { ChatbotService } from './chatbot.service';
 import { ConnaissancesService } from './connaissances.service';
 import { EmailProspectsService } from './email/email-prospects.service';
@@ -9,6 +13,11 @@ import { motsObjet } from './email/email-rules';
 import { ImapMailboxReader, MAILBOX_READER } from './email/mailbox.reader';
 import { LLM_CLIENT, LLM_VISION_CLIENT } from './llm/llm.client';
 import { OpenAiLlmClient } from './llm/openai.client';
+import {
+  modeleTranscriptionParDefaut,
+  OpenAiTranscriptionClient,
+  TRANSCRIPTION_CLIENT,
+} from './llm/transcription.client';
 import { ProspectDedupService } from './prospect-dedup.service';
 import { ProspectsService } from './prospects.service';
 
@@ -57,7 +66,12 @@ import { ProspectsService } from './prospects.service';
         const model = config.get('OPENAI_MODEL', { infer: true });
         const baseUrl = config.get('OPENAI_BASE_URL', { infer: true });
         logger.log(`IA : ${baseUrl ?? 'OpenAI'}, modèle ${model}`);
-        return new OpenAiLlmClient(key, model, config.get('OPENAI_TIMEOUT_MS', { infer: true }), baseUrl);
+        return new OpenAiLlmClient(
+          key,
+          model,
+          config.get('OPENAI_TIMEOUT_MS', { infer: true }),
+          baseUrl,
+        );
       },
     },
     {
@@ -67,21 +81,60 @@ import { ProspectsService } from './prospects.service';
       useFactory: (config: ConfigService<Env, true>) => {
         const logger = new Logger('AssistantModule');
         const model = config.get('OPENAI_VISION_MODEL', { infer: true });
-        const key = config.get('OPENAI_VISION_API_KEY', { infer: true }) ?? config.get('OPENAI_API_KEY', { infer: true });
+        const key =
+          config.get('OPENAI_VISION_API_KEY', { infer: true }) ??
+          config.get('OPENAI_API_KEY', { infer: true });
         if (!model || !key) {
-          logger.log('OPENAI_VISION_MODEL absent : devis IA depuis photo indisponible (onglet Texte seulement)');
+          logger.log(
+            'OPENAI_VISION_MODEL absent : devis IA depuis photo indisponible (onglet Texte seulement)',
+          );
           return null;
         }
         // A dedicated key without a dedicated URL means OpenAI itself
         const ownKey = !!config.get('OPENAI_VISION_API_KEY', { infer: true });
-        const baseUrl = config.get('OPENAI_VISION_BASE_URL', { infer: true }) ?? (ownKey ? undefined : config.get('OPENAI_BASE_URL', { infer: true }));
+        const baseUrl =
+          config.get('OPENAI_VISION_BASE_URL', { infer: true }) ??
+          (ownKey ? undefined : config.get('OPENAI_BASE_URL', { infer: true }));
         const isOpenAi = !baseUrl || baseUrl.includes('api.openai.com');
         logger.log(`IA photos : ${baseUrl ?? 'OpenAI'}, modèle ${model}`);
-        return new OpenAiLlmClient(key, model, config.get('OPENAI_TIMEOUT_MS', { infer: true }), baseUrl, isOpenAi);
+        return new OpenAiLlmClient(
+          key,
+          model,
+          config.get('OPENAI_TIMEOUT_MS', { infer: true }),
+          baseUrl,
+          isOpenAi,
+        );
+      },
+    },
+    {
+      // Devis vocal (29/10): Whisper, same key and provider as the text model
+      provide: TRANSCRIPTION_CLIENT,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => {
+        const logger = new Logger('AssistantModule');
+        const key = config.get('OPENAI_API_KEY', { infer: true });
+        const baseUrl = config.get('OPENAI_BASE_URL', { infer: true });
+        const model =
+          config.get('OPENAI_TRANSCRIPTION_MODEL', { infer: true }) ??
+          modeleTranscriptionParDefaut(baseUrl);
+        if (!key || !model) {
+          logger.log(
+            'Transcription vocale indisponible (OPENAI_API_KEY ou OPENAI_TRANSCRIPTION_MODEL absent)',
+          );
+          return null;
+        }
+        logger.log(`IA voix : ${baseUrl ?? 'OpenAI'}, modèle ${model}`);
+        // A recording takes longer than a chat answer: at least 60 s
+        return new OpenAiTranscriptionClient(
+          key,
+          model,
+          Math.max(config.get('OPENAI_TIMEOUT_MS', { infer: true }), 60_000),
+          baseUrl,
+        );
       },
     },
   ],
   // The language models are shared with the quote assistant (Step 15)
-  exports: [LLM_CLIENT, LLM_VISION_CLIENT],
+  exports: [LLM_CLIENT, LLM_VISION_CLIENT, TRANSCRIPTION_CLIENT],
 })
 export class AssistantModule {}

@@ -4,6 +4,7 @@
  * into the public chatbot) ended up as live HTML in emails sent by the company.
  */
 export function escapeHtml(value: unknown): string {
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Decimal, Date, numbers: their own toString is wanted
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

@@ -46,14 +46,19 @@ export class UsersController {
   @Post()
   @ApiOperation({
     summary: 'Créer un compte',
-    description: 'Génère un mot de passe temporaire et l’envoie par email. Changement obligatoire à la 1re connexion.',
+    description:
+      'Génère un mot de passe temporaire et l’envoie par email. Changement obligatoire à la 1re connexion.',
   })
   create(@CurrentUser() admin: AuthUser, @Body() dto: CreateUserDto) {
     return this.users.create(admin, dto);
   }
 
   @Patch(':id')
-  update(@CurrentUser() admin: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+  update(
+    @CurrentUser() admin: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateUserDto,
+  ) {
     return this.users.update(admin, id, dto);
   }
 
@@ -72,7 +77,9 @@ export class UsersController {
 
   @Post(':id/reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Nouveau mot de passe temporaire (ferme les sessions de l’utilisateur)' })
+  @ApiOperation({
+    summary: 'Nouveau mot de passe temporaire (ferme les sessions de l’utilisateur)',
+  })
   resetPassword(@CurrentUser() admin: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.users.resetPassword(admin, id);
   }

@@ -20,7 +20,8 @@ export class PlanningService {
     const au = new Date(q.au);
     au.setUTCHours(23, 59, 59, 999);
     if (au < du) throw new BusinessException('DATES_INVALIDES', 'La fin précède le début.');
-    if (au.getTime() - du.getTime() > MAX_JOURS * 86_400_000) throw new BusinessException('PERIODE_TROP_LONGUE', `${MAX_JOURS} jours au maximum.`);
+    if (au.getTime() - du.getTime() > MAX_JOURS * 86_400_000)
+      throw new BusinessException('PERIODE_TROP_LONGUE', `${MAX_JOURS} jours au maximum.`);
 
     const chantier: Prisma.ChantierWhereInput = {
       companyId: user.companyId,
@@ -46,7 +47,9 @@ export class PlanningService {
           dateDebut: true,
           dateFin: true,
           chantier: { select: { id: true, reference: true, adresse: true, statut: true } },
-          affectations: { select: { user: { select: { id: true, nom: true, prenom: true, role: true } } } },
+          affectations: {
+            select: { user: { select: { id: true, nom: true, prenom: true, role: true } } },
+          },
         },
         take: 1000,
       }),
@@ -58,13 +61,22 @@ export class PlanningService {
           sousTraitant: { companyId: user.companyId, ...(q.userId ? { userId: q.userId } : {}) },
         },
         orderBy: { dateDebut: 'asc' },
-        select: { id: true, dateDebut: true, dateFin: true, notes: true, sousTraitant: { select: { id: true, nom: true, userId: true } } },
+        select: {
+          id: true,
+          dateDebut: true,
+          dateFin: true,
+          notes: true,
+          sousTraitant: { select: { id: true, nom: true, userId: true } },
+        },
       }),
     ]);
     return {
       du,
       au,
-      taches: taches.map(({ affectations, ...t }) => ({ ...t, intervenants: affectations.map((a) => a.user).filter((u) => u !== null) })),
+      taches: taches.map(({ affectations, ...t }) => ({
+        ...t,
+        intervenants: affectations.map((a) => a.user).filter((u) => u !== null),
+      })),
       indisponibilites,
     };
   }

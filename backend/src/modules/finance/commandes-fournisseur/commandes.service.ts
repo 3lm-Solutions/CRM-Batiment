@@ -1,5 +1,14 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { type AuthUser, BusinessException, paginate, ReferencePrefix, ReferenceService, sumMoney, toDecimal, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  ReferencePrefix,
+  ReferenceService,
+  sumMoney,
+  toDecimal,
+  toSkipTake,
+} from '../../../common';
 import { CommandeFournisseurStatut, Prisma, Role, Unite } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
@@ -7,14 +16,23 @@ import { MailService } from '../../core/mail/mail.service';
 import { commandeFournisseurMail } from '../../core/mail/templates/finance.templates';
 import { StockService } from '../stock/stock.service';
 import { CommandeMachine, RECEIVABLE } from './commande-status';
-import { CreateCommandeDto, QueryCommandesDto, ReceptionDto, UpdateCommandeDto, UpdateLignesCommandeDto } from './commandes.dto';
+import {
+  CreateCommandeDto,
+  QueryCommandesDto,
+  ReceptionDto,
+  UpdateCommandeDto,
+  UpdateLignesCommandeDto,
+} from './commandes.dto';
 import { type CatalogueForNeeds, computeMaterialNeeds } from './material-needs';
 
 const INCLUDE = {
   fournisseur: { select: { id: true, nom: true, email: true, telephone: true } },
   devis: { select: { id: true, reference: true, chantierId: true } },
   chantier: { select: { id: true, reference: true, adresse: true } },
-  lignes: { orderBy: { id: 'asc' }, include: { materiau: { select: { id: true, nom: true, stockActuel: true } } } },
+  lignes: {
+    orderBy: { id: 'asc' },
+    include: { materiau: { select: { id: true, nom: true, stockActuel: true } } },
+  },
   receptions: {
     orderBy: { dateReception: 'desc' },
     include: { lignes: true, user: { select: { id: true, nom: true, prenom: true } } },
@@ -40,7 +58,8 @@ export class CommandesService {
    */
   async createFromDevis(tx: DbClient, devis: { id: number; companyId: number; reference: string }) {
     const existing = await tx.commandeFournisseur.count({ where: { devisId: devis.id } });
-    if (existing) return { created: 0, sansFournisseur: [] as { materiauId: number; nom: string }[] };
+    if (existing)
+      return { created: 0, sansFournisseur: [] as { materiauId: number; nom: string }[] };
 
     const lignes = await tx.ligneDevis.findMany({
       where: { devisId: devis.id },
@@ -51,11 +70,16 @@ export class CommandesService {
       prestationId: l.prestationId,
       materiauId: l.materiauId,
       choixIds: Array.isArray(l.optionsChoisies)
-        ? (l.optionsChoisies as { choixId?: number }[]).map((c) => c.choixId).filter((id): id is number => !!id)
+        ? (l.optionsChoisies as { choixId?: number }[])
+            .map((c) => c.choixId)
+            .filter((id): id is number => !!id)
         : [],
     }));
 
-    const { parFournisseur, sansFournisseur } = computeMaterialNeeds(needLines, await this.loadCatalogue(tx, needLines));
+    const { parFournisseur, sansFournisseur } = computeMaterialNeeds(
+      needLines,
+      await this.loadCatalogue(tx, needLines),
+    );
 
     const fournisseurs = await tx.fournisseur.findMany({
       where: { id: { in: [...parFournisseur.keys()] } },
@@ -68,7 +92,11 @@ export class CommandesService {
           companyId: devis.companyId,
           devisId: devis.id,
           fournisseurId,
-          reference: await this.references.next(ReferencePrefix.COMMANDE_FOURNISSEUR, devis.companyId, tx),
+          reference: await this.references.next(
+            ReferencePrefix.COMMANDE_FOURNISSEUR,
+            devis.companyId,
+            tx,
+          ),
           dateLivraisonPrevue: delai != null ? new Date(Date.now() + delai * 86_400_000) : null,
           notes: `Généré depuis le devis ${devis.reference}`,
           lignes: { create: orderLines.map((l) => ({ ...l, unite: l.unite as Unite })) },
@@ -114,12 +142,18 @@ export class CommandesService {
       }),
       this.prisma.commandeFournisseur.count({ where }),
     ]);
-    const data = rows.map(({ lignes, ...c }) => ({ ...c, totalHT: sumMoney(lignes.map((l) => l.totalHT)) }));
+    const data = rows.map(({ lignes, ...c }) => ({
+      ...c,
+      totalHT: sumMoney(lignes.map((l) => l.totalHT)),
+    }));
     return paginate(data, total, query);
   }
 
   async findOne(user: AuthUser, id: number) {
-    const commande = await this.prisma.commandeFournisseur.findFirst({ where: { id, ...this.scope(user) }, include: INCLUDE });
+    const commande = await this.prisma.commandeFournisseur.findFirst({
+      where: { id, ...this.scope(user) },
+      include: INCLUDE,
+    });
     if (!commande) throw new NotFoundException(`Commande #${id} introuvable`);
     return { ...commande, totalHT: sumMoney(commande.lignes.map((l) => l.totalHT)) };
   }
@@ -137,10 +171,14 @@ export class CommandesService {
       select: { id: true, nom: true, actif: true, delaiLivraison: true },
     });
     if (!fournisseur) throw new NotFoundException(`Fournisseur #${dto.fournisseurId} introuvable`);
-    if (!fournisseur.actif) throw new BusinessException('FOURNISSEUR_INACTIF', 'Ce fournisseur est désactivé.');
+    if (!fournisseur.actif)
+      throw new BusinessException('FOURNISSEUR_INACTIF', 'Ce fournisseur est désactivé.');
 
     if (dto.chantierId) {
-      const chantier = await this.prisma.chantier.findFirst({ where: { id: dto.chantierId, companyId: user.companyId }, select: { statut: true } });
+      const chantier = await this.prisma.chantier.findFirst({
+        where: { id: dto.chantierId, companyId: user.companyId },
+        select: { statut: true },
+      });
       if (!chantier) throw new NotFoundException(`Chantier #${dto.chantierId} introuvable`);
       if (chantier.statut === 'CLOTURE' || chantier.statut === 'ANNULE') {
         throw new BusinessException('CHANTIER_FERME', 'Ce chantier est clôturé ou annulé.');
@@ -148,16 +186,27 @@ export class CommandesService {
     }
 
     const ids = dto.lignes.map((l) => l.materiauId);
-    if (new Set(ids).size !== ids.length) throw new BusinessException('LIGNE_EN_DOUBLE', 'Un même matériau apparaît deux fois.');
+    if (new Set(ids).size !== ids.length)
+      throw new BusinessException('LIGNE_EN_DOUBLE', 'Un même matériau apparaît deux fois.');
     const materiaux = await this.prisma.materiau.findMany({
       where: { id: { in: ids }, companyId: user.companyId },
-      select: { id: true, nom: true, unite: true, prixAchatFixe: true, fournisseurId: true, actif: true },
+      select: {
+        id: true,
+        nom: true,
+        unite: true,
+        prixAchatFixe: true,
+        fournisseurId: true,
+        actif: true,
+      },
     });
     const lignes = dto.lignes.map((l) => {
       const m = materiaux.find((x) => x.id === l.materiauId);
       if (!m) throw new NotFoundException(`Matériau #${l.materiauId} introuvable`);
       if (m.fournisseurId !== fournisseur.id) {
-        throw new BusinessException('MATERIAU_AUTRE_FOURNISSEUR', `« ${m.nom} » n’est pas fourni par ${fournisseur.nom}.`);
+        throw new BusinessException(
+          'MATERIAU_AUTRE_FOURNISSEUR',
+          `« ${m.nom} » n’est pas fourni par ${fournisseur.nom}.`,
+        );
       }
       if (!m.actif) throw new BusinessException('MATERIAU_INACTIF', `« ${m.nom} » est désactivé.`);
       return {
@@ -176,7 +225,11 @@ export class CommandesService {
           companyId: user.companyId,
           fournisseurId: fournisseur.id,
           chantierId: dto.chantierId ?? null,
-          reference: await this.references.next(ReferencePrefix.COMMANDE_FOURNISSEUR, user.companyId, tx),
+          reference: await this.references.next(
+            ReferencePrefix.COMMANDE_FOURNISSEUR,
+            user.companyId,
+            tx,
+          ),
           dateLivraisonPrevue: dto.dateLivraisonPrevue
             ? new Date(dto.dateLivraisonPrevue)
             : fournisseur.delaiLivraison != null
@@ -209,10 +262,17 @@ export class CommandesService {
     await this.prisma.$transaction(
       dto.lignes.map((l) => {
         const ligne = commande.lignes.find((x) => x.id === l.ligneId);
-        if (!ligne) throw new BusinessException('LIGNE_INTROUVABLE', `Ligne #${l.ligneId} absente de cette commande.`);
+        if (!ligne)
+          throw new BusinessException(
+            'LIGNE_INTROUVABLE',
+            `Ligne #${l.ligneId} absente de cette commande.`,
+          );
         return this.prisma.ligneCommandeFournisseur.update({
           where: { id: l.ligneId },
-          data: { quantite: l.quantite, totalHT: toDecimal(ligne.prixUnitaire).times(l.quantite).toDecimalPlaces(2) },
+          data: {
+            quantite: l.quantite,
+            totalHT: toDecimal(ligne.prixUnitaire).times(l.quantite).toDecimalPlaces(2),
+          },
         });
       }),
     );
@@ -223,11 +283,17 @@ export class CommandesService {
   async envoyer(user: AuthUser, id: number) {
     const commande = await this.findOne(user, id);
     if (!commande.fournisseur.email) {
-      throw new BusinessException('FOURNISSEUR_SANS_EMAIL', 'Ajoutez un email au fournisseur avant l’envoi.');
+      throw new BusinessException(
+        'FOURNISSEUR_SANS_EMAIL',
+        'Ajoutez un email au fournisseur avant l’envoi.',
+      );
     }
     await this.transition(this.prisma, commande, 'ENVOYEE', { dateEnvoi: new Date() });
 
-    const company = await this.prisma.company.findUniqueOrThrow({ where: { id: user.companyId }, select: { nom: true } });
+    const company = await this.prisma.company.findUniqueOrThrow({
+      where: { id: user.companyId },
+      select: { nom: true },
+    });
     const emailSent = await this.mail.send(
       commande.fournisseur.email,
       commandeFournisseurMail({
@@ -251,7 +317,10 @@ export class CommandesService {
   async changerStatut(user: AuthUser, id: number, to: 'EXPEDIEE' | 'ANNULEE' | 'CLOTUREE') {
     const commande = await this.findOne(user, id);
     if (to === 'ANNULEE' && commande.receptions.length) {
-      throw new BusinessException('COMMANDE_RECUE', 'Une commande déjà (partiellement) reçue ne peut pas être annulée.');
+      throw new BusinessException(
+        'COMMANDE_RECUE',
+        'Une commande déjà (partiellement) reçue ne peut pas être annulée.',
+      );
     }
     await this.transition(this.prisma, commande, to);
     return this.findOne(user, id);
@@ -270,7 +339,10 @@ export class CommandesService {
       });
       if (!commande) throw new NotFoundException(`Commande #${id} introuvable`);
       if (!RECEIVABLE.includes(commande.statutLivraison)) {
-        throw new BusinessException('COMMANDE_NON_RECEPTIONNABLE', `Une commande ${commande.statutLivraison} ne peut pas être réceptionnée.`);
+        throw new BusinessException(
+          'COMMANDE_NON_RECEPTIONNABLE',
+          `Une commande ${commande.statutLivraison} ne peut pas être réceptionnée.`,
+        );
       }
 
       const reception = await tx.reception.create({
@@ -279,7 +351,11 @@ export class CommandesService {
 
       for (const item of dto.lignes) {
         const ligne = commande.lignes.find((l) => l.id === item.ligneId);
-        if (!ligne) throw new BusinessException('LIGNE_INTROUVABLE', `Ligne #${item.ligneId} absente de cette commande.`);
+        if (!ligne)
+          throw new BusinessException(
+            'LIGNE_INTROUVABLE',
+            `Ligne #${item.ligneId} absente de cette commande.`,
+          );
         const restant = ligne.quantite.minus(ligne.quantiteRecue);
         if (toDecimal(item.quantite).gt(restant)) {
           throw new BusinessException(
@@ -287,7 +363,9 @@ export class CommandesService {
             `« ${ligne.materiauNom} » : ${item.quantite} reçu(s) mais il ne reste que ${restant.toString()} à recevoir.`,
           );
         }
-        await tx.receptionLigne.create({ data: { receptionId: reception.id, ligneCommandeId: ligne.id, quantite: item.quantite } });
+        await tx.receptionLigne.create({
+          data: { receptionId: reception.id, ligneCommandeId: ligne.id, quantite: item.quantite },
+        });
         await tx.ligneCommandeFournisseur.update({
           where: { id: ligne.id },
           data: { quantiteRecue: { increment: item.quantite } },
@@ -306,7 +384,9 @@ export class CommandesService {
         }
       }
 
-      const lignes = await tx.ligneCommandeFournisseur.findMany({ where: { commandeFournisseurId: id } });
+      const lignes = await tx.ligneCommandeFournisseur.findMany({
+        where: { commandeFournisseurId: id },
+      });
       const complete = lignes.every((l) => l.quantiteRecue.gte(l.quantite));
       const to: CommandeFournisseurStatut = complete ? 'RECUE' : 'PARTIELLE';
       if (to !== commande.statutLivraison) await this.transition(tx, commande, to);
@@ -327,7 +407,11 @@ export class CommandesService {
       where: { id: commande.id, statutLivraison: commande.statutLivraison },
       data: { ...data, statutLivraison: to },
     });
-    if (!count) throw new BusinessException('COMMANDE_MODIFIEE', 'La commande vient de changer de statut. Rechargez.');
+    if (!count)
+      throw new BusinessException(
+        'COMMANDE_MODIFIEE',
+        'La commande vient de changer de statut. Rechargez.',
+      );
   }
 
   /** Chef de chantier: orders for his job sites (to receive deliveries) — from a quote or manual. */
@@ -335,26 +419,47 @@ export class CommandesService {
     return user.role === Role.CHEF_CHANTIER
       ? {
           companyId: user.companyId,
-          OR: [{ devis: { chantier: { chefChantierId: user.id } } }, { chantier: { chefChantierId: user.id } }],
+          OR: [
+            { devis: { chantier: { chefChantierId: user.id } } },
+            { chantier: { chefChantierId: user.id } },
+          ],
         }
       : { companyId: user.companyId };
   }
 
-  private async loadCatalogue(db: DbClient, lines: { prestationId: number | null; materiauId: number | null }[]): Promise<CatalogueForNeeds> {
-    const prestationIds = [...new Set(lines.map((l) => l.prestationId).filter((id): id is number => !!id))];
+  private async loadCatalogue(
+    db: DbClient,
+    lines: { prestationId: number | null; materiauId: number | null }[],
+  ): Promise<CatalogueForNeeds> {
+    const prestationIds = [
+      ...new Set(lines.map((l) => l.prestationId).filter((id): id is number => !!id)),
+    ];
     const prestations = await db.prestation.findMany({
       where: { id: { in: prestationIds } },
       select: {
         id: true,
         compositions: { select: { materiauId: true, quantiteParUnite: true } },
-        options: { select: { choix: { select: { id: true, compositions: { select: { materiauId: true, quantiteParUnite: true } } } } } },
+        options: {
+          select: {
+            choix: {
+              select: {
+                id: true,
+                compositions: { select: { materiauId: true, quantiteParUnite: true } },
+              },
+            },
+          },
+        },
       },
     });
 
     const materiauIds = new Set(lines.map((l) => l.materiauId).filter((id): id is number => !!id));
     for (const p of prestations) {
       p.compositions.forEach((c) => c.materiauId && materiauIds.add(c.materiauId));
-      p.options.forEach((o) => o.choix.forEach((ch) => ch.compositions.forEach((c) => c.materiauId && materiauIds.add(c.materiauId))));
+      p.options.forEach((o) =>
+        o.choix.forEach((ch) =>
+          ch.compositions.forEach((c) => c.materiauId && materiauIds.add(c.materiauId)),
+        ),
+      );
     }
     const materiaux = await db.materiau.findMany({
       where: { id: { in: [...materiauIds] } },
@@ -365,7 +470,12 @@ export class CommandesService {
       prestations: new Map(
         prestations.map((p) => [
           p.id,
-          { base: p.compositions, parChoix: new Map(p.options.flatMap((o) => o.choix.map((ch) => [ch.id, ch.compositions] as const))) },
+          {
+            base: p.compositions,
+            parChoix: new Map(
+              p.options.flatMap((o) => o.choix.map((ch) => [ch.id, ch.compositions] as const)),
+            ),
+          },
         ]),
       ),
       materiaux: new Map(materiaux.map((m) => [m.id, m])),

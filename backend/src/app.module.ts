@@ -32,6 +32,7 @@ import { RelancesModule } from './modules/pilotage/relances/relances.module';
 import { SavModule } from './modules/pilotage/sav/sav.module';
 import { AssistantModule } from './modules/ia/assistant/assistant.module';
 import { DevisIaModule } from './modules/ia/devis-ia/devis-ia.module';
+import { PrixMarcheModule } from './modules/commercial/prix-marche/prix-marche.module';
 import { PortailsModule } from './modules/portails/portails.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -102,6 +103,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AssistantModule,
     // ── IA (Step 15): proposition de lignes de devis à partir d'une description ──
     DevisIaModule,
+    PrixMarcheModule, // 29/10
   ],
 })
 export class AppModule {}

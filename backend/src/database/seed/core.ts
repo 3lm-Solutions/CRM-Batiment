@@ -17,21 +17,68 @@ interface SeedUser {
 
 // Same demo accounts as the old project, plus the new FOURNISSEUR role.
 export const USERS: SeedUser[] = [
-  { role: Role.ADMIN, email: 'admin@batiment-pro.fr', password: 'Admin@2026!', prenom: 'Super', nom: 'Admin' },
-  { role: Role.TECHNICO, email: 'technico@batiment-pro.fr', password: 'Technico@2026!', prenom: 'Marc', nom: 'Dupont', telephone: '0678901234' },
-  { role: Role.ASSISTANTE, email: 'assistante@batiment-pro.fr', password: 'Assistante@2026!', prenom: 'Sophie', nom: 'Martin', telephone: '0612345678' },
-  { role: Role.CHEF_CHANTIER, email: 'chef@batiment-pro.fr', password: 'Chef@2026!', prenom: 'Jean', nom: 'Leroy', telephone: '0622334455' },
-  { role: Role.SOUS_TRAITANT, email: 'soustraitant@batiment-pro.fr', password: 'Soustraitant@2026!', prenom: 'Pierre', nom: 'Bernard', telephone: '0655667788' },
-  { role: Role.FOURNISSEUR, email: 'fournisseur@batiment-pro.fr', password: 'Fournisseur@2026!', prenom: 'Claire', nom: 'Durand', telephone: '0144556677' },
+  {
+    role: Role.ADMIN,
+    email: 'admin@batiment-pro.fr',
+    password: 'Admin@2026!',
+    prenom: 'Super',
+    nom: 'Admin',
+  },
+  {
+    role: Role.TECHNICO,
+    email: 'technico@batiment-pro.fr',
+    password: 'Technico@2026!',
+    prenom: 'Marc',
+    nom: 'Dupont',
+    telephone: '0678901234',
+  },
+  {
+    role: Role.ASSISTANTE,
+    email: 'assistante@batiment-pro.fr',
+    password: 'Assistante@2026!',
+    prenom: 'Sophie',
+    nom: 'Martin',
+    telephone: '0612345678',
+  },
+  {
+    role: Role.CHEF_CHANTIER,
+    email: 'chef@batiment-pro.fr',
+    password: 'Chef@2026!',
+    prenom: 'Jean',
+    nom: 'Leroy',
+    telephone: '0622334455',
+  },
+  {
+    role: Role.SOUS_TRAITANT,
+    email: 'soustraitant@batiment-pro.fr',
+    password: 'Soustraitant@2026!',
+    prenom: 'Pierre',
+    nom: 'Bernard',
+    telephone: '0655667788',
+  },
+  {
+    role: Role.FOURNISSEUR,
+    email: 'fournisseur@batiment-pro.fr',
+    password: 'Fournisseur@2026!',
+    prenom: 'Claire',
+    nom: 'Durand',
+    telephone: '0144556677',
+  },
 ];
 
 export const TYPES_PROJET: { nom: string; description: string }[] = [
-  { nom: 'Rénovation salle de bain', description: 'Travaux de rénovation complète ou partielle de salle de bain' },
+  {
+    nom: 'Rénovation salle de bain',
+    description: 'Travaux de rénovation complète ou partielle de salle de bain',
+  },
   { nom: 'Rénovation cuisine', description: 'Travaux de rénovation de cuisine' },
   { nom: 'Rénovation appartement', description: "Rénovation complète d'un appartement" },
   { nom: 'Rénovation maison', description: "Rénovation complète d'une maison" },
   { nom: 'Construction neuve', description: "Construction d'un bâtiment neuf" },
-  { nom: 'Extension / Surélévation', description: 'Extension ou surélévation de bâtiment existant' },
+  {
+    nom: 'Extension / Surélévation',
+    description: 'Extension ou surélévation de bâtiment existant',
+  },
   { nom: 'Carrelage / Faïence', description: 'Pose de carrelage sol et mur' },
   { nom: 'Peinture / Décoration', description: 'Travaux de peinture intérieure et extérieure' },
   { nom: 'Plomberie / Sanitaire', description: 'Installation et réparation plomberie' },
@@ -89,7 +136,11 @@ export async function seedUsers(prisma: PrismaClient, companyId: number) {
 export const DEMO_SUPPLIER = 'Parexlanko';
 
 /** Links the portal accounts to their business records (SousTraitant / Fournisseur). */
-export async function seedPortalProfiles(prisma: PrismaClient, companyId: number, users: Map<Role, number>) {
+export async function seedPortalProfiles(
+  prisma: PrismaClient,
+  companyId: number,
+  users: Map<Role, number>,
+) {
   const sousTraitantUserId = users.get(Role.SOUS_TRAITANT)!;
   await prisma.sousTraitant.upsert({
     where: { userId: sousTraitantUserId },
@@ -117,7 +168,10 @@ export async function seedPortalProfiles(prisma: PrismaClient, companyId: number
   const existing = await prisma.fournisseur.findFirst({ where: { companyId, nom: DEMO_SUPPLIER } });
   if (existing) {
     if (existing.userId !== fournisseurUserId) {
-      await prisma.fournisseur.update({ where: { id: existing.id }, data: { userId: fournisseurUserId } });
+      await prisma.fournisseur.update({
+        where: { id: existing.id },
+        data: { userId: fournisseurUserId },
+      });
     }
   } else {
     // Same values as data/fournisseurs.json: the catalogue seed then finds it by name
@@ -144,4 +198,3 @@ export async function seedTypesProjet(prisma: PrismaClient, companyId: number) {
     });
   }
 }
-

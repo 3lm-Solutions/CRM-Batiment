@@ -3,7 +3,12 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 import { DevisLifecycleService } from '../devis-lifecycle.service';
 import { AWAITING_CLIENT_STATUTS } from '../devis-status';
 import { DEVIS_CLIENT_SELECT } from '../devis.views';
-import { ACTIVE_LINK_STATUTS, DevisLiensService, type ResolvedLink, SIGNATURE_WINDOW_MINUTES } from './devis-liens.service';
+import {
+  ACTIVE_LINK_STATUTS,
+  DevisLiensService,
+  type ResolvedLink,
+  SIGNATURE_WINDOW_MINUTES,
+} from './devis-liens.service';
 
 /**
  * What a client can do with the link received by email. No account, no login:
@@ -31,14 +36,20 @@ export class PublicDevisService {
     const link = await this.liens.resolve(token);
     this.liens.assertActive(link, 'VALIDATION');
     await this.lifecycle.accepterParClient(link);
-    return { message: 'Merci ! Votre acceptation a bien été enregistrée. Votre conseiller vous recontacte pour la signature.' };
+    return {
+      message:
+        'Merci ! Votre acceptation a bien été enregistrée. Votre conseiller vous recontacte pour la signature.',
+    };
   }
 
   async refuser(token: string, motif?: string) {
     const link = await this.liens.resolve(token);
     this.liens.assertActive(link, 'VALIDATION');
     await this.lifecycle.refuserParClient(link, motif);
-    return { message: 'Votre réponse a bien été enregistrée. Votre conseiller pourra vous proposer une nouvelle version.' };
+    return {
+      message:
+        'Votre réponse a bien été enregistrée. Votre conseiller pourra vous proposer une nouvelle version.',
+    };
   }
 
   async demanderCode(token: string) {
@@ -75,7 +86,8 @@ export class PublicDevisService {
       // A link for an older version shows as cancelled, whatever its stored state
       statut: ACTIVE_LINK_STATUTS.includes(link.statut) && outdated ? 'ANNULE' : link.statut,
       expiresAt: link.expiresAt,
-      peutRepondre: active && link.type === 'VALIDATION' && AWAITING_CLIENT_STATUTS.includes(link.devis.statut),
+      peutRepondre:
+        active && link.type === 'VALIDATION' && AWAITING_CLIENT_STATUTS.includes(link.devis.statut),
       peutDemanderCode: active && link.type === 'SIGNATURE' && link.devis.statut === 'ACCEPTE',
       peutSigner:
         active &&

@@ -55,6 +55,9 @@ model Company {
   // ── After-sales (Étape 2 of 26/10) ──
   /// Months after the end of the works during which a SAV ticket can be opened (0 = no limit)
   savDureeMois         Int     @default(12)
+  // ── Market prices (29/10) ──
+  /// Months of signed quotes / supplier orders used to compute the market prices (6, 12 or 24)
+  prixMarcheMois       Int     @default(12)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -95,6 +98,7 @@ model Company {
   pointages                  Pointage[]
   photosAvancement           PhotoAvancement[]
   retoursClient              RetourClient[]
+  prixReferences             PrixReference[]
 
   @@map("companies")
 }
@@ -158,6 +162,7 @@ model User {
   retoursTraites       RetourClient[]         @relation("RetourClientTraite")
   checklistCoches      TacheChecklistItem[]
 
+  prixReferencesImportes PrixReference[]
   @@index([companyId])
   @@index([role])
   @@map("users")
@@ -375,6 +380,7 @@ model Prestation {
   compositions  PrestationComposition[]
   lignesDevis   LigneDevis[]
 
+  prixReferences        PrixReference[]
   @@index([companyId, actif])
   @@index([categorieId])
   @@index([sousCategorieId])
@@ -473,6 +479,7 @@ model Materiau {
   lignesCommande    LigneCommandeFournisseur[]
   mouvementsStock   MouvementStock[]
 
+  prixReferences PrixReference[]
   @@index([companyId, actif])
   @@index([fournisseurId])
   @@map("materiaux")
@@ -1819,6 +1826,12 @@ enum TacheStatut {
   TERMINEE
 }
 
+/// Market price of a material: what suppliers charge (ACHAT) or what clients pay (VENTE) — 29/10
+enum TypePrix {
+  VENTE
+  ACHAT
+}
+
 enum Unite {
   M2
   ML
@@ -1926,3 +1939,29 @@ enum ProspectStatut {
   REJETE
 }
 
+
+/// Imported price list (CSV, 29/10): reference price range of a prestation or a material, used
+/// when the company has too few signed quotes / orders of its own. Each import replaces the list.
+model PrixReference {
+  id           Int      @id @default(autoincrement())
+  companyId    Int
+  prestationId Int?
+  materiauId   Int?
+  type         TypePrix @default(VENTE)
+  unite        Unite
+  prixMin      Decimal  @db.Decimal(12, 2)
+  prixMax      Decimal  @db.Decimal(12, 2)
+  /// Where the figures come from (fédération, fournisseur, barème…)
+  source       String?
+  importeParId Int?
+  createdAt    DateTime @default(now())
+
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  prestation Prestation? @relation(fields: [prestationId], references: [id], onDelete: Cascade)
+  materiau   Materiau?   @relation(fields: [materiauId], references: [id], onDelete: Cascade)
+  importePar User?       @relation(fields: [importeParId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, prestationId])
+  @@index([companyId, materiauId])
+  @@map("prix_references")
+}

@@ -6,8 +6,18 @@ describe('Tableau de bord — chantiers sans photo (26/10)', () => {
     const client = { nom: 'Dupont', prenom: null };
     const r = chantiersSansPhoto(
       [
-        { id: 1, reference: 'A', client, photosAvancement: [{ createdAt: new Date('2026-10-26T08:00:00Z') }] },
-        { id: 2, reference: 'B', client, photosAvancement: [{ createdAt: new Date('2026-10-20T08:00:00Z') }] },
+        {
+          id: 1,
+          reference: 'A',
+          client,
+          photosAvancement: [{ createdAt: new Date('2026-10-26T08:00:00Z') }],
+        },
+        {
+          id: 2,
+          reference: 'B',
+          client,
+          photosAvancement: [{ createdAt: new Date('2026-10-20T08:00:00Z') }],
+        },
         { id: 3, reference: 'C', client, photosAvancement: [] },
       ],
       now,

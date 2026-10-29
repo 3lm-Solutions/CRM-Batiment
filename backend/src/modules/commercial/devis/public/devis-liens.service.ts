@@ -103,7 +103,8 @@ export class DevisLiensService {
   }
 
   assertActive(link: ResolvedLink, type: DevisLienType): void {
-    if (link.type !== type) throw new BusinessException('LIEN_INVALIDE', 'Ce lien ne permet pas cette action.');
+    if (link.type !== type)
+      throw new BusinessException('LIEN_INVALIDE', 'Ce lien ne permet pas cette action.');
     const messages: Partial<Record<DevisLienStatut, string>> = {
       EXPIRE: 'Ce lien a expiré. Contactez votre conseiller pour en recevoir un nouveau.',
       ANNULE: 'Ce devis a été modifié ou annulé : ce lien n’est plus valable.',
@@ -120,7 +121,10 @@ export class DevisLiensService {
   // ── one-time code ───────────────────────────────────────────────────────
 
   async sendOtp(link: ResolvedLink): Promise<{ envoyeA: string; expiresAt: Date }> {
-    if (link.otpSentAt && Date.now() - link.otpSentAt.getTime() < OTP_RESEND_COOLDOWN_SECONDS * 1000) {
+    if (
+      link.otpSentAt &&
+      Date.now() - link.otpSentAt.getTime() < OTP_RESEND_COOLDOWN_SECONDS * 1000
+    ) {
       throw new BusinessException(
         'CODE_DEJA_ENVOYE',
         `Un code vient d'être envoyé. Patientez ${OTP_RESEND_COOLDOWN_SECONDS} secondes avant d'en redemander un.`,
@@ -146,7 +150,11 @@ export class DevisLiensService {
       reference: link.devis.reference,
       validityMinutes: OTP_VALIDITY_MINUTES,
     });
-    if (!sent) throw new BusinessException('ENVOI_CODE_IMPOSSIBLE', "Le code n'a pas pu être envoyé. Réessayez plus tard.");
+    if (!sent)
+      throw new BusinessException(
+        'ENVOI_CODE_IMPOSSIBLE',
+        "Le code n'a pas pu être envoyé. Réessayez plus tard.",
+      );
 
     return { envoyeA: maskEmail(link.destinataire), expiresAt };
   }
@@ -189,7 +197,10 @@ export class DevisLiensService {
       link.otpVerifiedAt !== null &&
       Date.now() - link.otpVerifiedAt.getTime() < SIGNATURE_WINDOW_MINUTES * 60_000;
     if (!windowOk) {
-      throw new BusinessException('CODE_REQUIS', 'Confirmez votre identité avec le code reçu avant de signer.');
+      throw new BusinessException(
+        'CODE_REQUIS',
+        'Confirmez votre identité avec le code reçu avant de signer.',
+      );
     }
   }
 }

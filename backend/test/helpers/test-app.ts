@@ -6,7 +6,11 @@ import { App } from 'supertest/types';
 import { AppModule } from '../../src/app.module';
 import { configureApp } from '../../src/app.setup';
 import { buildJwtPayload } from '../../src/common';
-import { MAIL_TRANSPORT, type MailMessage, type MailTransport } from '../../src/modules/core/mail/mail.transport';
+import {
+  MAIL_TRANSPORT,
+  type MailMessage,
+  type MailTransport,
+} from '../../src/modules/core/mail/mail.transport';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 /** Seeded demo accounts (prisma/seed/index.ts). */
@@ -44,7 +48,10 @@ export interface TestApp {
 }
 
 /** `overrides`: replace providers (e.g. a fake AI client) — `{ provide: TOKEN, useValue: fake }`. */
-export async function createTestApp(extraControllers: Type[] = [], overrides: { provide: unknown; useValue: unknown }[] = []): Promise<TestApp> {
+export async function createTestApp(
+  extraControllers: Type[] = [],
+  overrides: { provide: unknown; useValue: unknown }[] = [],
+): Promise<TestApp> {
   const mail = new CapturingMailTransport();
 
   const builder = Test.createTestingModule({

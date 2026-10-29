@@ -114,8 +114,9 @@ const PROSPECT_TABS: { value: string; label: string; statuts?: ProspectStatut[] 
 
 function Prospects({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('todo');
-  const [query, setQuery] = useState<{ page: number; search: string; statuts?: ProspectStatut[]; source: ProspectSource | '' }>({ page: 1, search: '', statuts: ['A_QUALIFIER'], source: '' });
+  // 29/10: everything by default (a conversation still in progress is visible at once)
+  const [tab, setTab] = useState('all');
+  const [query, setQuery] = useState<{ page: number; search: string; statuts?: ProspectStatut[]; source: ProspectSource | '' }>({ page: 1, search: '', source: '' });
   const list = useProspects(query);
   return (
     <>

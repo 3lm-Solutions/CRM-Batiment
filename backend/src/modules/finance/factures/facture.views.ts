@@ -12,13 +12,25 @@ export const newPublicToken = () => randomBytes(24).toString('base64url');
  */
 export async function completerQrFacture(
   db: DbClient,
-  f: { id: number; companyId: number; reference: string | null; statut: string; lienPublicToken: string | null; companyIban: string | null },
+  f: {
+    id: number;
+    companyId: number;
+    reference: string | null;
+    statut: string;
+    lienPublicToken: string | null;
+    companyIban: string | null;
+  },
 ): Promise<boolean> {
   if (!f.reference || f.statut === 'BROUILLON') return false;
   const sansLien = !f.lienPublicToken;
   const sansBanque = f.statut === 'ENVOYEE' && !f.companyIban;
   if (!sansLien && !sansBanque) return false;
-  const company = sansBanque ? await db.company.findUniqueOrThrow({ where: { id: f.companyId }, select: { iban: true, bic: true } }) : null;
+  const company = sansBanque
+    ? await db.company.findUniqueOrThrow({
+        where: { id: f.companyId },
+        select: { iban: true, bic: true },
+      })
+    : null;
   const data = {
     ...(sansLien ? { lienPublicToken: newPublicToken() } : {}),
     ...(company?.iban ? { companyIban: company.iban, companyBic: company.bic } : {}),
@@ -68,5 +80,15 @@ export const FACTURE_CLIENT_SELECT = {
   companyBic: true,
   lienPublicToken: true,
   factureOrigine: { select: { reference: true } },
-  lignes: { orderBy: { ordre: 'asc' }, select: { id: true, description: true, quantite: true, unite: true, prixUnitaireHT: true, montantHT: true } },
+  lignes: {
+    orderBy: { ordre: 'asc' },
+    select: {
+      id: true,
+      description: true,
+      quantite: true,
+      unite: true,
+      prixUnitaireHT: true,
+      montantHT: true,
+    },
+  },
 } satisfies Prisma.FactureSelect;

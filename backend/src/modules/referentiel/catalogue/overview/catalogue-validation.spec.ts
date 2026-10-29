@@ -21,7 +21,9 @@ describe('validateCatalogue', () => {
   });
 
   it('flags an inverted price range', () => {
-    expect(validateCatalogue(1, [prestation({ prixVenteMin: 60 })]).errors[0].type).toBe('FOURCHETTE_INVALIDE');
+    expect(validateCatalogue(1, [prestation({ prixVenteMin: 60 })]).errors[0].type).toBe(
+      'FOURCHETTE_INVALIDE',
+    );
   });
 
   it('warns (not errors) when a prestation has no composition', () => {
@@ -34,14 +36,21 @@ describe('validateCatalogue', () => {
     const r = validateCatalogue(1, [
       prestation({
         compositions: [],
-        options: [{ id: 1, nom: 'Type', obligatoire: true, choix: [{ id: 1, aComposition: true }] }],
+        options: [
+          { id: 1, nom: 'Type', obligatoire: true, choix: [{ id: 1, aComposition: true }] },
+        ],
       }),
     ]);
     expect(r.warnings).toEqual([]);
   });
 
   it('flags two options competing with their own compositions', () => {
-    const opt = (id: number) => ({ id, nom: `O${id}`, obligatoire: false, choix: [{ id, aComposition: true }] });
+    const opt = (id: number) => ({
+      id,
+      nom: `O${id}`,
+      obligatoire: false,
+      choix: [{ id, aComposition: true }],
+    });
     const r = validateCatalogue(1, [prestation({ options: [opt(1), opt(2)] })]);
     expect(r.errors[0].type).toBe('COMPOSITIONS_CONCURRENTES');
   });

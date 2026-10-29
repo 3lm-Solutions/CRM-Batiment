@@ -233,7 +233,8 @@ export function FactureDetailPage() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
   const { hasRole } = useAuth();
-  const canWrite = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  // 29/10: the technico reads invoices; only ADMIN and ASSISTANTE invoice
+  const canWrite = hasRole('ADMIN', 'ASSISTANTE');
   const facture = useFacture(id);
   const emettre = useEmettreFacture(id);
   const envoyer = useEnvoyerFacture(id);

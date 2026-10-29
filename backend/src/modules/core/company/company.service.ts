@@ -27,6 +27,7 @@ const SETTINGS_SELECT = {
   fraisFixeDeplacement: true,
   pasArrondiPrix: true,
   savDureeMois: true,
+  prixMarcheMois: true,
 } satisfies Prisma.CompanySelect;
 
 export type CompanySettingsRecord = Prisma.CompanyGetPayload<{ select: typeof SETTINGS_SELECT }>;
@@ -36,11 +37,18 @@ export class CompanyService {
   constructor(private readonly prisma: PrismaService) {}
 
   getProfile(user: AuthUser) {
-    return this.prisma.company.findUniqueOrThrow({ where: { id: user.companyId }, select: PROFILE_SELECT });
+    return this.prisma.company.findUniqueOrThrow({
+      where: { id: user.companyId },
+      select: PROFILE_SELECT,
+    });
   }
 
   updateProfile(user: AuthUser, dto: UpdateCompanyDto) {
-    return this.prisma.company.update({ where: { id: user.companyId }, data: dto, select: PROFILE_SELECT });
+    return this.prisma.company.update({
+      where: { id: user.companyId },
+      data: dto,
+      select: PROFILE_SELECT,
+    });
   }
 
   /** Raw Decimal values — for other services (pricing, quotes, invoices). */
@@ -72,5 +80,6 @@ function toSettings(r: CompanySettingsRecord): CompanySettings {
     fraisFixeDeplacement: r.fraisFixeDeplacement.toNumber(),
     pasArrondiPrix: r.pasArrondiPrix.toNumber(),
     savDureeMois: r.savDureeMois,
+    prixMarcheMois: r.prixMarcheMois,
   };
 }

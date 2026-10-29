@@ -18,7 +18,10 @@ export class SessionValidator {
     private readonly prisma: PrismaService,
   ) {}
 
-  async validate(token: string, options: { allowPasswordChange?: boolean } = {}): Promise<AuthUser> {
+  async validate(
+    token: string,
+    options: { allowPasswordChange?: boolean } = {},
+  ): Promise<AuthUser> {
     let payload: JwtPayload;
     try {
       payload = await this.jwt.verifyAsync<JwtPayload>(token);
@@ -36,10 +39,18 @@ export class SessionValidator {
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, role: true, companyId: true, actif: true, tokenVersion: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        companyId: true,
+        actif: true,
+        tokenVersion: true,
+      },
     });
     if (!user || !user.actif) throw new UnauthorizedException('Compte inexistant ou désactivé');
-    if (user.tokenVersion !== payload.ver) throw new UnauthorizedException('Session expirée, veuillez vous reconnecter');
+    if (user.tokenVersion !== payload.ver)
+      throw new UnauthorizedException('Session expirée, veuillez vous reconnecter');
 
     return { id: user.id, email: user.email, role: user.role, companyId: user.companyId, scope };
   }

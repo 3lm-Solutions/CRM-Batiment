@@ -6,9 +6,10 @@ import { errorMessage } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { formatEuros, formatNumber, formatUnite } from '@/lib/format';
 import { shrinkImage } from '@/lib/images';
-import { ajouterTexte } from '@/components/voice/useDictee';
+import { ajouterTexte } from '@/components/voice/useEnregistrement';
 import { BoutonDictee } from '@/components/voice/BoutonDictee';
-import { MAX_PHOTOS_IA, useAppliquerIa, useProposerIa, useProposerPhotoIa, type AnalysePhoto, type LigneProposee, type PropositionIa } from './api';
+import { PrixMarcheBadge } from '../prix-marche/PrixMarcheBadge';
+import { MAX_PHOTOS_IA, useAppliquerIa, useProposerIa, useProposerPhotoIa, useTranscrireIa, type AnalysePhoto, type LigneProposee, type PropositionIa } from './api';
 
 type Mode = 'texte' | 'photo';
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -142,6 +143,7 @@ export function DevisIaModal({ devisId, description: initial, onClose, dicter }:
   const proposerPhoto = useProposerPhotoIa(devisId);
   const current = mode === 'texte' ? proposer : proposerPhoto;
   const appliquer = useAppliquerIa(devisId);
+  const transcrire = useTranscrireIa(devisId);
 
   const kept = rows.filter((r) => r.garder);
   const invalid = kept.some((r) => !validQty(r));
@@ -180,7 +182,7 @@ export function DevisIaModal({ devisId, description: initial, onClose, dicter }:
           <>
             <Button variant="outline" onClick={onClose}>Annuler</Button>
             {mode === 'texte' ? (
-              <Button icon={<Sparkles className="size-4" />} loading={proposer.isPending} disabled={description.trim().length < 10} onClick={submitDescription}>
+              <Button icon={<Sparkles className="size-4" />} loading={proposer.isPending} disabled={description.trim().length < 10 || transcrire.isPending} onClick={submitDescription}>
                 Proposer les lignes
               </Button>
             ) : (
@@ -198,8 +200,8 @@ export function DevisIaModal({ devisId, description: initial, onClose, dicter }:
         />
         {mode === 'texte' ? (
           <div className="space-y-3">
-            {/* Étape 7 (27/10): dictate the job instead of typing it; the text stays editable */}
-            <BoutonDictee demarrerAuto={dicter} disabled={proposer.isPending} onTexte={(t) => setDescription((d) => ajouterTexte(d, t).slice(0, 3000))} />
+            {/* 29/10: record the job instead of typing it (Whisper on the server); the text stays editable */}
+            <BoutonDictee demarrerAuto={dicter} transcrire={transcrire} disabled={proposer.isPending} onTexte={(t) => setDescription((d) => ajouterTexte(d, t).slice(0, 3000))} />
             <Textarea
               label="Description des travaux"
               rows={6}
@@ -313,7 +315,11 @@ export function DevisIaModal({ devisId, description: initial, onClose, dicter }:
                         <span className="text-xs text-gray-500">{formatUnite(r.unite)}</span>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-3 text-right align-top">{formatEuros(r.prixUnitaireHT)}</td>
+                    <td className="whitespace-nowrap px-3 py-3 text-right align-top">
+                      {formatEuros(r.prixUnitaireHT)}
+                      {/* 29/10: market range of the company's signed prices */}
+                      {r.marche !== undefined && <PrixMarcheBadge marche={r.marche} position={r.positionMarche} className="mt-0.5" />}
+                    </td>
                     <td className="whitespace-nowrap px-3 py-3 text-right align-top font-medium">{validQty(r) ? formatEuros(r.prixUnitaireHT * qty(r)) : '—'}</td>
                   </tr>
                 ))}

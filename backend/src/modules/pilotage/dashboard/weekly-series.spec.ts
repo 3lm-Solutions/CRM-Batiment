@@ -5,13 +5,22 @@ describe('dashboard weekly series', () => {
 
   it('finds the Monday of the week', () => {
     expect(weekStart(now).toISOString().slice(0, 10)).toBe('2026-10-12');
-    expect(weekStart(new Date('2026-10-12T00:00:00Z')).toISOString().slice(0, 10)).toBe('2026-10-12');
-    expect(weekStart(new Date('2026-10-18T23:00:00Z')).toISOString().slice(0, 10)).toBe('2026-10-12'); // Sunday
+    expect(weekStart(new Date('2026-10-12T00:00:00Z')).toISOString().slice(0, 10)).toBe(
+      '2026-10-12',
+    );
+    expect(weekStart(new Date('2026-10-18T23:00:00Z')).toISOString().slice(0, 10)).toBe(
+      '2026-10-12',
+    ); // Sunday
   });
 
   it('returns every week, oldest first, empty ones included', () => {
     const s = weeklySeries([], now, 4);
-    expect(s.map((p) => p.semaine)).toEqual(['2026-09-21', '2026-09-28', '2026-10-05', '2026-10-12']);
+    expect(s.map((p) => p.semaine)).toEqual([
+      '2026-09-21',
+      '2026-09-28',
+      '2026-10-05',
+      '2026-10-12',
+    ]);
     expect(s.every((p) => p.envoyes === 0)).toBe(true);
   });
 

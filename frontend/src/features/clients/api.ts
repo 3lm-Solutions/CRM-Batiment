@@ -62,7 +62,8 @@ export interface Client {
 
 export interface ClientDetail extends Client {
   demandesDevis: { id: number; reference: string; statut: string; createdAt: string }[];
-  devis: { id: number; reference: string; statut: string; totalTTC: number; createdAt: string }[];
+  /** Chef de chantier (29/10): only the signed quotes of his job sites, without amount */
+  devis: { id: number; reference: string; statut: string; totalTTC?: number; createdAt: string }[];
   chantiers: { id: number; reference: string; statut: string; adresse: string }[];
   _count: { demandesDevis: number; devis: number; chantiers: number; savTickets: number };
 }

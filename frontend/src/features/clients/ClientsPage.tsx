@@ -1,19 +1,21 @@
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, Badge, Button, Card, DataTable, ErrorState, PageHeader, Pagination, SearchInput, Select } from '@/components/ui';
 import { formatDate, fullName } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
-import { formatSiret, LEAD_SOURCE_OPTIONS, LEAD_SOURCES, STATUT_CLIENT_TONE, TYPE_CLIENT_OPTIONS, useClients, type ClientsQuery, type LeadSource, type StatutClient, type TypeClient } from './api';
+import { formatSiret, LEAD_SOURCE_OPTIONS, LEAD_SOURCES, TYPE_CLIENT_OPTIONS, useClients, type ClientsQuery, type LeadSource, type StatutClient, type TypeClient } from './api';
 import { ClientFormModal } from './ClientFormModal';
 
 /**
- * 27/10: two lists of the same contacts —
- *  - « Prospects »: not yet signed (prospect, or qualified: request qualified / quote sent);
+ * 27/10 + 29/10: two lists of the same contacts —
+ *  - « Prospects »: qualified, not yet signed. Requests from the chatbot or by email wait in
+ *    « Assistant IA » until qualified; a contact entered by hand starts qualified. (PROSPECT =
+ *    older rows only, still listed here.)
  *  - « Clients »: signed at least one quote (moved there automatically on signature).
  */
 const MODES = {
-  prospects: { titre: 'Prospects', description: 'Contacts qui n’ont pas encore signé de devis', statuts: ['PROSPECT', 'QUALIFIE'] as StatutClient[], nouveau: 'Nouveau prospect', vide: 'Aucun prospect' },
+  prospects: { titre: 'Prospects', description: 'Prospects qualifiés qui n’ont pas encore signé de devis', statuts: ['PROSPECT', 'QUALIFIE'] as StatutClient[], nouveau: 'Nouveau prospect', vide: 'Aucun prospect qualifié' },
   clients: { titre: 'Clients', description: 'Ont signé au moins un devis', statuts: ['CLIENT'] as StatutClient[], nouveau: 'Nouveau client', vide: 'Aucun client' },
 } as const;
 
@@ -23,8 +25,7 @@ export function ClientsPage({ mode = 'clients' }: { mode?: keyof typeof MODES })
   const { hasRole } = useAuth();
   const canWrite = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
   const [query, setQuery] = useState<ClientsQuery>({ page: 1, search: '', source: '', typeClient: '', archived: false });
-  const [statut, setStatut] = useState<StatutClient | ''>('');
-  const clients = useClients({ ...query, statuts: statut ? [statut] : [...m.statuts] });
+  const clients = useClients({ ...query, statuts: [...m.statuts] });
   const [creating, setCreating] = useState(false);
 
   return (
@@ -42,16 +43,6 @@ export function ClientsPage({ mode = 'clients' }: { mode?: keyof typeof MODES })
               value={query.archived ? 'archived' : 'active'}
               onChange={(e) => setQuery((q) => ({ ...q, archived: e.target.value === 'archived', page: 1 }))}
             />
-            {mode === 'prospects' && (
-              <Select
-                aria-label="Étape"
-                containerClassName="w-48"
-                placeholder="Tous les prospects"
-                options={[{ value: 'PROSPECT', label: 'Prospects' }, { value: 'QUALIFIE', label: 'Prospects qualifiés' }]}
-                value={statut}
-                onChange={(e) => { setStatut(e.target.value as StatutClient | ''); setQuery((q) => ({ ...q, page: 1 })); }}
-              />
-            )}
             <Select
               aria-label="Type de client"
               containerClassName="w-44"
@@ -83,7 +74,16 @@ export function ClientsPage({ mode = 'clients' }: { mode?: keyof typeof MODES })
             onRowClick={(c) => navigate(`/clients/${c.id}`)}
             empty={{
               title: query.archived ? `${m.vide} archivé` : m.vide,
-              description: mode === 'clients' && !query.archived ? 'Un prospect devient client automatiquement à la signature de son premier devis.' : undefined,
+              description: query.archived
+                ? undefined
+                : mode === 'clients'
+                  ? 'Un prospect devient client automatiquement à la signature de son premier devis.'
+                  : (
+                    <>
+                      Les demandes reçues par email ou par le chatbot arrivent dans{' '}
+                      <Link to="/assistant" className="font-medium text-brand-700 underline dark:text-blue-300">Assistant IA</Link> : qualifiez-les pour les retrouver ici.
+                    </>
+                  ),
               action: canWrite && !query.archived ? <Button onClick={() => setCreating(true)}>{m.nouveau}</Button> : undefined,
             }}
             columns={[
@@ -97,7 +97,6 @@ export function ClientsPage({ mode = 'clients' }: { mode?: keyof typeof MODES })
                       <span className="flex items-center gap-2 font-medium text-gray-800 dark:text-slate-100">
                         {fullName(c)}
                         {c.typeClient === 'PROFESSIONNEL' && <Badge tone="violet">Pro</Badge>}
-                        {mode === 'prospects' && <Badge tone={STATUT_CLIENT_TONE[c.statut]}>{c.statut === 'QUALIFIE' ? 'Qualifié' : 'Prospect'}</Badge>}
                       </span>
                       {c.typeClient === 'PROFESSIONNEL' && (c.contactNom || c.siret) && (
                         <span className="block truncate text-xs text-slate-500">{c.contactNom ?? `SIRET ${formatSiret(c.siret!)}`}</span>
@@ -124,7 +123,7 @@ export function ClientsPage({ mode = 'clients' }: { mode?: keyof typeof MODES })
         )}
         <Pagination meta={clients.data?.meta} onPage={(page) => setQuery((q) => ({ ...q, page }))} />
       </Card>
-      <ClientFormModal open={creating} onClose={() => setCreating(false)} statutInitial={mode === 'clients' ? 'CLIENT' : 'PROSPECT'} onSaved={(c) => navigate(`/clients/${c.id}`)} />
+      <ClientFormModal open={creating} onClose={() => setCreating(false)} statutInitial={mode === 'clients' ? 'CLIENT' : 'QUALIFIE'} onSaved={(c) => navigate(`/clients/${c.id}`)} />
     </>
   );
 }

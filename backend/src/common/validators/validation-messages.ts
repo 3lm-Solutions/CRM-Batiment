@@ -103,10 +103,16 @@ const lower = (field: string) => {
 
 /** A message class-validator generated itself (English), as opposed to one written in a DTO. */
 function isDefaultMessage(message: string, field: string): boolean {
-  return message.startsWith(`${field} `) || message.startsWith('each value in ') || message.startsWith('nested property ') || message.startsWith('property ');
+  return (
+    message.startsWith(`${field} `) ||
+    message.startsWith('each value in ') ||
+    message.startsWith('nested property ') ||
+    message.startsWith('property ')
+  );
 }
 
-const number = (message: string) => /(-?\d+(?:\.\d+)?)/.exec(message.replace(/^.*?(must|should)/, ''))?.[1] ?? '';
+const number = (message: string) =>
+  /(-?\d+(?:\.\d+)?)/.exec(message.replace(/^.*?(must|should)/, ''))?.[1] ?? '';
 
 /** French sentence for one failed constraint. */
 export function frenchMessage(field: string, constraint: string, original: string): string {

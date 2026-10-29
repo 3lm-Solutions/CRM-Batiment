@@ -16,20 +16,38 @@ describe('Sous-traitants (e2e)', () => {
   const inDays = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString();
 
   const createST = async (nom: string) =>
-    (await request(http).post('/api/v1/sous-traitants').set(auth(admin)).send({ nom: `${tag} ${nom}` }).expect(201)).body.id as number;
+    (
+      await request(http)
+        .post('/api/v1/sous-traitants')
+        .set(auth(admin))
+        .send({ nom: `${tag} ${nom}` })
+        .expect(201)
+    ).body.id as number;
 
   beforeAll(async () => {
     t = await createTestApp();
     http = t.http;
     admin = await t.tokenFor(SEED.admin);
-    clientId = (await request(http).post('/api/v1/clients').set(auth(admin)).send({ nom: `${tag} Client` })).body.id;
+    clientId = (
+      await request(http)
+        .post('/api/v1/clients')
+        .set(auth(admin))
+        .send({ nom: `${tag} Client` })
+    ).body.id;
     chantierId = (
-      await request(http).post('/api/v1/chantiers').set(auth(admin)).send({ clientId, adresse: '1 rue du Test' }).expect(201)
+      await request(http)
+        .post('/api/v1/chantiers')
+        .set(auth(admin))
+        .send({ clientId, adresse: '1 rue du Test' })
+        .expect(201)
     ).body.id;
   });
 
   afterAll(async () => {
-    const sts = await t.prisma.sousTraitant.findMany({ where: { nom: { startsWith: tag } }, select: { id: true } });
+    const sts = await t.prisma.sousTraitant.findMany({
+      where: { nom: { startsWith: tag } },
+      select: { id: true },
+    });
     const ids = sts.map((s) => s.id);
     await t.prisma.paiementSousTraitant.deleteMany({ where: { sousTraitantId: { in: ids } } });
     await t.prisma.contratSousTraitant.deleteMany({ where: { sousTraitantId: { in: ids } } });
@@ -44,7 +62,12 @@ describe('Sous-traitants (e2e)', () => {
     const soon = await request(http)
       .post(`/api/v1/sous-traitants/${id}/assurances`)
       .set(auth(admin))
-      .send({ typeAssurance: 'DECENNALE', numeroAttestation: 'D-1', compagnieAssurance: 'SMABTP', dateExpiration: inDays(10) })
+      .send({
+        typeAssurance: 'DECENNALE',
+        numeroAttestation: 'D-1',
+        compagnieAssurance: 'SMABTP',
+        dateExpiration: inDays(10),
+      })
       .expect(201);
     expect(soon.body.statut).toBe('A_RENOUVELER');
 
@@ -65,25 +88,48 @@ describe('Sous-traitants (e2e)', () => {
       .expect(201);
     expect(contrat.body.reference).toMatch(/^CST-/);
 
-    const refused = await request(http).post(`/api/v1/contrats-sous-traitance/${contrat.body.id}/activer`).set(auth(admin)).expect(422);
+    const refused = await request(http)
+      .post(`/api/v1/contrats-sous-traitance/${contrat.body.id}/activer`)
+      .set(auth(admin))
+      .expect(422);
     expect(refused.body.code).toBe('DECENNALE_MANQUANTE');
 
     await request(http)
       .post(`/api/v1/sous-traitants/${id}/assurances`)
       .set(auth(admin))
-      .send({ typeAssurance: 'DECENNALE', numeroAttestation: 'D-2', compagnieAssurance: 'MAAF', dateExpiration: inDays(200) });
-    await request(http).post(`/api/v1/contrats-sous-traitance/${contrat.body.id}/activer`).set(auth(admin)).expect(200);
+      .send({
+        typeAssurance: 'DECENNALE',
+        numeroAttestation: 'D-2',
+        compagnieAssurance: 'MAAF',
+        dateExpiration: inDays(200),
+      });
+    await request(http)
+      .post(`/api/v1/contrats-sous-traitance/${contrat.body.id}/activer`)
+      .set(auth(admin))
+      .expect(200);
 
     // payments cannot exceed the contract
     await request(http)
       .post(`/api/v1/sous-traitants/${id}/paiements`)
       .set(auth(admin))
-      .send({ contratId: contrat.body.id, montantHT: 2000, montantTTC: 2400, datePaiement: inDays(0), modePaiement: 'VIREMENT' })
+      .send({
+        contratId: contrat.body.id,
+        montantHT: 2000,
+        montantTTC: 2400,
+        datePaiement: inDays(0),
+        modePaiement: 'VIREMENT',
+      })
       .expect(201);
     const over = await request(http)
       .post(`/api/v1/sous-traitants/${id}/paiements`)
       .set(auth(admin))
-      .send({ contratId: contrat.body.id, montantHT: 1500, montantTTC: 1800, datePaiement: inDays(0), modePaiement: 'VIREMENT' })
+      .send({
+        contratId: contrat.body.id,
+        montantHT: 1500,
+        montantTTC: 1800,
+        datePaiement: inDays(0),
+        modePaiement: 'VIREMENT',
+      })
       .expect(422);
     expect(over.body.code).toBe('PAIEMENT_SUPERIEUR_AU_CONTRAT');
   });
@@ -108,16 +154,25 @@ describe('Sous-traitants (e2e)', () => {
     const a = await request(http)
       .post(`/api/v1/sous-traitants/${id}/assurances`)
       .set(auth(admin))
-      .send({ typeAssurance: 'RC_PRO', numeroAttestation: 'R-1', compagnieAssurance: 'AXA', dateExpiration: inDays(5) });
+      .send({
+        typeAssurance: 'RC_PRO',
+        numeroAttestation: 'R-1',
+        compagnieAssurance: 'AXA',
+        dateExpiration: inDays(5),
+      });
     expect(a.body.statut).toBe('A_RENOUVELER');
 
     const events: unknown[] = [];
     t.app.get(EventEmitter2).on(SousTraitantEvents.ASSURANCE_STATUT, (e) => events.push(e));
     await t.app.get(AssurancesAlertService).run(new Date(Date.now() + 6 * 86_400_000));
 
-    const after = await t.prisma.assuranceSousTraitant.findUniqueOrThrow({ where: { id: a.body.id } });
+    const after = await t.prisma.assuranceSousTraitant.findUniqueOrThrow({
+      where: { id: a.body.id },
+    });
     expect(after.statut).toBe('EXPIREE');
-    expect(events).toContainEqual(expect.objectContaining({ assuranceId: a.body.id, statut: 'EXPIREE' }));
+    expect(events).toContainEqual(
+      expect.objectContaining({ assuranceId: a.body.id, statut: 'EXPIREE' }),
+    );
   });
 
   it('roles: technico has no access, assistante can read but not write', async () => {
@@ -125,6 +180,10 @@ describe('Sous-traitants (e2e)', () => {
     const assistante = await t.tokenFor(SEED.assistante);
     await request(http).get('/api/v1/sous-traitants').set(auth(technico)).expect(403);
     await request(http).get('/api/v1/sous-traitants').set(auth(assistante)).expect(200);
-    await request(http).post('/api/v1/sous-traitants').set(auth(assistante)).send({ nom: `${tag} X` }).expect(403);
+    await request(http)
+      .post('/api/v1/sous-traitants')
+      .set(auth(assistante))
+      .send({ nom: `${tag} X` })
+      .expect(403);
   });
 });

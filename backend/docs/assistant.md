@@ -92,5 +92,21 @@ POST /devis/:id/ia/appliquer  { lignes: [{ prestationId, quantite }] }  → devi
 | Sans clé OpenAI | recherche par mots-clés (nom 3 pts, catégorie 2, description 1) ; m² et ml lus dans le texte (« 8 m² », « 12 ml ») |
 | Panne de l'IA | même recherche par mots-clés + avertissement ; erreur journalisée (`DEVIS_…`, page Assistant IA → Journal) |
 
+### Devis vocal (29/10)
+
+Bouton **Dicter le devis** (ou micro dans l'onglet Texte) : le navigateur **enregistre** (MediaRecorder,
+3 min max), le serveur transcrit avec **Whisper** (même clé que `OPENAI_API_KEY` ; modèle
+`OPENAI_TRANSCRIPTION_MODEL`, vide = `whisper-large-v3-turbo` chez Groq, `whisper-1` chez OpenAI).
+Le texte arrive dans le champ, le technico le relit puis **Proposer les lignes**. L'audio n'est pas
+conservé. Marche sur Chrome, Edge, Firefox, Safari et téléphone (micro autorisé, HTTPS ou localhost).
+
+```
+POST /devis/:id/ia/transcrire  (multipart, champ audio : WebM, Ogg, MP4/M4A, MP3, WAV) → { texte }
+```
+
+Erreurs : `IA_NON_CONFIGUREE` (pas de clé), `FICHIER_TYPE_REFUSE` (pas un audio, vérifié sur les
+premiers octets), `AUCUNE_PAROLE` (silence ; les phrases « fantômes » de Whisper sont ignorées),
+`TRANSCRIPTION_INDISPONIBLE` (erreur du fournisseur, journalisée `DEVIS_VOCAL_…`).
+
 Le catalogue entier est envoyé au modèle s'il compte 80 prestations ou moins, sinon les 60 meilleures
 correspondances par mots-clés. Droits : ADMIN, TECHNICO, ASSISTANTE (comme les lignes de devis).

@@ -13,7 +13,9 @@ export class SandboxController {
   constructor(private readonly sandbox: SandboxService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Cette instance est-elle la démo ? (comptes proposés, heure de réinitialisation)' })
+  @ApiOperation({
+    summary: 'Cette instance est-elle la démo ? (comptes proposés, heure de réinitialisation)',
+  })
   info() {
     return this.sandbox.info();
   }
@@ -21,7 +23,9 @@ export class SandboxController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('connexion')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Démo uniquement : session pour le rôle choisi, sans mot de passe (404 hors démo)' })
+  @ApiOperation({
+    summary: 'Démo uniquement : session pour le rôle choisi, sans mot de passe (404 hors démo)',
+  })
   connexion(@Body() dto: DemoConnexionDto) {
     return this.sandbox.connexion(dto.role);
   }

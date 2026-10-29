@@ -12,9 +12,9 @@ désactivation prend effet immédiatement.
 | Rôle | Périmètre |
 |---|---|
 | `ADMIN` | Administration complète de l'entreprise |
-| `TECHNICO` | Commercial : clients, demandes, devis, signatures, factures, catalogue (lecture), commandes |
-| `ASSISTANTE` | Administratif : clients, demandes, suivi des devis, factures, chantiers, documents |
-| `CHEF_CHANTIER` | Opérationnel : **ses** chantiers, tâches, réceptions de matériaux, documents |
+| `TECHNICO` | Commercial : prospects, clients, demandes, devis, signatures, factures **en lecture seule**, catalogue (lecture), commandes |
+| `ASSISTANTE` | Administratif : prospects, clients, demandes, suivi des devis, facturation, chantiers, documents |
+| `CHEF_CHANTIER` | Opérationnel : **ses** chantiers, tâches, réceptions de matériaux, documents, SAV — ni prospects, ni clients (liste / fiche), ni factures (29/10) |
 | `SOUS_TRAITANT` | Portail : **ses** chantiers et tâches, rapports et photos — jamais de prix ni de marges |
 | `FOURNISSEUR` | Portail : **ses** commandes fournisseur — *nouveau en v2* (avant : compte SOUS_TRAITANT retrouvé par email) |
 
@@ -28,7 +28,7 @@ Légende : **C** créer · **L** lire · **M** modifier · **S** supprimer · **
 | Ma signature (conseiller) | LMS | LMS | LMS | LMS | — | — | 4 ✅ |
 | Utilisateurs | CLMS | — | — | — | — | — | 4 ✅ |
 | Liste des utilisateurs (sélecteurs) | L | L | L | L | — | — | 4 ✅ |
-| Clients (S = archiver ; suppression définitive : ADMIN, sans historique) | CLMS | CLM + archiver | CLM + archiver | L | — | — | 5 ✅ |
+| Clients (S = archiver ; suppression définitive : ADMIN, sans historique) | CLMS | CLM + archiver | CLM + archiver | — (nom et téléphone du client visibles dans SES chantiers seulement) | — | — | 5 ✅ / 29-10 ✅ |
 | Types de projet | CLMS | L | L | L | — | — | 5 ✅ |
 | Catalogue (prestations, matériaux, MO, options) — le chef ne reçoit **aucun prix** (achat, vente, MO, impact des options) | CLMS | L | L | L sans montants | — | — | 5 ✅ / 20-10 ✅ |
 | Chiffrage d'une prestation (coûts, marges) | A | A | A | — | — | — | 5 ✅ |
@@ -36,7 +36,7 @@ Légende : **C** créer · **L** lire · **M** modifier · **S** supprimer · **
 | Fournisseurs (création possible depuis un compte FOURNISSEUR existant, jamais un compte déjà lié ; ses **matériaux** se cochent dans le catalogue ou se créent, `PUT /fournisseurs/:id/materiaux` — un matériau = un fournisseur) | CLMS | L | L | — | — | — | 5 ✅ / 20-10 ✅ |
 | Demandes de devis (A = prendre en charge, qualifier, perdre ; conversion : ADMIN, TECHNICO) | CLMSA | CLMA | CLMA (sans conversion) | — | — | — | 6 ✅ |
 | Devis (A = envoyer, réviser, annuler, demander la signature, signer ; S = ADMIN : brouillon jamais envoyé, ou devis ANNULÉ sans facture / commande / chantier) | CLMSA | CLMA | CLMA | L ses chantiers, **sans montants** | — | — | 6 ✅ / 20-10 ✅ |
-| Factures (A = émettre, envoyer, payer, annuler/avoir ; situations, finale) | CLMSA | CLMA | CLMA | L factures **émises** de ses chantiers (jamais les brouillons) | — | — | 8 ✅ / 20-10 ✅ |
+| Factures (A = émettre, envoyer, payer, annuler/avoir, relancer ; situations, finale) — groupe `FACTURATION` | CLMSA | **L** (lecture seule) | CLMSA | — | — | — | 8 ✅ / 20-10 ✅ / 29-10 ✅ |
 | Chantiers (A = démarrer, suspendre, terminer ; clôturer : bureau ; C hors devis : bureau) — un chantier CLÔTURÉ ou ANNULÉ est figé (plus de tâches, documents, notes, accès) | CLMSA | CL | CLMA | LMA les siens | via son portail uniquement (`/portail/sous-traitant/chantiers`, sans téléphone client ni notes internes) | — | 8 ✅ |
 | Tâches (le chef n'affecte que des sous-traitants ou lui-même ; les affectations faites par le bureau sont conservées) | CLMS | L | CLMS | CLMS ses chantiers | avancement de SES tâches, chantiers ouverts à son compte | — | 8 ✅ / 11 ✅ / 20-10 ✅ |
 | Checklist d'une tâche (points à cocher ; l'avancement de la tâche suit) | CLMS | — | CLMS | CLMS ses chantiers | coche / décoche, ses tâches (portail) | — | 21-10 ✅ |
@@ -45,11 +45,11 @@ Légende : **C** créer · **L** lire · **M** modifier · **S** supprimer · **
 | Commandes fournisseur (A = envoyer, réceptionner, clôturer, annuler ; C = commande manuelle : un fournisseur et ses matériaux) | CLMSA | CLMA | CLMA | L + réception, ses chantiers, **sans montants** | — | L SES commandes envoyées + accuser réception, expédier | 8 ✅ / 11 ✅ / 20-10 ✅ |
 | Stock (mouvements : entrée, sortie, inventaire) — le chef ne voit pas la valeur du stock | LA | LA | LA | LA | — | — | 8 ✅ |
 | Sous-traitants (fiche — créable depuis un compte SOUS_TRAITANT existant —, contrats (suppression : brouillon ou résilié sans paiement), assurances, paiements modifiables et supprimables, disponibilités) | CLMSA | — | L | L **sans montants ni paiements** + noter | — | — | 9 ✅ / 20-10 ✅ |
-| SAV (photos : ajouter / supprimer, 10 par ticket, images seules ; A = prendre en charge, attente client, résoudre, clôturer, rouvrir ; chef : ses chantiers ou tickets assignés) — historique des statuts ; une note peut être une **réponse au client** (visible dans son espace + email) ; chaque changement de statut est envoyé au client par email | CLMA | CLMA | CLMA | CLMA | — | — | 10 ✅ / 20-10 ✅ |
+| SAV (photos : ajouter / supprimer, 10 par ticket, images seules ; A = prendre en charge, attente client, résoudre, clôturer, rouvrir ; chef : ses chantiers ou tickets assignés ; il crée un ticket en choisissant **un de ses chantiers** (client déduit du chantier, sans lien devis / facture, référence de facture masquée) — historique des statuts ; une note peut être une **réponse au client** (visible dans son espace + email) ; chaque changement de statut est envoyé au client par email | CLMA | CLMA | CLMA | CLMA | — | — | 10 ✅ / 20-10 ✅ |
 | Historique / audit | L | — | — | — | — | — | 10 ✅ |
 | Notifications (les siennes uniquement ; temps réel socket.io) | LM | LM | LM | LM | LM | LM | 10 ✅ |
 | Tableau de bord (dont marge prévue par chantier) | L | — | — | — | — | — | 10 ✅ / 21-10 ✅ |
-| Relances clients (liste, « Relancer maintenant » sur un devis en attente ou une facture émise impayée) | LA | LA | LA | — | — | — | 21-10 ✅ |
+| Relances clients (liste, « Relancer maintenant » sur un devis en attente ou une facture émise impayée ; facture : ADMIN, ASSISTANTE) | LA | LA (devis seulement) | LA | — | — | — | 21-10 ✅ / 29-10 ✅ |
 | Relances automatiques — réglages (actives, délais) et « Lancer les relances maintenant » | LMA | — | — | — | — | — | 21-10 ✅ |
 | Demandes de démo | LMA | LMA | — | — | — | — | 10 ✅ |
 | Fichiers (dépôt : `POST /fichiers`) | C | C | C | C | via son portail (photos de rapport) | — | 11 ✅ |
@@ -63,6 +63,8 @@ Légende : **C** créer · **L** lire · **M** modifier · **S** supprimer · **
 | Prospects par email (boîte dédiée lue toutes les N min ; statut de la boîte ; « Relever les emails » : ADMIN) — même liste et même qualification que le chatbot, source EMAIL | LMA | LMA (sans relevé) | LMA (sans relevé) | — | — | — | 22-10 ✅ |
 | Assistant IA — base de connaissances | CLMS | L | L | — | — | — | 14 ✅ |
 | Assistant IA — journal des erreurs | L | — | — | — | — | — | 14 ✅ |
+| Prospects (fiches clients qualifiées sans devis signé, menu « Prospects ») | CLMS | CLM | CLM | — | — | — | 29-10 ✅ |
+| Prix de marché (consultation ; barème CSV : import, modèle, vider = ADMIN) | LMA | L | L | — | — | — | 29-10 ✅ |
 | Devis IA — proposer / ajouter des lignes (devis modifiable) ; onglets Texte et **Photo** (1 à 3 photos, analysées par l’IA puis oubliées — jamais stockées) | A | A | A | — | — | — | 15 ✅ / 21-10 ✅ |
 
 ## Routes publiques (`@Public()`)
@@ -88,7 +90,7 @@ l'API HTTP (`SessionValidator`) : un compte désactivé ou un jeton révoqué es
 
 ## Groupes de rôles (code)
 
-`src/common/auth/role-groups.ts` : `ALL_ROLES`, `STAFF` (interne), `BUREAU` (ADMIN, TECHNICO, ASSISTANTE), `PORTAL` (SOUS_TRAITANT, FOURNISSEUR).
+`src/common/auth/role-groups.ts` : `ALL_ROLES`, `STAFF` (interne), `BUREAU` (ADMIN, TECHNICO, ASSISTANTE), `FACTURATION` (ADMIN, ASSISTANTE : écriture des factures, 29/10), `PORTAL` (SOUS_TRAITANT, FOURNISSEUR).
 
 ## Portails (étape 11) — règle unique par type de compte
 

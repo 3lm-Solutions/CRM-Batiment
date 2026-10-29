@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
@@ -18,26 +28,48 @@ export class RetoursClientController {
 
   @Get()
   @ApiOperation({ summary: 'Commentaires et alertes du client (alertes ouvertes en premier)' })
-  liste(@CurrentUser() user: AuthUser, @Param('chantierId', ParseIntPipe) chantierId: number, @Query() query: QueryRetoursDto) {
+  liste(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Query() query: QueryRetoursDto,
+  ) {
     return this.retours.liste(user, chantierId, query);
   }
 
   @Roles(...REPONSE)
-  @Post(':id/repondre') @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Répondre au client (affiché dans son espace + email) ; traité par défaut' })
-  repondre(@CurrentUser() user: AuthUser, @Param('chantierId', ParseIntPipe) chantierId: number, @Param('id', ParseIntPipe) id: number, @Body() dto: RepondreRetourDto) {
+  @Post(':id/repondre')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Répondre au client (affiché dans son espace + email) ; traité par défaut',
+  })
+  repondre(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RepondreRetourDto,
+  ) {
     return this.retours.repondre(user, chantierId, id, dto);
   }
 
   @Roles(...REPONSE)
-  @Post(':id/traiter') @HttpCode(HttpStatus.OK)
-  traiter(@CurrentUser() user: AuthUser, @Param('chantierId', ParseIntPipe) chantierId: number, @Param('id', ParseIntPipe) id: number) {
+  @Post(':id/traiter')
+  @HttpCode(HttpStatus.OK)
+  traiter(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.retours.traiter(user, chantierId, id);
   }
 
   @Roles(...REPONSE)
-  @Post(':id/rouvrir') @HttpCode(HttpStatus.OK)
-  rouvrir(@CurrentUser() user: AuthUser, @Param('chantierId', ParseIntPipe) chantierId: number, @Param('id', ParseIntPipe) id: number) {
+  @Post(':id/rouvrir')
+  @HttpCode(HttpStatus.OK)
+  rouvrir(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
     return this.retours.rouvrir(user, chantierId, id);
   }
 }

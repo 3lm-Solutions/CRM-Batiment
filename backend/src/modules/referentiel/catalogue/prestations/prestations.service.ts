@@ -1,6 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type AuthUser, BusinessException, paginate, parseSort, toSkipTake } from '../../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  parseSort,
+  toSkipTake,
+} from '../../../../common';
 import type { Prisma } from '../../../../generated/prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CATALOGUE_PRICE_CHANGED, type CataloguePriceChangedEvent } from '../catalogue.events';
@@ -14,7 +20,9 @@ const COMPONENT_SELECT = {
   id: true,
   quantiteParUnite: true,
   materiau: { select: { id: true, nom: true, unite: true, prixAchatFixe: true, actif: true } },
-  serviceMainOeuvre: { select: { id: true, nom: true, unite: true, prixUnitaire: true, actif: true } },
+  serviceMainOeuvre: {
+    select: { id: true, nom: true, unite: true, prixUnitaire: true, actif: true },
+  },
 } as const;
 
 const LIST_INCLUDE = {
@@ -79,20 +87,31 @@ export class PrestationsService {
   async create(user: AuthUser, dto: CreatePrestationDto) {
     await this.assertClassification(user.companyId, dto.categorieId, dto.sousCategorieId);
     assertPriceRange(dto.prixVenteMin, dto.prixVenteMax);
-    return this.prisma.prestation.create({ data: { ...dto, companyId: user.companyId }, include: LIST_INCLUDE });
+    return this.prisma.prestation.create({
+      data: { ...dto, companyId: user.companyId },
+      include: LIST_INCLUDE,
+    });
   }
 
   async update(user: AuthUser, id: number, dto: UpdatePrestationDto) {
     const before = await this.findOne(user, id);
 
     const categorieId = dto.categorieId ?? before.categorieId;
-    const sousCategorieId = dto.sousCategorieId !== undefined ? dto.sousCategorieId : before.sousCategorieId;
+    const sousCategorieId =
+      dto.sousCategorieId !== undefined ? dto.sousCategorieId : before.sousCategorieId;
     if (dto.categorieId !== undefined || dto.sousCategorieId !== undefined) {
       await this.assertClassification(user.companyId, categorieId, sousCategorieId);
     }
-    assertPriceRange(dto.prixVenteMin ?? before.prixVenteMin.toNumber(), dto.prixVenteMax ?? before.prixVenteMax.toNumber());
+    assertPriceRange(
+      dto.prixVenteMin ?? before.prixVenteMin.toNumber(),
+      dto.prixVenteMax ?? before.prixVenteMax.toNumber(),
+    );
 
-    const updated = await this.prisma.prestation.update({ where: { id }, data: dto, include: LIST_INCLUDE });
+    const updated = await this.prisma.prestation.update({
+      where: { id },
+      data: dto,
+      include: LIST_INCLUDE,
+    });
 
     for (const champ of ['prixVenteMin', 'prixVenteMax'] as const) {
       if (dto[champ] !== undefined && !before[champ].equals(dto[champ])) {
@@ -130,9 +149,19 @@ export class PrestationsService {
     return this.findOne(user, id);
   }
 
-  private async assertClassification(companyId: number, categorieId: number, sousCategorieId?: number | null) {
-    const categorie = await this.prisma.categoriePrestation.count({ where: { id: categorieId, companyId } });
-    if (!categorie) throw new BusinessException('CATEGORIE_INTROUVABLE', `Catégorie #${categorieId} introuvable.`);
+  private async assertClassification(
+    companyId: number,
+    categorieId: number,
+    sousCategorieId?: number | null,
+  ) {
+    const categorie = await this.prisma.categoriePrestation.count({
+      where: { id: categorieId, companyId },
+    });
+    if (!categorie)
+      throw new BusinessException(
+        'CATEGORIE_INTROUVABLE',
+        `Catégorie #${categorieId} introuvable.`,
+      );
 
     if (sousCategorieId) {
       const sousCategorie = await this.prisma.sousCategorie.count({
@@ -150,6 +179,9 @@ export class PrestationsService {
 
 function assertPriceRange(min: number, max: number): void {
   if (min > max) {
-    throw new BusinessException('FOURCHETTE_PRIX_INVALIDE', 'Le prix minimum ne peut pas dépasser le prix maximum.');
+    throw new BusinessException(
+      'FOURCHETTE_PRIX_INVALIDE',
+      'Le prix minimum ne peut pas dépasser le prix maximum.',
+    );
   }
 }

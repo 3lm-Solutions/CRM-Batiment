@@ -11,10 +11,15 @@ import type { DbClient } from '../../../prisma/prisma.types';
 export const ORDRE_STATUT: StatutClient[] = ['PROSPECT', 'QUALIFIE', 'CLIENT'];
 
 /** Statuses below `cible` (those that may be promoted to it). */
-export const statutsInferieurs = (cible: StatutClient): StatutClient[] => ORDRE_STATUT.slice(0, ORDRE_STATUT.indexOf(cible));
+export const statutsInferieurs = (cible: StatutClient): StatutClient[] =>
+  ORDRE_STATUT.slice(0, ORDRE_STATUT.indexOf(cible));
 
 /** Promotes the contact if he is below `cible`; never moves him down. Safe to call twice. */
-export async function promouvoirClient(db: DbClient, clientId: number, cible: StatutClient): Promise<void> {
+export async function promouvoirClient(
+  db: DbClient,
+  clientId: number,
+  cible: StatutClient,
+): Promise<void> {
   await db.client.updateMany({
     where: { id: clientId, statut: { in: statutsInferieurs(cible) } },
     data: { statut: cible, ...(cible === 'CLIENT' ? { devenuClientLe: new Date() } : {}) },

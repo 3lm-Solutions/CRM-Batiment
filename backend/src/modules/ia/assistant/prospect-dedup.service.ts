@@ -12,7 +12,12 @@ export class ProspectDedupService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Existing (non-archived) client with the same email, or the same phone whatever its formatting. */
-  async findClient(companyId: number, email: string | null | undefined, telephone: string | null | undefined, db: DbClient = this.prisma) {
+  async findClient(
+    companyId: number,
+    email: string | null | undefined,
+    telephone: string | null | undefined,
+    db: DbClient = this.prisma,
+  ) {
     if (email) {
       const byEmail = await db.client.findFirst({
         where: { companyId, archivedAt: null, email: { equals: email, mode: 'insensitive' } },
@@ -31,7 +36,12 @@ export class ProspectDedupService {
   }
 
   /** Earlier conversation of the same person still waiting (last 60 days). */
-  async findSession(companyId: number, sessionId: number, email: string | null | undefined, telephone: string | null | undefined) {
+  async findSession(
+    companyId: number,
+    sessionId: number,
+    email: string | null | undefined,
+    telephone: string | null | undefined,
+  ) {
     if (!email && !telephone) return null;
     const since = new Date(Date.now() - 60 * 86_400_000);
     const candidates = await this.prisma.chatSession.findMany({
@@ -40,7 +50,10 @@ export class ProspectDedupService {
         id: { not: sessionId },
         createdAt: { gte: since },
         statut: { in: ['NOUVEAU', 'A_QUALIFIER'] },
-        OR: [...(email ? [{ clientEmail: email }] : []), ...(telephone ? [{ clientTelephone: telephone }] : [])],
+        OR: [
+          ...(email ? [{ clientEmail: email }] : []),
+          ...(telephone ? [{ clientTelephone: telephone }] : []),
+        ],
       },
       orderBy: { createdAt: 'asc' },
       select: { id: true },

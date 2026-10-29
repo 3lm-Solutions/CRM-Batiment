@@ -1,9 +1,33 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { amountsFor, type AuthUser, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { DossierService } from './dossier.service';
-import { CreateAssuranceDto, CreateDisponibiliteDto, CreateNotationDto, CreatePaiementDto, CreateSousTraitantDto, LierCompteDto, QuerySousTraitantsDto, UpdateAssuranceDto, UpdatePaiementDto, UpdateSousTraitantDto } from './dto/sous-traitants.dto';
+import {
+  CreateAssuranceDto,
+  CreateDisponibiliteDto,
+  CreateNotationDto,
+  CreatePaiementDto,
+  CreateSousTraitantDto,
+  LierCompteDto,
+  QuerySousTraitantsDto,
+  UpdateAssuranceDto,
+  UpdatePaiementDto,
+  UpdateSousTraitantDto,
+} from './dto/sous-traitants.dto';
 import { SousTraitantsService } from './sous-traitants.service';
 
 const READERS = [Role.ADMIN, Role.ASSISTANTE, Role.CHEF_CHANTIER];
@@ -27,7 +51,9 @@ export class SousTraitantsController {
 
   @Roles(...READERS)
   @Get(':id')
-  @ApiOperation({ summary: 'Fiche complète : contrats, assurances, paiements, disponibilités, notes' })
+  @ApiOperation({
+    summary: 'Fiche complète : contrats, assurances, paiements, disponibilités, notes',
+  })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return amountsFor(user, this.sousTraitants.findOne(user, id));
   }
@@ -38,24 +64,37 @@ export class SousTraitantsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSousTraitantDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSousTraitantDto,
+  ) {
     return this.sousTraitants.update(user, id, dto);
   }
 
   @Put(':id/compte')
   @ApiOperation({ summary: 'Lier le compte de connexion (portail) du sous-traitant' })
-  lierCompte(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: LierCompteDto) {
+  lierCompte(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: LierCompteDto,
+  ) {
     return this.sousTraitants.lierCompte(user, id, dto);
   }
 
-  @Delete(':id') @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.sousTraitants.remove(user, id);
   }
 
   // ── assurances ──
   @Post(':id/assurances')
-  addAssurance(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: CreateAssuranceDto) {
+  addAssurance(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateAssuranceDto,
+  ) {
     return this.dossier.addAssurance(user, id, dto);
   }
 
@@ -70,14 +109,23 @@ export class SousTraitantsController {
     return this.dossier.updateAssurance(user, id, aid, dto);
   }
 
-  @Delete(':id/assurances/:aid') @HttpCode(HttpStatus.NO_CONTENT)
-  removeAssurance(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('aid', ParseIntPipe) aid: number) {
+  @Delete(':id/assurances/:aid')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeAssurance(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('aid', ParseIntPipe) aid: number,
+  ) {
     return this.dossier.removeAssurance(user, id, aid);
   }
 
   // ── paiements ──
   @Post(':id/paiements')
-  addPaiement(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: CreatePaiementDto) {
+  addPaiement(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreatePaiementDto,
+  ) {
     return this.dossier.addPaiement(user, id, dto);
   }
 
@@ -91,20 +139,36 @@ export class SousTraitantsController {
     return this.dossier.updatePaiement(user, id, pid, dto);
   }
 
-  @Delete(':id/paiements/:pid') @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Supprimer un paiement saisi par erreur (un paiement effectué : statut ANNULE)' })
-  removePaiement(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('pid', ParseIntPipe) pid: number) {
+  @Delete(':id/paiements/:pid')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Supprimer un paiement saisi par erreur (un paiement effectué : statut ANNULE)',
+  })
+  removePaiement(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('pid', ParseIntPipe) pid: number,
+  ) {
     return this.dossier.removePaiement(user, id, pid);
   }
 
   // ── disponibilités ──
   @Post(':id/disponibilites')
-  addDisponibilite(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: CreateDisponibiliteDto) {
+  addDisponibilite(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateDisponibiliteDto,
+  ) {
     return this.dossier.addDisponibilite(user, id, dto);
   }
 
-  @Delete(':id/disponibilites/:did') @HttpCode(HttpStatus.NO_CONTENT)
-  removeDisponibilite(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('did', ParseIntPipe) did: number) {
+  @Delete(':id/disponibilites/:did')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeDisponibilite(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('did', ParseIntPipe) did: number,
+  ) {
     return this.dossier.removeDisponibilite(user, id, did);
   }
 
@@ -112,12 +176,21 @@ export class SousTraitantsController {
   @Roles(Role.ADMIN, Role.CHEF_CHANTIER)
   @Post(':id/notations')
   @ApiOperation({ summary: 'Noter un sous-traitant (une note par chantier)' })
-  addNotation(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: CreateNotationDto) {
+  addNotation(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateNotationDto,
+  ) {
     return this.dossier.addNotation(user, id, dto);
   }
 
-  @Delete(':id/notations/:nid') @HttpCode(HttpStatus.NO_CONTENT)
-  removeNotation(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Param('nid', ParseIntPipe) nid: number) {
+  @Delete(':id/notations/:nid')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeNotation(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('nid', ParseIntPipe) nid: number,
+  ) {
     return this.dossier.removeNotation(user, id, nid);
   }
 }

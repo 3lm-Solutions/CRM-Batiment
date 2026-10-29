@@ -18,7 +18,10 @@ export interface NeedLine {
 
 export interface CatalogueForNeeds {
   prestations: Map<number, { base: Composition[]; parChoix: Map<number, Composition[]> }>;
-  materiaux: Map<number, { nom: string; unite: string; prixAchatFixe: DecimalLike; fournisseurId: number | null }>;
+  materiaux: Map<
+    number,
+    { nom: string; unite: string; prixAchatFixe: DecimalLike; fournisseurId: number | null }
+  >;
 }
 
 interface Composition {
@@ -45,7 +48,9 @@ export function computeMaterialNeeds(lines: NeedLine[], catalogue: CatalogueForN
     if (line.prestationId) {
       const prestation = catalogue.prestations.get(line.prestationId);
       if (!prestation) continue;
-      const override = line.choixIds.map((id) => prestation.parChoix.get(id)).find((c) => c && c.length > 0);
+      const override = line.choixIds
+        .map((id) => prestation.parChoix.get(id))
+        .find((c) => c && c.length > 0);
       for (const comp of override ?? prestation.base) {
         if (comp.materiauId) add(comp.materiauId, quantite.times(comp.quantiteParUnite));
       }

@@ -20,7 +20,7 @@ export const EMAIL_MESSAGE = 'Adresse email invalide (ex. nom@domaine.fr).';
 
 // ── company client (Étape 1 of 26/10) — same rules as the API (common/validators/entreprise.validator.ts)
 
-const compactNumero = (v: string) => v.replace(/[\s.\-]+/g, '').toUpperCase();
+const compactNumero = (v: string) => v.replace(/[\s.-]+/g, '').toUpperCase();
 
 /** 27/10: any 14 digits are accepted (no key check). */
 export function isSiret(value: string): boolean {

@@ -34,7 +34,9 @@ export class ServicesMoService {
   }
 
   async findOne(user: AuthUser, id: number) {
-    const row = await this.prisma.serviceMainOeuvre.findFirst({ where: { id, companyId: user.companyId } });
+    const row = await this.prisma.serviceMainOeuvre.findFirst({
+      where: { id, companyId: user.companyId },
+    });
     if (!row) throw new NotFoundException(`Service de main d'œuvre #${id} introuvable`);
     return row;
   }

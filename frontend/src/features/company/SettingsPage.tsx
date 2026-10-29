@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BellRing, Building2, Calculator, ImageUp, Landmark, LifeBuoy, Play, Settings, Trash2 } from 'lucide-react';
+import { BellRing, Building2, Calculator, ImageUp, Landmark, LifeBuoy, Play, Settings, Trash2, TrendingUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -384,6 +384,51 @@ function SavCard({ settings }: { settings: CompanySettings }) {
   );
 }
 
+// ── Market prices (29/10) ───────────────────────────────────────────────────
+const PERIODES_MARCHE = [
+  { value: 6, label: '6 mois', hint: 'Prix très récents, moins de devis' },
+  { value: 12, label: '12 mois', hint: 'Recommandé' },
+  { value: 24, label: '24 mois', hint: 'Plus de devis, prix plus anciens (la tendance corrige)' },
+];
+
+function PrixMarcheCard({ settings }: { settings: CompanySettings }) {
+  const save = useUpdateCompanySettings();
+  return (
+    <Card>
+      <CardHeader
+        title={<span className="flex items-center gap-2"><TrendingUp className="size-4" /> Prix de marché</span>}
+        description="Période des devis signés et des commandes fournisseur utilisés pour calculer les fourchettes de prix"
+      />
+      <div className="space-y-3 p-5">
+        <div role="radiogroup" aria-label="Période du prix de marché" className="grid gap-2 sm:grid-cols-3">
+          {PERIODES_MARCHE.map((p) => {
+            const actif = settings.prixMarcheMois === p.value;
+            return (
+              <button
+                key={p.value}
+                type="button"
+                role="radio"
+                aria-checked={actif}
+                disabled={save.isPending}
+                onClick={() => !actif && save.mutate({ prixMarcheMois: p.value }, { onSuccess: () => toast.success(`Prix de marché calculés sur ${p.label}`) })}
+                className={
+                  actif
+                    ? 'rounded-xl border-2 border-brand-700 bg-brand-100/60 p-3 text-left dark:border-blue-400 dark:bg-slate-800'
+                    : 'rounded-xl border-2 border-slate-200 p-3 text-left hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/60'
+                }
+              >
+                <span className="block text-sm font-semibold">{p.label}</span>
+                <span className="block text-xs text-slate-500">{p.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+        {save.isError && <p role="alert" className="text-sm text-red-600">{errorMessage(save.error)}</p>}
+      </div>
+    </Card>
+  );
+}
+
 export function SettingsPage() {
   const company = useCompany();
   const settings = useCompanySettings();
@@ -403,6 +448,7 @@ export function SettingsPage() {
           <SettingsCard settings={settings.data} />
           <RelancesCard />
           <SavCard settings={settings.data} />
+          <PrixMarcheCard settings={settings.data} />
         </div>
       </div>
     </>

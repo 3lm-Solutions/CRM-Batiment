@@ -1,6 +1,12 @@
 import { DevisStatut } from '../../../generated/prisma/client';
 import { BusinessException } from '../../../common';
-import { assertEditable, assertTransition, canTransition, DEVIS_TRANSITIONS, sourcesOf } from './devis-status';
+import {
+  assertEditable,
+  assertTransition,
+  canTransition,
+  DEVIS_TRANSITIONS,
+  sourcesOf,
+} from './devis-status';
 
 describe('devis state machine', () => {
   it.each([

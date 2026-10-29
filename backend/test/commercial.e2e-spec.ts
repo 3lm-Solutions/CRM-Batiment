@@ -2,7 +2,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { createTestApp, SEED, type TestApp } from './helpers/test-app';
 
-const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+const PNG =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 /**
  * Demande → devis → envoi → validation client → signature (OTP) → SIGNE, through real HTTP.
@@ -31,7 +32,11 @@ describe('Commercial: demandes & devis (e2e)', () => {
 
   /** A sendable quote with one catalogue line. */
   async function newSendableDevis() {
-    const devis = await request(http).post('/api/v1/devis').set(auth(technico)).send({ clientId }).expect(201);
+    const devis = await request(http)
+      .post('/api/v1/devis')
+      .set(auth(technico))
+      .send({ clientId })
+      .expect(201);
     await request(http)
       .post(`/api/v1/devis/${devis.body.id}/lignes`)
       .set(auth(technico))
@@ -57,7 +62,9 @@ describe('Commercial: demandes & devis (e2e)', () => {
       .get(`/api/v1/catalogue/prestations?search=${encodeURIComponent('Chape béton')}`)
       .set(auth(technico));
     chapeId = prestations.body.data[0].id;
-    const detail = await request(http).get(`/api/v1/catalogue/prestations/${chapeId}`).set(auth(technico));
+    const detail = await request(http)
+      .get(`/api/v1/catalogue/prestations/${chapeId}`)
+      .set(auth(technico));
     chapeFibreeId = detail.body.options
       .find((o: { nom: string }) => o.nom === 'Type de chape')
       .choix.find((c: { nom: string }) => c.nom === 'Chape fibrée').id;
@@ -71,7 +78,10 @@ describe('Commercial: demandes & devis (e2e)', () => {
     await t.prisma.devis.deleteMany({ where: { clientId } });
     await t.prisma.demandeDevis.deleteMany({ where: { clientId } });
     await t.prisma.client.delete({ where: { id: clientId } });
-    await t.prisma.user.update({ where: { email: SEED.technico }, data: { signatureBase64: null, signatureUpdatedAt: null } });
+    await t.prisma.user.update({
+      where: { email: SEED.technico },
+      data: { signatureBase64: null, signatureUpdatedAt: null },
+    });
     await t.close();
   });
 
@@ -83,8 +93,14 @@ describe('Commercial: demandes & devis (e2e)', () => {
       .expect(201);
     expect(demande.body.reference).toMatch(/^DEM-\d{4}-\d{4,}$/);
 
-    const first = await request(http).post(`/api/v1/demandes-devis/${demande.body.id}/convertir-en-devis`).set(auth(technico)).expect(200);
-    const again = await request(http).post(`/api/v1/demandes-devis/${demande.body.id}/convertir-en-devis`).set(auth(technico)).expect(200);
+    const first = await request(http)
+      .post(`/api/v1/demandes-devis/${demande.body.id}/convertir-en-devis`)
+      .set(auth(technico))
+      .expect(200);
+    const again = await request(http)
+      .post(`/api/v1/demandes-devis/${demande.body.id}/convertir-en-devis`)
+      .set(auth(technico))
+      .expect(200);
 
     expect(first.body.id).toBe(again.body.id);
     expect(first.body.statut).toBe('BROUILLON');
@@ -97,7 +113,9 @@ describe('Commercial: demandes & devis (e2e)', () => {
     const res = await request(http).get(`/api/v1/devis/${id}`).set(auth(technico)).expect(200);
     const [ligne] = res.body.lignes;
 
-    expect(ligne.optionsChoisies).toEqual([expect.objectContaining({ optionNom: 'Type de chape', choixNom: 'Chape fibrée' })]);
+    expect(ligne.optionsChoisies).toEqual([
+      expect.objectContaining({ optionNom: 'Type de chape', choixNom: 'Chape fibrée' }),
+    ]);
     expect(ligne.prixAchat).toBeGreaterThan(0);
     expect(res.body.totalHT).toBe(ligne.totalHT);
     expect(res.body.totalTTC).toBeCloseTo(res.body.totalHT * 1.2, 2);
@@ -105,15 +123,25 @@ describe('Commercial: demandes & devis (e2e)', () => {
   });
 
   it('P0.6: refuses to send a quote without lines or worth 0 €', async () => {
-    const empty = await request(http).post('/api/v1/devis').set(auth(technico)).send({ clientId }).expect(201);
-    await request(http).post(`/api/v1/devis/${empty.body.id}/envoyer`).set(auth(technico)).expect(422);
+    const empty = await request(http)
+      .post('/api/v1/devis')
+      .set(auth(technico))
+      .send({ clientId })
+      .expect(201);
+    await request(http)
+      .post(`/api/v1/devis/${empty.body.id}/envoyer`)
+      .set(auth(technico))
+      .expect(422);
 
     await request(http)
       .post(`/api/v1/devis/${empty.body.id}/lignes`)
       .set(auth(technico))
       .send({ description: 'Geste commercial', quantite: 1, prixUnitaireVente: 0 })
       .expect(201);
-    const zero = await request(http).post(`/api/v1/devis/${empty.body.id}/envoyer`).set(auth(technico)).expect(422);
+    const zero = await request(http)
+      .post(`/api/v1/devis/${empty.body.id}/envoyer`)
+      .set(auth(technico))
+      .expect(422);
     expect(zero.body.code).toBe('DEVIS_A_ZERO');
   });
 
@@ -123,7 +151,10 @@ describe('Commercial: demandes & devis (e2e)', () => {
 
     it('sends the quote: the client gets a link, the view leaks NO cost or margin', async () => {
       devisId = await newSendableDevis();
-      const sent = await request(http).post(`/api/v1/devis/${devisId}/envoyer`).set(auth(technico)).expect(200);
+      const sent = await request(http)
+        .post(`/api/v1/devis/${devisId}/envoyer`)
+        .set(auth(technico))
+        .expect(200);
       expect(sent.body.devis.statut).toBe('ENVOYE');
       expect(sent.body.emailSent).toBe(true);
 
@@ -132,7 +163,15 @@ describe('Commercial: demandes & devis (e2e)', () => {
       expect(view.body.lien).toMatchObject({ type: 'VALIDATION', peutRepondre: true });
 
       const json = JSON.stringify(view.body);
-      for (const secret of ['coutTotal', 'profit', 'margePourcent', 'prixAchat', 'mainOeuvre', 'notes', 'fournisseur']) {
+      for (const secret of [
+        'coutTotal',
+        'profit',
+        'margePourcent',
+        'prixAchat',
+        'mainOeuvre',
+        'notes',
+        'fournisseur',
+      ]) {
         expect(json).not.toContain(secret);
       }
     });
@@ -156,7 +195,10 @@ describe('Commercial: demandes & devis (e2e)', () => {
       expect(old.body.lien.statut).toBe('ANNULE');
       await request(http).post(`/api/v1/public/devis/${firstLink}/accepter`).expect(410);
 
-      const resent = await request(http).post(`/api/v1/devis/${devisId}/envoyer`).set(auth(technico)).expect(200);
+      const resent = await request(http)
+        .post(`/api/v1/devis/${devisId}/envoyer`)
+        .set(auth(technico))
+        .expect(200);
       expect(resent.body.devis.statut).toBe('RENVOYE');
       expect(resent.body.devis.versionCourante).toBe(2);
     });
@@ -171,21 +213,36 @@ describe('Commercial: demandes & devis (e2e)', () => {
     });
 
     it('signature needs the emailed code; 5 wrong codes block the link', async () => {
-      await request(http).post(`/api/v1/devis/${devisId}/demander-signature`).set(auth(technico)).expect(200);
+      await request(http)
+        .post(`/api/v1/devis/${devisId}/demander-signature`)
+        .set(auth(technico))
+        .expect(200);
       const token = lastLinkToken();
 
       // signing without the code is refused
-      await request(http).post(`/api/v1/public/devis/${token}/signer`).send({ signatureBase64: PNG }).expect(422);
+      await request(http)
+        .post(`/api/v1/public/devis/${token}/signer`)
+        .send({ signatureBase64: PNG })
+        .expect(422);
 
       const code = await request(http).post(`/api/v1/public/devis/${token}/code`).expect(200);
       expect(code.body.envoyeA).toContain('*');
       const otp = lastCode()!;
       const wrong = otp === '000000' ? '111111' : '000000';
 
-      await request(http).post(`/api/v1/public/devis/${token}/code/verifier`).send({ code: wrong }).expect(422);
-      await request(http).post(`/api/v1/public/devis/${token}/code/verifier`).send({ code: otp }).expect(200);
+      await request(http)
+        .post(`/api/v1/public/devis/${token}/code/verifier`)
+        .send({ code: wrong })
+        .expect(422);
+      await request(http)
+        .post(`/api/v1/public/devis/${token}/code/verifier`)
+        .send({ code: otp })
+        .expect(200);
 
-      const signed = await request(http).post(`/api/v1/public/devis/${token}/signer`).send({ signatureBase64: PNG }).expect(200);
+      const signed = await request(http)
+        .post(`/api/v1/public/devis/${token}/signer`)
+        .send({ signatureBase64: PNG })
+        .expect(200);
       expect(signed.body.message).toMatch(/conseiller/); // advisor has not signed yet
     });
 
@@ -197,23 +254,50 @@ describe('Commercial: demandes & devis (e2e)', () => {
         .expect(422);
       expect(missing.body.code).toBe('SIGNATURE_CONSEILLER_MANQUANTE');
 
-      await request(http).put('/api/v1/auth/me/signature').set(auth(technico)).send({ signatureBase64: PNG }).expect(200);
-      const res = await request(http).post(`/api/v1/devis/${devisId}/signer-conseiller`).set(auth(technico)).send({}).expect(200);
+      await request(http)
+        .put('/api/v1/auth/me/signature')
+        .set(auth(technico))
+        .send({ signatureBase64: PNG })
+        .expect(200);
+      const res = await request(http)
+        .post(`/api/v1/devis/${devisId}/signer-conseiller`)
+        .set(auth(technico))
+        .send({})
+        .expect(200);
       expect(res.body.devis.statut).toBe('SIGNE');
 
-      await request(http).post(`/api/v1/devis/${devisId}/annuler`).set(auth(technico)).send({}).expect(422);
-      await request(http).post(`/api/v1/devis/${devisId}/reviser`).set(auth(technico)).send({ justification: 'x' }).expect(422);
+      await request(http)
+        .post(`/api/v1/devis/${devisId}/annuler`)
+        .set(auth(technico))
+        .send({})
+        .expect(422);
+      await request(http)
+        .post(`/api/v1/devis/${devisId}/reviser`)
+        .set(auth(technico))
+        .send({ justification: 'x' })
+        .expect(422);
 
-      const versions = await request(http).get(`/api/v1/devis/${devisId}/versions`).set(auth(technico)).expect(200);
+      const versions = await request(http)
+        .get(`/api/v1/devis/${devisId}/versions`)
+        .set(auth(technico))
+        .expect(200);
       expect(versions.body.map((v: { numeroVersion: number }) => v.numeroVersion)).toEqual([2, 1]);
     });
   });
 
   it('verbal agreement: the advisor signs a sent quote directly', async () => {
-    await request(http).put('/api/v1/auth/me/signature').set(auth(technico)).send({ signatureBase64: PNG }).expect(200);
+    await request(http)
+      .put('/api/v1/auth/me/signature')
+      .set(auth(technico))
+      .send({ signatureBase64: PNG })
+      .expect(200);
     const id = await newSendableDevis();
     await request(http).post(`/api/v1/devis/${id}/envoyer`).set(auth(technico)).expect(200);
-    const res = await request(http).post(`/api/v1/devis/${id}/signer-conseiller`).set(auth(technico)).send({ verbal: true }).expect(200);
+    const res = await request(http)
+      .post(`/api/v1/devis/${id}/signer-conseiller`)
+      .set(auth(technico))
+      .send({ verbal: true })
+      .expect(200);
     expect(res.body.devis).toMatchObject({ statut: 'SIGNE', modeValidation: 'VERBAL' });
   });
 
@@ -237,7 +321,10 @@ describe('Commercial: demandes & devis (e2e)', () => {
 
   it('duplicates a quote as a new draft with the same lines', async () => {
     const id = await newSendableDevis();
-    const copy = await request(http).post(`/api/v1/devis/${id}/dupliquer`).set(auth(technico)).expect(201);
+    const copy = await request(http)
+      .post(`/api/v1/devis/${id}/dupliquer`)
+      .set(auth(technico))
+      .expect(201);
     expect(copy.body.id).not.toBe(id);
     expect(copy.body.statut).toBe('BROUILLON');
     expect(copy.body.lignes).toHaveLength(1);

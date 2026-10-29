@@ -1,0 +1,36 @@
+﻿type;nom;unite;prix_min;prix_max;achat_vente;source
+PRESTATION;Démolition cloison;m2;15,75;33,25;VENTE;Barème test FFB 2026
+PRESTATION;Dépose revêtement sol;m2;10,50;23,75;VENTE;Barème test FFB 2026
+PRESTATION;Dépose sanitaires;piece;52,50;190,00;VENTE;Barème test FFB 2026
+PRESTATION;Démolition murale partielle;m2;26,25;57,00;VENTE;Barème test FFB 2026
+PRESTATION;Dépose carrelage mural;m2;12,60;23,75;VENTE;Barème test FFB 2026
+PRESTATION;Ouverture mur porteur;forfait;1575,00;3325,00;VENTE;Barème test FFB 2026
+PRESTATION;Création ouverture fenêtre;forfait;840,00;1710,00;VENTE;Barème test FFB 2026
+PRESTATION;Montage cloison placo;m2;36,75;57,00;VENTE;Barème test FFB 2026
+PRESTATION;Montage cloison briques;m2;42,00;66,50;VENTE;Barème test FFB 2026
+PRESTATION;Chape béton;m2;21,00;42,75;VENTE;Barème test FFB 2026
+PRESTATION;Montage mur agglo;m2;47,25;76,00;VENTE;Barème test FFB 2026
+PRESTATION;Faux plafond placo;m2;36,75;61,75;VENTE;Barème test FFB 2026
+MATERIAU;Carrelage grès cérame 20x20;m2;9,72;12,42;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 20x20;m2;14,04;17,28;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 60x60;m2;16,65;21,27;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 60x60;m2;24,05;29,60;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 30x30;m2;12,60;16,10;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 30x30;m2;18,20;22,40;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 45x45;m2;13,68;17,48;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 45x45;m2;19,76;24,32;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 30x60;m2;15,12;19,32;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 30x60;m2;21,84;26,88;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 120x60;m2;24,75;31,62;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 120x60;m2;35,75;44,00;VENTE;Barème test
+MATERIAU;Carrelage grès cérame 120x120;m2;35,10;44,85;ACHAT;Fournisseur test
+MATERIAU;Carrelage grès cérame 120x120;m2;50,70;62,40;VENTE;Barème test
+MATERIAU;Faïence murale 30x60;m2;14,40;18,40;ACHAT;Fournisseur test
+MATERIAU;Faïence murale 30x60;m2;20,80;25,60;VENTE;Barème test
+MATERIAU;Carrelage mural 10x10;m2;10,35;13,22;ACHAT;Fournisseur test
+MATERIAU;Carrelage mural 10x10;m2;14,95;18,40;VENTE;Barème test
+MATERIAU;Carrelage métro 10x20;m2;13,05;16,67;ACHAT;Fournisseur test
+MATERIAU;Carrelage métro 10x20;m2;18,85;23,20;VENTE;Barème test
+PRESTATION;Prestation inexistante test;m2;10;20;VENTE;ligne fausse (nom)
+PRESTATION;Démolition cloison;lot;10;20;VENTE;ligne fausse (unité)
+PRESTATION;Dépose revêtement sol;m2;50;20;VENTE;ligne fausse (min > max)

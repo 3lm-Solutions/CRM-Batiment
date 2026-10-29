@@ -4,9 +4,17 @@ import { Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AssistantEvents, type ProspectEvent } from '../../ia/assistant/assistant.events';
 import { type DevisEvent, DevisEvents } from '../../commercial/devis/devis.events';
-import { type AssuranceStatutEvent, SousTraitantEvents } from '../../execution/sous-traitants/sous-traitants.events';
+import {
+  type AssuranceStatutEvent,
+  SousTraitantEvents,
+} from '../../execution/sous-traitants/sous-traitants.events';
 import { DemoEvents, type DemoRequestEvent } from '../demo-requests/demo.events';
-import { type CommandePortailEvent, PortailEvents, type RapportEvent, type TacheAvanceeEvent } from '../../portails/portails.events';
+import {
+  type CommandePortailEvent,
+  PortailEvents,
+  type RapportEvent,
+  type TacheAvanceeEvent,
+} from '../../portails/portails.events';
 import { type SavEvent, SavEvents } from '../sav/sav.events';
 import { NotificationsService } from './notifications.service';
 
@@ -25,7 +33,13 @@ export class NotificationsListener {
     await this.notifications.notifyRoles(
       e.companyId,
       [Role.ADMIN],
-      { type: 'DEVIS_ACCEPTE', niveau: 'SUCCES', titre: `Devis ${e.reference} accepté`, message: 'Le client a accepté le devis. Les commandes fournisseur ont été préparées.', lien: `/devis/${e.devisId}` },
+      {
+        type: 'DEVIS_ACCEPTE',
+        niveau: 'SUCCES',
+        titre: `Devis ${e.reference} accepté`,
+        message: 'Le client a accepté le devis. Les commandes fournisseur ont été préparées.',
+        lien: `/devis/${e.devisId}`,
+      },
       [await this.createur(e.devisId)],
     );
   }
@@ -46,7 +60,13 @@ export class NotificationsListener {
     await this.notifications.notifyRoles(
       e.companyId,
       [Role.ADMIN, Role.ASSISTANTE],
-      { type: 'DEVIS_SIGNE', niveau: 'SUCCES', titre: `Devis ${e.reference} signé`, message: 'Chantier créé et facture d’acompte prête à émettre.', lien: `/devis/${e.devisId}` },
+      {
+        type: 'DEVIS_SIGNE',
+        niveau: 'SUCCES',
+        titre: `Devis ${e.reference} signé`,
+        message: 'Chantier créé et facture d’acompte prête à émettre.',
+        lien: `/devis/${e.devisId}`,
+      },
       [await this.createur(e.devisId)],
     );
   }
@@ -56,9 +76,18 @@ export class NotificationsListener {
   async devisEnvoye(e: DevisEvent) {
     const devis = await this.prisma.devis.findUnique({
       where: { id: e.devisId },
-      select: { margePourcent: true, totalHT: true, company: { select: { seuilAlerteMargePourcent: true } } },
+      select: {
+        margePourcent: true,
+        totalHT: true,
+        company: { select: { seuilAlerteMargePourcent: true } },
+      },
     });
-    if (!devis || devis.totalHT.lte(0) || devis.margePourcent.gte(devis.company.seuilAlerteMargePourcent)) return;
+    if (
+      !devis ||
+      devis.totalHT.lte(0) ||
+      devis.margePourcent.gte(devis.company.seuilAlerteMargePourcent)
+    )
+      return;
     await this.notifications.notifyRoles(e.companyId, [Role.ADMIN], {
       type: 'MARGE_FAIBLE',
       niveau: 'ALERTE',
@@ -85,7 +114,13 @@ export class NotificationsListener {
     await this.notifications.notifyRoles(
       e.companyId,
       [Role.ADMIN],
-      { type: 'SAV_CREE', niveau: e.priorite === 'URGENTE' ? 'ALERTE' : 'INFO', titre: `Ticket SAV ${e.reference}`, message: e.titre, lien: `/sav/${e.ticketId}` },
+      {
+        type: 'SAV_CREE',
+        niveau: e.priorite === 'URGENTE' ? 'ALERTE' : 'INFO',
+        titre: `Ticket SAV ${e.reference}`,
+        message: e.titre,
+        lien: `/sav/${e.ticketId}`,
+      },
       [e.assignedToId],
     );
   }
@@ -114,12 +149,16 @@ export class NotificationsListener {
 
   @OnEvent(AssistantEvents.PROSPECT_A_QUALIFIER, ASYNC)
   async prospect(e: ProspectEvent) {
-    await this.notifications.notifyRoles(e.companyId, [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE], {
-      type: e.source === 'EMAIL' ? 'PROSPECT_EMAIL' : 'PROSPECT_CHATBOT',
-      titre: `Nouveau prospect ${e.source === 'EMAIL' ? 'par email' : 'chatbot'}${e.nom ? ` : ${e.nom}` : ''}`,
-      message: `${e.typeProjet ?? 'Projet à préciser'}${e.doublon ? ' — a déjà écrit récemment (doublon possible)' : ''}. À qualifier.`,
-      lien: `/assistant/prospects/${e.sessionId}`,
-    });
+    await this.notifications.notifyRoles(
+      e.companyId,
+      [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE],
+      {
+        type: e.source === 'EMAIL' ? 'PROSPECT_EMAIL' : 'PROSPECT_CHATBOT',
+        titre: `Nouveau prospect ${e.source === 'EMAIL' ? 'par email' : 'chatbot'}${e.nom ? ` : ${e.nom}` : ''}`,
+        message: `${e.typeProjet ?? 'Projet à préciser'}${e.doublon ? ' — a déjà écrit récemment (doublon possible)' : ''}. À qualifier.`,
+        lien: `/assistant/prospects/${e.sessionId}`,
+      },
+    );
   }
 
   @OnEvent(AssistantEvents.CONTACT_HUMAIN, ASYNC)
@@ -140,7 +179,12 @@ export class NotificationsListener {
     await this.notifications.notifyRoles(
       e.companyId,
       [Role.ADMIN, Role.ASSISTANTE],
-      { type: 'RAPPORT_SOUMIS', titre: `Rapport de ${e.auteurNom}`, message: `Nouveau rapport sur le chantier ${e.chantierReference}, à valider.`, lien: `/chantiers/${e.chantierId}` },
+      {
+        type: 'RAPPORT_SOUMIS',
+        titre: `Rapport de ${e.auteurNom}`,
+        message: `Nouveau rapport sur le chantier ${e.chantierReference}, à valider.`,
+        lien: `/chantiers/${e.chantierId}`,
+      },
       [e.chefChantierId],
     );
   }
@@ -170,16 +214,26 @@ export class NotificationsListener {
 
   @OnEvent(PortailEvents.COMMANDE_ACCUSEE, ASYNC)
   async commandeAccusee(e: CommandePortailEvent) {
-    await this.commandeFournisseur(e, 'COMMANDE_ACCUSEE', `${e.fournisseurNom} a pris en compte la commande`);
+    await this.commandeFournisseur(
+      e,
+      'COMMANDE_ACCUSEE',
+      `${e.fournisseurNom} a pris en compte la commande`,
+    );
   }
 
   @OnEvent(PortailEvents.COMMANDE_EXPEDIEE, ASYNC)
   async commandeExpediee(e: CommandePortailEvent) {
-    await this.commandeFournisseur(e, 'COMMANDE_EXPEDIEE', `${e.fournisseurNom} a expédié la commande`);
+    await this.commandeFournisseur(
+      e,
+      'COMMANDE_EXPEDIEE',
+      `${e.fournisseurNom} a expédié la commande`,
+    );
   }
 
   private async commandeFournisseur(e: CommandePortailEvent, type: string, message: string) {
-    const date = e.dateLivraisonPrevue ? ` — livraison prévue le ${e.dateLivraisonPrevue.toLocaleDateString('fr-FR')}` : '';
+    const date = e.dateLivraisonPrevue
+      ? ` — livraison prévue le ${e.dateLivraisonPrevue.toLocaleDateString('fr-FR')}`
+      : '';
     await this.notifications.notifyRoles(e.companyId, [Role.ADMIN, Role.ASSISTANTE], {
       type,
       titre: `Commande ${e.reference}`,
@@ -189,6 +243,9 @@ export class NotificationsListener {
   }
 
   private async createur(devisId: number): Promise<number | null> {
-    return (await this.prisma.devis.findUnique({ where: { id: devisId }, select: { createurId: true } }))?.createurId ?? null;
+    return (
+      (await this.prisma.devis.findUnique({ where: { id: devisId }, select: { createurId: true } }))
+        ?.createurId ?? null
+    );
   }
 }

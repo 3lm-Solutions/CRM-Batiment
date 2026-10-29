@@ -34,7 +34,9 @@ export class PaginationQueryDto {
 
   @ApiPropertyOptional({ example: 'createdAt:desc', description: 'champ:asc | champ:desc' })
   @IsOptional()
-  @Matches(/^[A-Za-z]+:(asc|desc)$/, { message: 'sort doit être au format champ:asc ou champ:desc' })
+  @Matches(/^[A-Za-z]+:(asc|desc)$/, {
+    message: 'sort doit être au format champ:asc ou champ:desc',
+  })
   sort?: string;
 }
 
@@ -75,7 +77,9 @@ export function parseSort<F extends string>(
 
   const [field, direction] = sort.split(':') as [string, SortDirection];
   if (!(allowed as readonly string[]).includes(field)) {
-    throw new BadRequestException(`Tri impossible sur "${field}". Champs autorisés : ${allowed.join(', ')}`);
+    throw new BadRequestException(
+      `Tri impossible sur "${field}". Champs autorisés : ${allowed.join(', ')}`,
+    );
   }
   return { [field]: direction } as { [K in F]?: SortDirection };
 }

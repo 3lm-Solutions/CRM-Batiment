@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayMaxSize, ArrayUnique, IsArray, IsInt, IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayUnique,
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  Min,
+} from 'class-validator';
 
 export class ChiffrageDto {
   @ApiProperty({ example: 14.5, description: 'Quantité dans l’unité de la prestation' })

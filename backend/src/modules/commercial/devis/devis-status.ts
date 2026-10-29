@@ -38,14 +38,18 @@ export function assertTransition(from: DevisStatut, to: DevisStatut): void {
     throw new BusinessException(
       'TRANSITION_DEVIS_INTERDITE',
       `Transition ${from} → ${to} impossible. ` +
-        (allowed.length ? `Depuis ${from} : ${allowed.join(', ')}.` : `${from} est un statut final.`),
+        (allowed.length
+          ? `Depuis ${from} : ${allowed.join(', ')}.`
+          : `${from} est un statut final.`),
     );
   }
 }
 
 /** Which states can reach `to` — used for conditional (race-safe) updates. */
 export function sourcesOf(to: DevisStatut): DevisStatut[] {
-  return (Object.keys(DEVIS_TRANSITIONS) as DevisStatut[]).filter((from) => canTransition(from, to));
+  return (Object.keys(DEVIS_TRANSITIONS) as DevisStatut[]).filter((from) =>
+    canTransition(from, to),
+  );
 }
 
 export function assertEditable(statut: DevisStatut): void {

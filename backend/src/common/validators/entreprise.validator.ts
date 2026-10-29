@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import { ValidateBy } from 'class-validator';
 
 /** « 732 829 320 00074 » → « 73282932000074 » (spaces, dots and dashes are only for reading). */
-export const compactNumero = (v: string) => v.replace(/[\s.\-]+/g, '').toUpperCase();
+export const compactNumero = (v: string) => v.replace(/[\s.-]+/g, '').toUpperCase();
 
 const luhn = (digits: string) => {
   let sum = 0;
@@ -52,10 +52,15 @@ export function isTvaIntracom(value: unknown): boolean {
 /** SIRET field (stored compact; empty → null). */
 export function IsSiret() {
   return applyDecorators(
-    Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? compactNumero(value) || null : value)),
+    Transform(({ value }: { value: unknown }) =>
+      typeof value === 'string' ? compactNumero(value) || null : value,
+    ),
     ValidateBy({
       name: 'isSiret',
-      validator: { validate: (v) => v === null || isSiret(v), defaultMessage: () => 'Le SIRET doit contenir 14 chiffres.' },
+      validator: {
+        validate: (v) => v === null || isSiret(v),
+        defaultMessage: () => 'Le SIRET doit contenir 14 chiffres.',
+      },
     }),
   );
 }
@@ -63,10 +68,15 @@ export function IsSiret() {
 /** Intra-community VAT number field (stored compact, upper case; empty → null). */
 export function IsTvaIntracom() {
   return applyDecorators(
-    Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? compactNumero(value) || null : value)),
+    Transform(({ value }: { value: unknown }) =>
+      typeof value === 'string' ? compactNumero(value) || null : value,
+    ),
     ValidateBy({
       name: 'isTvaIntracom',
-      validator: { validate: (v) => v === null || isTvaIntracom(v), defaultMessage: () => 'N° de TVA intracommunautaire invalide (ex. FR40303265045).' },
+      validator: {
+        validate: (v) => v === null || isTvaIntracom(v),
+        defaultMessage: () => 'N° de TVA intracommunautaire invalide (ex. FR40303265045).',
+      },
     }),
   );
 }

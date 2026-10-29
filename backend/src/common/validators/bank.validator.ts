@@ -20,20 +20,38 @@ export function isIban(value: unknown): boolean {
 }
 
 /** BIC / SWIFT: 8 or 11 characters. */
-export const isBic = (value: unknown) => typeof value === 'string' && /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(value.trim().toUpperCase());
+export const isBic = (value: unknown) =>
+  typeof value === 'string' &&
+  /^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(value.trim().toUpperCase());
 
 /** IBAN field (stored compact, upper case; empty → null). */
 export function IsIban() {
   return applyDecorators(
-    Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? compactIban(value) || null : value)),
-    ValidateBy({ name: 'isIban', validator: { validate: (v) => v === null || isIban(v), defaultMessage: () => 'IBAN invalide (vérifiez les chiffres).' } }),
+    Transform(({ value }: { value: unknown }) =>
+      typeof value === 'string' ? compactIban(value) || null : value,
+    ),
+    ValidateBy({
+      name: 'isIban',
+      validator: {
+        validate: (v) => v === null || isIban(v),
+        defaultMessage: () => 'IBAN invalide (vérifiez les chiffres).',
+      },
+    }),
   );
 }
 
 /** BIC field (stored upper case; empty → null). */
 export function IsBic() {
   return applyDecorators(
-    Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toUpperCase() || null : value)),
-    ValidateBy({ name: 'isBic', validator: { validate: (v) => v === null || isBic(v), defaultMessage: () => 'BIC invalide (8 ou 11 caractères, ex. BNPAFRPPXXX).' } }),
+    Transform(({ value }: { value: unknown }) =>
+      typeof value === 'string' ? value.trim().toUpperCase() || null : value,
+    ),
+    ValidateBy({
+      name: 'isBic',
+      validator: {
+        validate: (v) => v === null || isBic(v),
+        defaultMessage: () => 'BIC invalide (8 ou 11 caractères, ex. BNPAFRPPXXX).',
+      },
+    }),
   );
 }

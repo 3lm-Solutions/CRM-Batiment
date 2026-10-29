@@ -30,7 +30,8 @@ export const CONNAISSANCES = [
     titre: 'Zone d’intervention',
     categorie: 'Zone',
     priorite: 3,
-    contenu: 'Nous intervenons dans notre département et les départements limitrophes. Indiquez la ville du chantier : un conseiller vous confirme si nous pouvons intervenir.',
+    contenu:
+      'Nous intervenons dans notre département et les départements limitrophes. Indiquez la ville du chantier : un conseiller vous confirme si nous pouvons intervenir.',
   },
   {
     titre: 'Garanties et assurances',
@@ -50,7 +51,10 @@ export const CONNAISSANCES = [
 
 export async function seedConnaissances(prisma: PrismaClient, companyId: number) {
   for (const doc of CONNAISSANCES) {
-    const existing = await prisma.ragDocument.findFirst({ where: { companyId, titre: doc.titre }, select: { id: true } });
+    const existing = await prisma.ragDocument.findFirst({
+      where: { companyId, titre: doc.titre },
+      select: { id: true },
+    });
     if (!existing) await prisma.ragDocument.create({ data: { ...doc, companyId } });
   }
   return CONNAISSANCES.length;

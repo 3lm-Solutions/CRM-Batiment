@@ -1,35 +1,44 @@
-# Local PostgreSQL for development.
-# The AI assistant searches its knowledge base with PostgreSQL full-text search (french),
-# built into PostgreSQL. The image stays pgvector:pg16 (plain PostgreSQL 16 + an unused
-# extension) so existing local databases keep working.
-# Exposed on 5433 to avoid clashing with a PostgreSQL already installed on 5432.
+# Local services for development (pnpm db:up / pnpm db:down).
+#  - PostgreSQL 16 on port 5433 (5432 is often taken by a PostgreSQL installed on the PC)
+#  - Mailpit: catches every email sent in development, inbox http://localhost:8025
+# Ports are opened on this computer only (127.0.0.1), never on the local network.
+# Test passwords (crm / crm): local development only, never in production.
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    # Plain PostgreSQL 16 (the assistant uses the built-in French full-text search; no extension).
+    # Same major version as the former pgvector/pgvector:pg16 image (built on it):
+    # the existing volume (crm_pgdata) is reused as is, no data lost.
+    image: postgres:16
     container_name: crm-batiment-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: crm
       POSTGRES_PASSWORD: crm
       POSTGRES_DB: crm_batiment
+      # No TZ here: the dates are stored in UTC (Prisma), the server time zone must stay UTC
     ports:
-      - '5433:5432'
+      - '127.0.0.1:5433:5432'
     volumes:
       - crm_pgdata:/var/lib/postgresql/data
+      # Creates the test databases (crm_batiment_test, crm_batiment_2) — on a NEW volume only
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U crm -d crm_batiment']
       interval: 5s
       timeout: 5s
       retries: 10
 
-  # Catches every email sent in development. Inbox: http://localhost:8025
   mailpit:
-    image: axllent/mailpit:latest
+    # Fixed version (« latest » changed without warning); v1.32.0 includes the latest security fixes
+    image: axllent/mailpit:v1.32.0
     container_name: crm-batiment-mail
     restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 1000
+      TZ: Europe/Paris
     ports:
-      - '1025:1025' # SMTP
-      - '8025:8025' # web inbox
+      - '127.0.0.1:1025:1025' # SMTP (MAIL_HOST=localhost, MAIL_PORT=1025)
+      - '127.0.0.1:8025:8025' # web inbox
 
 volumes:
   crm_pgdata:

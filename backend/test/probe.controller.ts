@@ -1,6 +1,15 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { Role } from '../src/generated/prisma/client';
-import { type AuthUser, BusinessException, CurrentUser, paginate, PaginationQueryDto, Public, Roles, toDecimal } from '../src/common';
+import {
+  type AuthUser,
+  BusinessException,
+  CurrentUser,
+  paginate,
+  PaginationQueryDto,
+  Public,
+  Roles,
+  toDecimal,
+} from '../src/common';
 
 /** Test-only controller that exercises every piece of the common layer through real HTTP. */
 @Controller('probe')

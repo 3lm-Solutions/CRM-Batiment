@@ -22,23 +22,43 @@ export class NotificationsService {
   ) {}
 
   /** To specific users (inactive ones are skipped). Never throws. */
-  async notifyUsers(companyId: number, userIds: (number | null | undefined)[], input: NotificationInput): Promise<void> {
+  async notifyUsers(
+    companyId: number,
+    userIds: (number | null | undefined)[],
+    input: NotificationInput,
+  ): Promise<void> {
     const ids = [...new Set(userIds.filter((id): id is number => typeof id === 'number'))];
     if (!ids.length) return;
     try {
-      const users = await this.prisma.user.findMany({ where: { id: { in: ids }, companyId, actif: true }, select: { id: true } });
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: ids }, companyId, actif: true },
+        select: { id: true },
+      });
       for (const { id: userId } of users) {
-        const notification = await this.prisma.notification.create({ data: { ...input, companyId, userId } });
+        const notification = await this.prisma.notification.create({
+          data: { ...input, companyId, userId },
+        });
         this.gateway.pushToUser(userId, 'notification', notification);
       }
     } catch (error) {
-      this.logger.error(`Notification « ${input.type} » non envoyée`, error instanceof Error ? error.stack : String(error));
+      this.logger.error(
+        `Notification « ${input.type} » non envoyée`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 
   /** To every active user with one of these roles. */
-  async notifyRoles(companyId: number, roles: Role[], input: NotificationInput, extraUserIds: (number | null)[] = []) {
-    const users = await this.prisma.user.findMany({ where: { companyId, role: { in: roles }, actif: true }, select: { id: true } });
+  async notifyRoles(
+    companyId: number,
+    roles: Role[],
+    input: NotificationInput,
+    extraUserIds: (number | null)[] = [],
+  ) {
+    const users = await this.prisma.user.findMany({
+      where: { companyId, role: { in: roles }, actif: true },
+      select: { id: true },
+    });
     await this.notifyUsers(companyId, [...users.map((u) => u.id), ...extraUserIds], input);
   }
 
@@ -47,14 +67,20 @@ export class NotificationsService {
   async mine(user: AuthUser, query: PaginationQueryDto & { nonLues?: boolean }) {
     const where = { userId: user.id, ...(query.nonLues && { lueAt: null }) };
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.notification.findMany({ where, orderBy: { createdAt: 'desc' }, ...toSkipTake(query) }),
+      this.prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        ...toSkipTake(query),
+      }),
       this.prisma.notification.count({ where }),
     ]);
     return paginate(data, total, query);
   }
 
   async unreadCount(user: AuthUser) {
-    return { nonLues: await this.prisma.notification.count({ where: { userId: user.id, lueAt: null } }) };
+    return {
+      nonLues: await this.prisma.notification.count({ where: { userId: user.id, lueAt: null } }),
+    };
   }
 
   async markRead(user: AuthUser, id: number) {
@@ -69,7 +95,10 @@ export class NotificationsService {
   }
 
   async markAllRead(user: AuthUser) {
-    await this.prisma.notification.updateMany({ where: { userId: user.id, lueAt: null }, data: { lueAt: new Date() } });
+    await this.prisma.notification.updateMany({
+      where: { userId: user.id, lueAt: null },
+      data: { lueAt: new Date() },
+    });
     return { nonLues: 0 };
   }
 }

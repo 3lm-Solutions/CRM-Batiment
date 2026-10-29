@@ -1,10 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type AuthUser, BusinessException, paginate, parseSort, ReferencePrefix, ReferenceService, toSkipTake } from '../../../common';
+import {
+  type AuthUser,
+  BusinessException,
+  paginate,
+  parseSort,
+  ReferencePrefix,
+  ReferenceService,
+  toSkipTake,
+} from '../../../common';
 import { DemandeStatut, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { DevisService } from '../devis/devis.service';
 import { assertDemandeTransition } from './demande-status';
-import { CreateDemandeDevisDto, QueryDemandesDevisDto, UpdateDemandeDevisDto } from './dto/demandes-devis.dto';
+import {
+  CreateDemandeDevisDto,
+  QueryDemandesDevisDto,
+  UpdateDemandeDevisDto,
+} from './dto/demandes-devis.dto';
 import { promouvoirClient } from '../../referentiel/clients/client-statut';
 
 const SORTABLE = ['reference', 'date', 'createdAt'] as const;
@@ -49,14 +61,20 @@ export class DemandesDevisService {
   }
 
   async findOne(user: AuthUser, id: number) {
-    const row = await this.prisma.demandeDevis.findFirst({ where: { id, companyId: user.companyId }, include: INCLUDE });
+    const row = await this.prisma.demandeDevis.findFirst({
+      where: { id, companyId: user.companyId },
+      include: INCLUDE,
+    });
     if (!row) throw new NotFoundException(`Demande #${id} introuvable`);
     return row;
   }
 
   async create(user: AuthUser, dto: CreateDemandeDevisDto) {
-    const client = await this.prisma.client.findFirst({ where: { id: dto.clientId, companyId: user.companyId } });
-    if (!client) throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
+    const client = await this.prisma.client.findFirst({
+      where: { id: dto.clientId, companyId: user.companyId },
+    });
+    if (!client)
+      throw new BusinessException('CLIENT_INTROUVABLE', `Client #${dto.clientId} introuvable.`);
     if (client.archivedAt) throw new BusinessException('CLIENT_ARCHIVE', 'Ce client est archivé.');
 
     return this.prisma.$transaction(async (tx) =>
@@ -76,7 +94,10 @@ export class DemandesDevisService {
   async update(user: AuthUser, id: number, dto: UpdateDemandeDevisDto) {
     const demande = await this.findOne(user, id);
     if (demande.statut === 'CONVERTI') {
-      throw new BusinessException('DEMANDE_CONVERTIE', 'Une demande convertie ne se modifie plus : modifiez le devis.');
+      throw new BusinessException(
+        'DEMANDE_CONVERTIE',
+        'Une demande convertie ne se modifie plus : modifiez le devis.',
+      );
     }
     return this.prisma.demandeDevis.update({
       where: { id },
@@ -118,7 +139,11 @@ export class DemandesDevisService {
         where: { id, statut: demande.statut },
         data: { statut: 'CONVERTI' },
       });
-      if (!count) throw new BusinessException('DEMANDE_MODIFIEE', 'La demande vient d’être modifiée. Rechargez la page.');
+      if (!count)
+        throw new BusinessException(
+          'DEMANDE_MODIFIEE',
+          'La demande vient d’être modifiée. Rechargez la page.',
+        );
 
       await promouvoirClient(tx, demande.clientId, 'QUALIFIE');
       const devis = await this.devis.createDraft(tx, user, {
@@ -135,7 +160,10 @@ export class DemandesDevisService {
   async remove(user: AuthUser, id: number): Promise<void> {
     const demande = await this.findOne(user, id);
     if (demande.devis.length > 0) {
-      throw new BusinessException('DEMANDE_AVEC_DEVIS', 'Cette demande a un devis : marquez-la perdue plutôt.');
+      throw new BusinessException(
+        'DEMANDE_AVEC_DEVIS',
+        'Cette demande a un devis : marquez-la perdue plutôt.',
+      );
     }
     await this.prisma.demandeDevis.delete({ where: { id } });
   }

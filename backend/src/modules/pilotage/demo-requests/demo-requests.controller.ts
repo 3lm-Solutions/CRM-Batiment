@@ -1,9 +1,25 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { type AuthUser, CurrentUser, Public, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
-import { CreateDemoRequestDto, PlanifierDemoDto, QueryDemoRequestsDto, UpdateDemoRequestDto } from './demo-requests.dto';
+import {
+  CreateDemoRequestDto,
+  PlanifierDemoDto,
+  QueryDemoRequestsDto,
+  UpdateDemoRequestDto,
+} from './demo-requests.dto';
 import { DemoRequestsService } from './demo-requests.service';
 
 @ApiTags('Demandes de démo — formulaire public')
@@ -38,26 +54,38 @@ export class DemoRequestsController {
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateDemoRequestDto) {
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDemoRequestDto,
+  ) {
     return this.demo.update(user, id, dto);
   }
 
-  @Post(':id/contacter') @HttpCode(HttpStatus.OK)
+  @Post(':id/contacter')
+  @HttpCode(HttpStatus.OK)
   contacter(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.demo.transition(user, id, 'CONTACTED');
   }
 
-  @Post(':id/planifier') @HttpCode(HttpStatus.OK)
-  planifier(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number, @Body() dto: PlanifierDemoDto) {
+  @Post(':id/planifier')
+  @HttpCode(HttpStatus.OK)
+  planifier(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: PlanifierDemoDto,
+  ) {
     return this.demo.transition(user, id, 'SCHEDULED', dto.dateDemo);
   }
 
-  @Post(':id/terminer') @HttpCode(HttpStatus.OK)
+  @Post(':id/terminer')
+  @HttpCode(HttpStatus.OK)
   terminer(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.demo.transition(user, id, 'DONE');
   }
 
-  @Post(':id/annuler') @HttpCode(HttpStatus.OK)
+  @Post(':id/annuler')
+  @HttpCode(HttpStatus.OK)
   annuler(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.demo.transition(user, id, 'CANCELED');
   }

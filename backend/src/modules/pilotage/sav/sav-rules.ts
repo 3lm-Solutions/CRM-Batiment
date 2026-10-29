@@ -8,7 +8,12 @@ export const CHANTIER_FINI: ChantierStatut[] = ['TERMINE', 'CLOTURE'];
 
 export type EligibiliteSav =
   | { possible: true; code: 'OK'; jusquau: Date | null; message: null }
-  | { possible: false; code: 'CHANTIER_NON_TERMINE' | 'SAV_EXPIRE'; jusquau: Date | null; message: string };
+  | {
+      possible: false;
+      code: 'CHANTIER_NON_TERMINE' | 'SAV_EXPIRE';
+      jusquau: Date | null;
+      message: string;
+    };
 
 /** 31 January + 1 month = 28/29 February (never spills into March). */
 export function ajouterMois(date: Date, mois: number): Date {
@@ -39,11 +44,17 @@ export function eligibiliteSav(
       possible: false,
       code: 'CHANTIER_NON_TERMINE',
       jusquau: null,
-      message: 'Le service après-vente s’ouvre à la fin des travaux. Pendant le chantier, contactez votre chef de chantier.',
+      message:
+        'Le service après-vente s’ouvre à la fin des travaux. Pendant le chantier, contactez votre chef de chantier.',
     };
   }
   if (jusquau && now > jusquau) {
-    return { possible: false, code: 'SAV_EXPIRE', jusquau, message: `La période de service après-vente de ce chantier a pris fin le ${jourFr(jusquau)}.` };
+    return {
+      possible: false,
+      code: 'SAV_EXPIRE',
+      jusquau,
+      message: `La période de service après-vente de ce chantier a pris fin le ${jourFr(jusquau)}.`,
+    };
   }
   return { possible: true, code: 'OK', jusquau, message: null };
 }

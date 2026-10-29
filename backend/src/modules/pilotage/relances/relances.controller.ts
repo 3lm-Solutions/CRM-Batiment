@@ -1,6 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
+import { type AuthUser, BUREAU, CurrentUser, FACTURATION, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { QueryRelancesDto, UpdateRelancesReglagesDto } from './relances.dto';
 import { RelancesService } from './relances.service';
@@ -14,7 +25,9 @@ export class RelancesController {
   constructor(private readonly relances: RelancesService) {}
 
   @Get('relances')
-  @ApiOperation({ summary: 'Historique des relances d’un devis (?devisId=) ou d’une facture (?factureId=)' })
+  @ApiOperation({
+    summary: 'Historique des relances d’un devis (?devisId=) ou d’une facture (?factureId=)',
+  })
   liste(@CurrentUser() user: AuthUser, @Query() query: QueryRelancesDto) {
     return this.relances.liste(user, query);
   }
@@ -25,6 +38,7 @@ export class RelancesController {
     return this.relances.relancerDevis(user, id);
   }
 
+  @Roles(...FACTURATION)
   @Post('factures/:id/relancer')
   @ApiOperation({ summary: 'Relancer le client maintenant (email de rappel de paiement)' })
   relancerFacture(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
@@ -44,8 +58,11 @@ export class RelancesController {
   }
 
   @Roles(Role.ADMIN)
-  @Post('relances/executer') @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Lancer les relances automatiques maintenant (sinon : chaque jour à 8 h)' })
+  @Post('relances/executer')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Lancer les relances automatiques maintenant (sinon : chaque jour à 8 h)',
+  })
   executer(@CurrentUser() user: AuthUser) {
     return this.relances.executer(user.companyId);
   }

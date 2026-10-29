@@ -24,7 +24,11 @@ import { PublicDevisService } from './public/public-devis.service';
     PublicDevisService,
     EmailOtpSender,
     // Add an SMS sender to this list later; links choose the sender by their `canal`
-    { provide: OTP_SENDERS, inject: [EmailOtpSender], useFactory: (email: EmailOtpSender) => [email] },
+    {
+      provide: OTP_SENDERS,
+      inject: [EmailOtpSender],
+      useFactory: (email: EmailOtpSender) => [email],
+    },
   ],
   exports: [DevisService, DevisLifecycleService, DevisHooks, DevisLignesService],
 })

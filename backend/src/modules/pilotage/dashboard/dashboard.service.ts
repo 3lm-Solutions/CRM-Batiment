@@ -45,32 +45,80 @@ export class DashboardService {
       commentairesClient,
       chantiersPhotos,
     ] = await Promise.all([
-      this.prisma.demandeDevis.count({ where: { companyId, statut: { in: ['NOUVEAU', 'EN_COURS', 'QUALIFIE'] }, createdAt: { gte: since } } }),
+      this.prisma.demandeDevis.count({
+        where: {
+          companyId,
+          statut: { in: ['NOUVEAU', 'EN_COURS', 'QUALIFIE'] },
+          createdAt: { gte: since },
+        },
+      }),
       this.prisma.client.count({ where: { companyId, createdAt: { gte: since } } }),
-      this.prisma.devis.groupBy({ by: ['statut'], where: { companyId, dateEnvoi: { gte: since } }, _count: { _all: true } }),
-      this.prisma.devis.aggregate({ where: { companyId, statut: 'SIGNE', dateValidation: { gte: debutMois } }, _sum: { totalHT: true }, _count: { _all: true } }),
-      this.prisma.devis.aggregate({ where: { companyId, statut: 'SIGNE', dateValidation: { gte: since } }, _avg: { margePourcent: true } }),
-      this.prisma.facture.aggregate({ where: { companyId, statut: 'ENVOYEE', typeFacture: { not: 'AVOIR' } }, _sum: { montantTTC: true }, _count: { _all: true } }),
+      this.prisma.devis.groupBy({
+        by: ['statut'],
+        where: { companyId, dateEnvoi: { gte: since } },
+        _count: { _all: true },
+      }),
+      this.prisma.devis.aggregate({
+        where: { companyId, statut: 'SIGNE', dateValidation: { gte: debutMois } },
+        _sum: { totalHT: true },
+        _count: { _all: true },
+      }),
+      this.prisma.devis.aggregate({
+        where: { companyId, statut: 'SIGNE', dateValidation: { gte: since } },
+        _avg: { margePourcent: true },
+      }),
       this.prisma.facture.aggregate({
-        where: { companyId, statut: 'ENVOYEE', typeFacture: { not: 'AVOIR' }, dateEcheance: { lt: now } },
+        where: { companyId, statut: 'ENVOYEE', typeFacture: { not: 'AVOIR' } },
+        _sum: { montantTTC: true },
+        _count: { _all: true },
+      }),
+      this.prisma.facture.aggregate({
+        where: {
+          companyId,
+          statut: 'ENVOYEE',
+          typeFacture: { not: 'AVOIR' },
+          dateEcheance: { lt: now },
+        },
         _sum: { montantTTC: true },
         _count: { _all: true },
       }),
       this.prisma.chantier.findMany({
         where: { companyId, statut: { in: [...OPEN_CHANTIER] }, dateFin: { lt: now } },
         orderBy: { dateFin: 'asc' },
-        select: { id: true, reference: true, dateFin: true, statut: true, client: { select: { nom: true } } },
+        select: {
+          id: true,
+          reference: true,
+          dateFin: true,
+          statut: true,
+          client: { select: { nom: true } },
+        },
       }),
-      this.prisma.commandeFournisseur.count({ where: { companyId, statutLivraison: { in: [...PENDING_ORDERS] } } }),
-      this.prisma.savTicket.count({ where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] } } }),
-      this.prisma.savTicket.count({ where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] }, priorite: 'URGENTE' } }),
-      this.prisma.materiau.count({ where: { companyId, actif: true, stockActuel: { lte: this.prisma.materiau.fields.stockMinimum } } }),
+      this.prisma.commandeFournisseur.count({
+        where: { companyId, statutLivraison: { in: [...PENDING_ORDERS] } },
+      }),
+      this.prisma.savTicket.count({
+        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] } },
+      }),
+      this.prisma.savTicket.count({
+        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] }, priorite: 'URGENTE' },
+      }),
+      this.prisma.materiau.count({
+        where: {
+          companyId,
+          actif: true,
+          stockActuel: { lte: this.prisma.materiau.fields.stockMinimum },
+        },
+      }),
       this.prisma.devis.findMany({
         where: { companyId, dateEnvoi: { gte: seriesSince } },
         select: { dateEnvoi: true, statut: true },
       }),
       this.prisma.chantier.findMany({
-        where: { companyId, statut: { in: [...MARGIN_CHANTIER] }, devis: { some: { statut: 'SIGNE' } } },
+        where: {
+          companyId,
+          statut: { in: [...MARGIN_CHANTIER] },
+          devis: { some: { statut: 'SIGNE' } },
+        },
         select: {
           id: true,
           reference: true,
@@ -79,16 +127,29 @@ export class DashboardService {
           devis: { where: { statut: 'SIGNE' }, select: { totalHT: true, profit: true } },
         },
       }),
-      this.prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { seuilAlerteMargePourcent: true } }),
+      this.prisma.company.findUniqueOrThrow({
+        where: { id: companyId },
+        select: { seuilAlerteMargePourcent: true },
+      }),
       // C3: reminders sent in the last 7 days (automatic + manual)
-      this.prisma.relance.count({ where: { companyId, createdAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } } }),
+      this.prisma.relance.count({
+        where: { companyId, createdAt: { gte: new Date(now.getTime() - 7 * 86_400_000) } },
+      }),
       // Étape 6 (26/10): client alerts still open (oldest first) and open comments
       this.prisma.retourClient.findMany({
         where: { companyId, type: 'ALERTE', statut: 'OUVERT' },
         orderBy: { createdAt: 'asc' },
-        select: { id: true, message: true, createdAt: true, chantier: { select: { id: true, reference: true } }, client: { select: { nom: true, prenom: true } } },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          chantier: { select: { id: true, reference: true } },
+          client: { select: { nom: true, prenom: true } },
+        },
       }),
-      this.prisma.retourClient.count({ where: { companyId, type: 'COMMENTAIRE', statut: 'OUVERT' } }),
+      this.prisma.retourClient.count({
+        where: { companyId, type: 'COMMENTAIRE', statut: 'OUVERT' },
+      }),
       // Job sites in progress with sous-traitants, and their latest photo
       this.prisma.chantier.findMany({
         where: { companyId, statut: 'EN_COURS', sousTraitantsVisibles: { some: {} } },
@@ -96,7 +157,11 @@ export class DashboardService {
           id: true,
           reference: true,
           client: { select: { nom: true, prenom: true } },
-          photosAvancement: { orderBy: { createdAt: 'desc' }, take: 1, select: { createdAt: true } },
+          photosAvancement: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { createdAt: true },
+          },
         },
       }),
     ]);
@@ -109,13 +174,24 @@ export class DashboardService {
     return {
       periodeJours: jours,
       prospects: { demandesActives: prospects, nouveauxClients },
-      devis: { envoyes, acceptes, refuses: byStatut(['REFUSE']), tauxConversion: rate(acceptes, envoyes) },
-      chiffreAffaires: { signeMoisHT: signesMois._sum.totalHT ?? 0, devisSignesMois: signesMois._count._all },
+      devis: {
+        envoyes,
+        acceptes,
+        refuses: byStatut(['REFUSE']),
+        tauxConversion: rate(acceptes, envoyes),
+      },
+      chiffreAffaires: {
+        signeMoisHT: signesMois._sum.totalHT ?? 0,
+        devisSignesMois: signesMois._count._all,
+      },
       margeMoyennePourcent: margeSignes._avg.margePourcent ?? null,
       facturesImpayees: {
         nombre: impayees._count._all,
         montantTTC: impayees._sum.montantTTC ?? 0,
-        enRetard: { nombre: impayeesRetard._count._all, montantTTC: impayeesRetard._sum.montantTTC ?? 0 },
+        enRetard: {
+          nombre: impayeesRetard._count._all,
+          montantTTC: impayeesRetard._sum.montantTTC ?? 0,
+        },
       },
       chantiersEnRetard: {
         nombre: chantiersRetard.length,
@@ -131,12 +207,17 @@ export class DashboardService {
       retoursClient: {
         alertesOuvertes: alertesClient.length,
         commentairesOuverts: commentairesClient,
-        alertes: alertesClient.slice(0, 5).map((a) => ({ ...a, message: a.message.length > 120 ? `${a.message.slice(0, 120)}…` : a.message })),
+        alertes: alertesClient.slice(0, 5).map((a) => ({
+          ...a,
+          message: a.message.length > 120 ? `${a.message.slice(0, 120)}…` : a.message,
+        })),
       },
       chantiersSansPhoto: chantiersSansPhoto(chantiersPhotos, now),
       margesChantiers: chantierMargins(chantiersMarge, company.seuilAlerteMargePourcent.toNumber()),
       serieDevis: weeklySeries(
-        seriesRows.filter((r): r is { dateEnvoi: Date; statut: DevisStatut } => r.dateEnvoi !== null),
+        seriesRows.filter(
+          (r): r is { dateEnvoi: Date; statut: DevisStatut } => r.dateEnvoi !== null,
+        ),
         now,
         SERIES_WEEKS,
       ),

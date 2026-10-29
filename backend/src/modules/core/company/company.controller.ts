@@ -26,7 +26,9 @@ export class CompanyController {
 
   @Roles(...STAFF)
   @Get('settings')
-  @ApiOperation({ summary: 'Réglages de chiffrage : TVA, acompte, marge cible, seuil d’alerte, arrondi' })
+  @ApiOperation({
+    summary: 'Réglages de chiffrage : TVA, acompte, marge cible, seuil d’alerte, arrondi',
+  })
   getSettings(@CurrentUser() user: AuthUser) {
     return this.company.getSettings(user);
   }

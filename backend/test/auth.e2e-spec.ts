@@ -20,7 +20,10 @@ describe('Auth & Users (e2e)', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ email: email(name), nom: 'Test', prenom: name, role })
       .expect(201);
-    return { id: res.body.user.id as number, temporaryPassword: res.body.temporaryPassword as string };
+    return {
+      id: res.body.user.id as number,
+      temporaryPassword: res.body.temporaryPassword as string,
+    };
   }
 
   /** Full first-login flow; returns a session token. */
@@ -123,7 +126,10 @@ describe('Auth & Users (e2e)', () => {
 
     it('completes the flow and gives a working session', async () => {
       const { token } = await activateAccount('complete');
-      const me = await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).expect(200);
+      const me = await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
       expect(me.body).toMatchObject({ email: email('complete'), role: 'TECHNICO' });
     });
   });
@@ -138,7 +144,10 @@ describe('Auth & Users (e2e)', () => {
         .send({ currentPassword: password, newPassword: 'EncoreNouveau2026' })
         .expect(200);
 
-      await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${oldToken}`).expect(401);
+      await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${oldToken}`)
+        .expect(401);
       await request(http)
         .get('/api/v1/auth/me')
         .set('Authorization', `Bearer ${changed.body.accessToken}`)
@@ -147,14 +156,20 @@ describe('Auth & Users (e2e)', () => {
 
     it('deactivation locks the user out immediately', async () => {
       const { id, token } = await activateAccount('deactivated');
-      await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).expect(200);
+      await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
 
       await request(http)
         .post(`/api/v1/users/${id}/deactivate`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
-      await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).expect(401);
+      await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(401);
     });
   });
 
@@ -173,7 +188,10 @@ describe('Auth & Users (e2e)', () => {
 
     it('resets the password with the emailed code', async () => {
       const { password } = await activateAccount('forgot');
-      await request(http).post('/api/v1/auth/forgot-password').send({ email: email('forgot') }).expect(200);
+      await request(http)
+        .post('/api/v1/auth/forgot-password')
+        .send({ email: email('forgot') })
+        .expect(200);
       await new Promise((r) => setTimeout(r, 50)); // mail is sent without awaiting
 
       const code = /(\d{6})/.exec(t.mail.lastTo(email('forgot'))?.text ?? '')?.[1];
@@ -196,7 +214,9 @@ describe('Auth & Users (e2e)', () => {
 
     it('burns the code after 5 wrong attempts', async () => {
       await activateAccount('burn');
-      await request(http).post('/api/v1/auth/forgot-password').send({ email: email('burn') });
+      await request(http)
+        .post('/api/v1/auth/forgot-password')
+        .send({ email: email('burn') });
       await new Promise((r) => setTimeout(r, 50));
       const code = /(\d{6})/.exec(t.mail.lastTo(email('burn'))?.text ?? '')![1];
       const wrong = code === '000000' ? '111111' : '000000';
@@ -220,7 +240,10 @@ describe('Auth & Users (e2e)', () => {
       const technico = await t.tokenFor(SEED.technico);
       const sousTraitant = await t.tokenFor(SEED.sousTraitant);
 
-      await request(http).get('/api/v1/users').set('Authorization', `Bearer ${technico}`).expect(403);
+      await request(http)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${technico}`)
+        .expect(403);
       await request(http)
         .get('/api/v1/users/options?roles=CHEF_CHANTIER')
         .set('Authorization', `Bearer ${technico}`)
@@ -241,7 +264,9 @@ describe('Auth & Users (e2e)', () => {
     });
 
     it('an admin cannot deactivate, demote or delete themselves', async () => {
-      const me = await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${adminToken}`);
+      const me = await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${adminToken}`);
       const id = me.body.id as number;
 
       await request(http)
@@ -274,7 +299,10 @@ describe('Auth & Users (e2e)', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
       expect(res.body.temporaryPassword).toEqual(expect.any(String));
-      await request(http).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`).expect(401);
+      await request(http)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(401);
     });
   });
 });

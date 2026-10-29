@@ -19,125 +19,238 @@ import { PaginationQueryDto, ToStringArray, Trim, TrimOrNull } from '../../../..
 import { ChantierStatut, TacheStatut } from '../../../../generated/prisma/client';
 
 export class CreateChantierDto {
-  @ApiProperty() @IsInt() @Min(1)
+  @ApiProperty()
+  @IsInt()
+  @Min(1)
   clientId: number;
 
-  @ApiProperty({ example: '12 rue des Lilas, 69003 Lyon' }) @Trim() @IsString() @IsNotEmpty() @MaxLength(300)
+  @ApiProperty({ example: '12 rue des Lilas, 69003 Lyon' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(300)
   adresse: string;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(5000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(5000)
   description?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   chefChantierId?: number | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateDebut?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateFin?: string | null;
 }
 
 export class UpdateChantierDto {
-  @ApiPropertyOptional() @IsOptional() @Trim() @IsString() @IsNotEmpty() @MaxLength(300)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(300)
   adresse?: string;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(5000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(5000)
   description?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(5000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(5000)
   notes?: string | null;
 
-  @ApiPropertyOptional({ description: 'Bureau uniquement' }) @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional({ description: 'Bureau uniquement' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   chefChantierId?: number | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateDebut?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateFin?: string | null;
 }
 
 export class QueryChantiersDto extends PaginationQueryDto {
   @ApiPropertyOptional({ enum: ChantierStatut, isArray: true })
-  @IsOptional() @ToStringArray() @IsArray() @IsEnum(ChantierStatut, { each: true })
+  @IsOptional()
+  @ToStringArray()
+  @IsArray()
+  @IsEnum(ChantierStatut, { each: true })
   statuts?: ChantierStatut[];
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   clientId?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   chefChantierId?: number;
 }
 
 export class AccesSousTraitantsDto {
-  @ApiProperty({ type: [Number], description: 'Comptes SOUS_TRAITANT autorisés à voir ce chantier (liste complète)' })
-  @IsArray() @ArrayUnique() @ArrayMaxSize(50) @IsInt({ each: true })
+  @ApiProperty({
+    type: [Number],
+    description: 'Comptes SOUS_TRAITANT autorisés à voir ce chantier (liste complète)',
+  })
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(50)
+  @IsInt({ each: true })
   userIds: number[];
 }
 
 export class Plan2dDto {
-  @ApiProperty({ description: 'Plan 2D (format de l’éditeur)' }) @IsObject()
+  @ApiProperty({ description: 'Plan 2D (format de l’éditeur)' })
+  @IsObject()
   plan: Record<string, unknown>;
 }
 
 export class CreateDocumentDto {
-  @ApiProperty({ example: 'PV de réception' }) @Trim() @IsString() @IsNotEmpty() @MaxLength(200)
+  @ApiProperty({ example: 'PV de réception' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   nom: string;
 
-  @ApiProperty({ example: 'PV' }) @Trim() @IsString() @IsNotEmpty() @MaxLength(50)
+  @ApiProperty({ example: 'PV' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
   type: string;
 
   /** External link… */
-  @ApiPropertyOptional() @IsOptional() @IsUrl({ require_tld: false, protocols: ['http', 'https'] }) @MaxLength(1000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUrl({ require_tld: false, protocols: ['http', 'https'] })
+  @MaxLength(1000)
   url?: string;
 
   /** …or a file uploaded first with POST /fichiers (exactly one of the two) */
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   fichierId?: number;
 }
 
 export class CreateTacheDto {
-  @ApiProperty({ example: 'Pose du carrelage salle de bain' }) @Trim() @IsString() @IsNotEmpty() @MaxLength(200)
+  @ApiProperty({ example: 'Pose du carrelage salle de bain' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   libelle: string;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(2000)
   description?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateDebut?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateFin?: string | null;
 
-  @ApiPropertyOptional({ type: [Number], description: 'Utilisateurs affectés (chef, sous-traitants…)' })
-  @IsOptional() @IsArray() @ArrayUnique() @ArrayMaxSize(20) @IsInt({ each: true })
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'Utilisateurs affectés (chef, sous-traitants…)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(20)
+  @IsInt({ each: true })
   assigneeIds?: number[];
 }
 
 export class UpdateTacheDto {
-  @ApiPropertyOptional() @IsOptional() @Trim() @IsString() @IsNotEmpty() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   libelle?: string;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(2000)
   description?: string | null;
 
-  @ApiPropertyOptional({ enum: TacheStatut }) @IsOptional() @IsEnum(TacheStatut)
+  @ApiPropertyOptional({ enum: TacheStatut })
+  @IsOptional()
+  @IsEnum(TacheStatut)
   statut?: TacheStatut;
 
-  @ApiPropertyOptional({ minimum: 0, maximum: 100 }) @IsOptional() @IsInt() @Min(0) @Max(100)
+  @ApiPropertyOptional({ minimum: 0, maximum: 100 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
   avancement?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateDebut?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   dateFin?: string | null;
 
-  @ApiPropertyOptional() @IsOptional() @TrimOrNull() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @TrimOrNull()
+  @IsString()
+  @MaxLength(2000)
   commentaire?: string | null;
 
   @ApiPropertyOptional({ type: [Number] })
-  @IsOptional() @IsArray() @ArrayUnique() @ArrayMaxSize(20) @IsInt({ each: true })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(20)
+  @IsInt({ each: true })
   assigneeIds?: number[];
 }

@@ -10,7 +10,15 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { NormalizeEmail, PaginationQueryDto, ToBoolean, ToStringArray, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import {
+  NormalizeEmail,
+  PaginationQueryDto,
+  ToBoolean,
+  ToStringArray,
+  Trim,
+  TrimOrNull,
+  IsPhone,
+} from '../../../../common';
 import { Role } from '../../../../generated/prisma/client';
 
 export class CreateUserDto {
