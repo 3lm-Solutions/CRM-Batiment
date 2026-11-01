@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, Download, Plus, Sparkles } from "lucide-react";
 import QuoteLine from "./QuoteLine";
 
 const catalogueUrl =
@@ -17,6 +17,16 @@ export default function QuoteReview({ quote, onBack }) {
   const [options, setOptions] = useState([]);
   const [componentOptions, setComponentOptions] = useState([]);
   const [optionsError, setOptionsError] = useState("");
+  const [downloading, setDownloading] = useState(false);
+  const [snapshotId, setSnapshotId] = useState(null);
+  const [documentData, setDocumentData] = useState(() => ({
+    reference: quote.document?.reference ?? "",
+    date: quote.document?.date ?? new Date().toLocaleDateString("fr-FR"),
+    vat_rate: quote.document?.vat_rate ?? 20,
+    company: quote.document?.company ?? { name: "", address: "", phone: "", email: "", siret: "" },
+    customer: quote.document?.customer ?? { first_name: "", last_name: "", address: "", phone: "", email: "" },
+    notes: quote.document?.notes ?? "",
+  }));
 
   useEffect(() => {
     const companyId = Number(import.meta.env.VITE_COMPANY_ID);
@@ -43,6 +53,38 @@ export default function QuoteReview({ quote, onBack }) {
   );
   const totalMargin = total - totalCost;
   const marginPercent = total > 0 ? (totalMargin / total) * 100 : 0;
+  const downloadPdf = async () => {
+    setDownloading(true);
+    setOptionsError("");
+    const companyId = Number(import.meta.env.VITE_COMPANY_ID);
+    if (!Number.isInteger(companyId) || companyId < 1) {
+      setOptionsError("Configurez VITE_COMPANY_ID avant de finaliser le devis.");
+      setDownloading(false);
+      return;
+    }
+    if (!documentData.reference.trim() || !documentData.company.name.trim() || !documentData.customer.last_name.trim()) {
+      setOptionsError("Renseignez la reference, l entreprise et le nom du client avant de finaliser.");
+      setDownloading(false);
+      return;
+    }
+    if (!quote.request_description) {
+      setOptionsError("La demande source est absente : regenerez le devis avant de le finaliser.");
+      setDownloading(false);
+      return;
+    }
+    try {
+      const response = await fetch("/api/v1/devis/pdf", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...documentData, company_id: companyId, request_description: quote.request_description, lines: lines.map((line) => ({ label: line.label_prestation, quantity: Number(line.quantite_estimee), unit: line.unite, unit_price: Number(line.prix_unitaire), total_ht: Number(line.sous_total), components: line.composants ?? [] })), total_ht: total, total_vat: total * Number(documentData.vat_rate) / 100, total_ttc: total * (1 + Number(documentData.vat_rate) / 100) }),
+      });
+      if (!response.ok) throw new Error("Impossible de generer le PDF.");
+      const url = URL.createObjectURL(await response.blob());
+      setSnapshotId(response.headers.get("X-Quotation-Snapshot-Id"));
+      const link = Object.assign(document.createElement("a"), { href: url, download: `devis-${documentData.reference}.pdf` });
+      link.click(); URL.revokeObjectURL(url);
+    } catch (error) { setOptionsError(error.message); } finally { setDownloading(false); }
+  };
+  const updateDocument = (section, field, value) => setDocumentData((current) => section ? { ...current, [section]: { ...current[section], [field]: value } } : { ...current, [field]: value });
   const updateQuantity = (index, value) => {
     const quantity = Number(value);
     if (!Number.isFinite(quantity) || quantity <= 0) return;
@@ -113,6 +155,26 @@ export default function QuoteReview({ quote, onBack }) {
           <h1>Révision du devis</h1>
           <p>Vérifiez les prestations et ajustez les quantités avant export.</p>
         </div>
+        <section className="document-fields" aria-label="Informations du document final">
+          <p className="section-label">INFORMATIONS DU DEVIS FINAL</p>
+          <div className="fields">
+            <label>Reference<input value={documentData.reference} onChange={(event) => updateDocument(null, "reference", event.target.value)} /></label>
+            <label>Date<input value={documentData.date} onChange={(event) => updateDocument(null, "date", event.target.value)} /></label>
+            <label>Entreprise<input value={documentData.company.name} onChange={(event) => updateDocument("company", "name", event.target.value)} /></label>
+            <label>Adresse entreprise<input value={documentData.company.address} onChange={(event) => updateDocument("company", "address", event.target.value)} /></label>
+            <label>Telephone entreprise<input value={documentData.company.phone} onChange={(event) => updateDocument("company", "phone", event.target.value)} /></label>
+            <label>Email entreprise<input value={documentData.company.email} onChange={(event) => updateDocument("company", "email", event.target.value)} /></label>
+            <label>SIRET<input value={documentData.company.siret} onChange={(event) => updateDocument("company", "siret", event.target.value)} /></label>
+            <label>Client - nom<input value={documentData.customer.last_name} onChange={(event) => updateDocument("customer", "last_name", event.target.value)} /></label>
+            <label>Client - prenom<input value={documentData.customer.first_name} onChange={(event) => updateDocument("customer", "first_name", event.target.value)} /></label>
+            <label>Adresse client<input value={documentData.customer.address} onChange={(event) => updateDocument("customer", "address", event.target.value)} /></label>
+            <label>Telephone client<input value={documentData.customer.phone} onChange={(event) => updateDocument("customer", "phone", event.target.value)} /></label>
+            <label>Email client<input value={documentData.customer.email} onChange={(event) => updateDocument("customer", "email", event.target.value)} /></label>
+            <label>TVA (%)<input type="number" min="0" max="100" step="0.01" value={documentData.vat_rate} onChange={(event) => updateDocument(null, "vat_rate", Number(event.target.value))} /></label>
+          </div>
+          <label className="description">Conditions et remarques<textarea value={documentData.notes} onChange={(event) => updateDocument(null, "notes", event.target.value)} /></label>
+          {snapshotId && <p className="success">Devis final enregistre - snapshot #{snapshotId}.</p>}
+        </section>
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={17} /> Modifier la demande
         </button>
@@ -132,6 +194,9 @@ export default function QuoteReview({ quote, onBack }) {
               Marge : {totalMargin.toFixed(2)} EUR ({marginPercent.toFixed(1)}%)
             </span>
           </div>
+          <button className="add-button" onClick={downloadPdf} disabled={!lines.length || downloading}>
+            <Download size={17} /> {downloading ? "Generation..." : "Telecharger le PDF"}
+          </button>
         </div>
         {quote.model_trace?.model && (
           <p className="model-trace">

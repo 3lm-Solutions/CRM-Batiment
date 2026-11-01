@@ -9,12 +9,14 @@ from typing import Any, Literal
 
 import psycopg
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from catalog import HybridCatalogueRetriever
 from catalog.embeddings import EmbeddingGemmaProvider
 from devis import CataloguePricingRepository, QuoteFinancialService, QuoteSnapshotRepository
 from devis import llm_select_candidates, select_grounded_candidates
+from devis.pdf_export import render_quote_pdf
 from devis.text import display_text
 from toolregistry import AudioInput, ImageInput, ToolRegistry, ToolRegistryConfig, TranscriptionRequest, VisionAnalysisRequest
 
@@ -81,6 +83,30 @@ class MatchRequest(BaseModel):
     model: str | None = Field(default=None, max_length=100)
     image: ImagePayload | None = None
     audio: AudioPayload | None = None
+
+
+class QuotePdfLine(BaseModel):
+    label: str = Field(min_length=1, max_length=500)
+    quantity: float = Field(gt=0)
+    unit: str = Field(min_length=1, max_length=30)
+    unit_price: float = Field(ge=0)
+    total_ht: float = Field(ge=0)
+    components: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class QuotePdfRequest(BaseModel):
+    company_id: int = Field(gt=0)
+    request_description: str = Field(min_length=1, max_length=4000)
+    reference: str = Field(min_length=1, max_length=100)
+    date: str = Field(min_length=1, max_length=30)
+    vat_rate: float = Field(ge=0, le=100)
+    company: dict[str, str]
+    customer: dict[str, str]
+    lines: list[QuotePdfLine] = Field(min_length=1)
+    total_ht: float = Field(ge=0)
+    total_vat: float = Field(ge=0)
+    total_ttc: float = Field(ge=0)
+    notes: str = Field(default="", max_length=4000)
 
 
 def connection() -> psycopg.Connection[Any]:
@@ -254,6 +280,44 @@ def list_catalogue_components(company_id: int) -> dict[str, Any]:
         raise HTTPException(503, "DATABASE_URL absent.") from error
 
 
+@router.post("/api/v1/devis/pdf")
+def download_quote_pdf(request: QuotePdfRequest) -> Response:
+    try:
+        document = request.model_dump()
+        document["lines"] = [line.model_dump() for line in request.lines]
+        final_result = {
+            "lines": document["lines"],
+            "total_ht": document["total_ht"],
+            "total_vat": document["total_vat"],
+            "total_ttc": document["total_ttc"],
+            "reference": document["reference"],
+            "document": {
+                key: document[key]
+                for key in ("date", "vat_rate", "company", "customer", "notes")
+            },
+            "status": "FINALISE",
+        }
+        content = render_quote_pdf(document)
+        snapshot_id = QuoteSnapshotRepository(connection).save(
+            request.company_id, request.request_description, final_result
+        )
+        safe_reference = "".join(
+            character if character.isalnum() or character in "-_" else "-"
+            for character in request.reference
+        )
+        return Response(
+            content=content,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="devis-{safe_reference}.pdf"',
+                "X-Quotation-Snapshot-Id": str(snapshot_id),
+            },
+        )
+    except Exception as error:
+        logger.exception("PDF generation failed.")
+        raise HTTPException(500, "Impossible de generer le PDF du devis.") from error
+
+
 @router.post("/api/v1/devis/vocal-transcribe")
 async def vocal_transcribe(
     audio: UploadFile = File(...),
@@ -346,11 +410,11 @@ def match_catalogue(request: MatchRequest) -> dict[str, Any]:
         result = QuoteFinancialService().calculate(priced_matches, quantities)
         if request.modalite_source == "image":
             result["alertes"].append("Les observations image exigent confirmation client.")
-        QuoteSnapshotRepository(connection).save(request.company_id, query, result)
         return {
             "lines": result["lines"],
             "alertes": result["alertes"],
             "assumptions": assumptions,
+            "request_description": query,
             "model_trace": (
                 {
                     "provider": model_trace["provider"],

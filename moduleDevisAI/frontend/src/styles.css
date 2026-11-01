@@ -112,7 +112,8 @@ label {
   color: #344158;
 }
 select,
-textarea {
+textarea,
+input {
   width: 100%;
   display: block;
   margin-top: 7px;
@@ -127,7 +128,8 @@ select {
   padding: 11px;
 }
 select:focus,
-textarea:focus {
+textarea:focus,
+input:focus {
   border-color: #2585d3;
   box-shadow: 0 0 0 4px #d9efff;
 }
@@ -449,6 +451,14 @@ input[type="range"] {
   padding-bottom: 20px;
   border-bottom: 1px solid #e6edf3;
 }
+.document-fields {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #dce7f1;
+  border-radius: 15px;
+  background: #f8fbfd;
+}
+.document-fields .description textarea { height: 90px; }
 .quote-heading h2 {
   margin: 7px 0 0;
   font-size: 24px;
