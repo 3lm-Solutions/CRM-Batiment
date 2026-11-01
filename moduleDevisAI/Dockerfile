@@ -5,5 +5,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY api ./api
 COPY catalog ./catalog
 COPY devis ./devis
+COPY prompts ./prompts
 COPY toolregistry ./toolregistry
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

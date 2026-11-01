@@ -10,11 +10,12 @@ Pour chaque image, identifie lorsque les éléments sont raisonnablement observa
 2. le type général de scène ou de zone de chantier ;
 3. le type de pièce ou de zone ;
 4. une surface approximative en m², seulement si elle peut être estimée visuellement ;
-5. la présence d'un repère dimensionnel exploitable ;
-6. les matériaux visibles ;
-7. les objets, équipements, installations et éléments constructifs visibles ;
-8. les dégradations, états de finition ou observations visibles ;
-9. les limites de qualité de l'image et les incertitudes importantes.
+5. un score `confidence_surface` entre 0 et 1 qui mesure la fiabilité de cette estimation ;
+6. la présence d'un repère dimensionnel exploitable ;
+7. les matériaux visibles ;
+8. les objets, équipements, installations et éléments constructifs visibles ;
+9. les dégradations, états de finition ou observations visibles ;
+10. les limites de qualité de l'image et les incertitudes importantes.
 
 Règles d'analyse :
 
@@ -23,6 +24,7 @@ Règles d'analyse :
 - Ne transforme jamais une hypothèse en fait.
 - Si une valeur scalaire ne peut pas être déterminée, retourne `null` ; si aucune donnée pertinente n'est disponible pour une liste, retourne une liste vide.
 - Toute surface est une estimation, sauf si une mesure explicite est lisible dans l'image. N'utilise pas de précision artificielle.
+- Quand aucune surface ne peut être estimée, retourne `surface_estimee_m2` à `null` et `confidence_surface` à `0`.
 - Un repère dimensionnel utile peut être une porte, une fenêtre, un carrelage de dimension reconnaissable, un receveur de douche ou un autre élément aux dimensions usuelles. Sa présence ne garantit pas l'exactitude de l'estimation.
 - Si aucun repère dimensionnel utile n'est visible, mets `reference_dimensionnelle_visible` à `false` et `surface_estimee_m2` à `null` sauf si une mesure explicite est visible.
 - Distingue clairement les faits visibles des estimations dans les champs descriptifs et dans `incertitudes`.

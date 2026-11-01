@@ -5,12 +5,13 @@ import binascii
 import json
 import logging
 import os
+import re
 from typing import Any, Literal
 
 import psycopg
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from catalog import HybridCatalogueRetriever
 from catalog.embeddings import EmbeddingGemmaProvider
@@ -45,10 +46,11 @@ TEXT_MODELS: dict[str, set[str]] = {
 VISION_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "description_scene": {"type": ["string", "null"]},
-        "type_scene": {"type": ["string", "null"]},
-        "type_piece_ou_zone": {"type": ["string", "null"]},
-        "surface_estimee_m2": {"type": ["number", "null"]},
+        "description_scene": {"type": "string", "nullable": True},
+        "type_scene": {"type": "string", "nullable": True},
+        "type_piece_ou_zone": {"type": "string", "nullable": True},
+        "surface_estimee_m2": {"type": "number", "nullable": True},
+        "confidence_surface": {"type": "number", "minimum": 0, "maximum": 1},
         "reference_dimensionnelle_visible": {"type": "boolean"},
         "materiaux_visibles": {"type": "array", "items": {"type": "string"}},
         "elements_visibles": {"type": "array", "items": {"type": "string"}},
@@ -57,7 +59,7 @@ VISION_SCHEMA: dict[str, Any] = {
     },
     "required": [
         "description_scene", "type_scene", "type_piece_ou_zone", "surface_estimee_m2",
-        "reference_dimensionnelle_visible", "materiaux_visibles", "elements_visibles",
+        "confidence_surface", "reference_dimensionnelle_visible", "materiaux_visibles", "elements_visibles",
         "observations_etat", "incertitudes",
     ],
 }
@@ -67,6 +69,45 @@ class ImagePayload(BaseModel):
     media_type: Literal["image/jpeg", "image/png", "image/gif", "image/webp"]
     data_base64: str | None = Field(default=None, max_length=14_000_000)
     url: str | None = Field(default=None, max_length=4_000)
+
+
+class PhotoAnalyzeRequest(BaseModel):
+    image: ImagePayload
+    provider: Literal["openai", "anthropic", "google"] | None = None
+    model: str | None = Field(default=None, max_length=100)
+
+    @model_validator(mode="before")
+    @classmethod
+    def clean_provider_model(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if not data.get("provider"):
+                data["provider"] = None
+            if not data.get("model"):
+                data["model"] = None
+        return data
+
+
+class PhotoAnalysis(BaseModel):
+    type_piece: str = Field(default="Zone non identifiee", max_length=300)
+    surface_m2: float | None = Field(default=None, ge=0)
+    confidence_surface: float = Field(default=0.0, ge=0, le=1)
+    materiaux: list[str] = Field(default_factory=list)
+    reference_visible: bool = False
+    description: str = Field(default="", max_length=2000)
+    observations: list[str] = Field(default_factory=list)
+    incertitudes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_aliases(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "type_pièce" in data and "type_piece" not in data:
+                data["type_piece"] = data["type_pièce"]
+            if "matériaux" in data and "materiaux" not in data:
+                data["materiaux"] = data["matériaux"]
+            if "reference_dimensionnelle_visible" in data and "reference_visible" not in data:
+                data["reference_visible"] = data["reference_dimensionnelle_visible"]
+        return data
 
 
 class AudioPayload(BaseModel):
@@ -83,6 +124,7 @@ class MatchRequest(BaseModel):
     model: str | None = Field(default=None, max_length=100)
     image: ImagePayload | None = None
     audio: AudioPayload | None = None
+    image_analysis: PhotoAnalysis | None = None
 
 
 class QuotePdfLine(BaseModel):
@@ -181,24 +223,141 @@ def _text_generation_registry(provider: str | None, model: str | None) -> ToolRe
     values[model_setting] = selected_model
     return ToolRegistry(ToolRegistryConfig.from_env(values))
 
+
+def _vision_registry(provider: str | None, model: str | None) -> ToolRegistry:
+    if not provider and not model:
+        return _capability_registry("VISION_TOOLREGISTRY_PROVIDER")
+    selected_provider = (provider or "").strip().lower()
+    selected_model = (model or "").strip()
+    if selected_provider not in TEXT_MODELS:
+        raise ValueError("The selected provider is not supported by this vision provider.")
+    if not selected_model:
+        selected_model = next(iter(TEXT_MODELS[selected_provider]))
+    elif selected_model not in TEXT_MODELS[selected_provider]:
+        raise ValueError("The selected model is not supported by this vision provider.")
+    values = dict(os.environ)
+    values["TOOLREGISTRY_PROVIDER"] = selected_provider
+    values[{"openai": "OPENAI_VISION_MODEL", "anthropic": "ANTHROPIC_VISION_MODEL", "google": "GOOGLE_VISION_MODEL"}[selected_provider]] = selected_model
+    return ToolRegistry(ToolRegistryConfig.from_env(values))
+
 def _parse_structured_vision(content: str) -> dict[str, Any]:
     value = content.strip()
-    if value.startswith("```") and value.endswith("```"):
-        parts = value.split("\n", 1)
-        value = parts[1].rsplit("\n", 1)[0] if len(parts) == 2 else ""
-    try:
-        payload = json.loads(value)
-    except json.JSONDecodeError:
+    if not value:
+        raise ValueError("The vision model returned an empty response.")
+
+    # 1. Look for markdown code fence ```json ... ``` or ``` ... ```
+    fence_match = re.search(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", value, re.IGNORECASE)
+    if fence_match:
+        candidate = fence_match.group(1).strip()
+    else:
+        # 2. Extract outermost matching curly braces { ... }
         start = value.find("{")
-        if start < 0:
-            raise ValueError("The vision model returned invalid structured JSON.") from None
+        end = value.rfind("}")
+        if start >= 0 and end > start:
+            candidate = value[start : end + 1].strip()
+        elif start >= 0:
+            candidate = value[start:].strip()
+        else:
+            candidate = value
+
+    # 3. Direct JSON parsing
+    try:
+        payload = json.loads(candidate)
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        pass
+
+    # 4. Clean trailing commas (common in LLM output, e.g. {"a": 1,})
+    cleaned = re.sub(r",\s*([\]}])", r"\1", candidate)
+    try:
+        payload = json.loads(cleaned)
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        pass
+
+    # 5. Handle truncated JSON by repairing unclosed braces / brackets / quotes
+    repaired = cleaned.rstrip(", \n\r\t")
+    if repaired.count('"') % 2 != 0:
+        repaired += '"'
+    open_sq = repaired.count("[") - repaired.count("]")
+    if open_sq > 0:
+        repaired += "]" * open_sq
+    open_cur = repaired.count("{") - repaired.count("}")
+    if open_cur > 0:
+        repaired += "}" * open_cur
+    try:
+        payload = json.loads(repaired)
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        pass
+
+    # 6. Fallback: raw_decode from first {
+    start_pos = value.find("{")
+    if start_pos >= 0:
         try:
-            payload, _ = json.JSONDecoder().raw_decode(value[start:])
-        except json.JSONDecodeError as error:
-            raise ValueError("The vision model returned invalid structured JSON.") from error
-    if not isinstance(payload, dict):
-        raise ValueError("The vision model response must be a JSON object.")
-    return payload
+            payload, _ = json.JSONDecoder().raw_decode(value[start_pos:])
+            if isinstance(payload, dict):
+                return payload
+        except Exception:
+            pass
+
+    # 7. Ultimate fallback: regex field extraction from response text so API never 422s unnecessarily
+    extracted: dict[str, Any] = {}
+    m_piece = re.search(
+        r'["\'](?:type_piece_ou_zone|type_piece|type_pièce)["\']\s*:\s*["\']([^"\']+)["\']',
+        value,
+        re.IGNORECASE,
+    )
+    if m_piece:
+        extracted["type_piece_ou_zone"] = m_piece.group(1).strip()
+    m_surf = re.search(
+        r'["\'](?:surface_estimee_m2|surface_m2)["\']\s*:\s*([0-9]+(?:[.,][0-9]+)?)',
+        value,
+        re.IGNORECASE,
+    )
+    if m_surf:
+        extracted["surface_estimee_m2"] = float(m_surf.group(1).replace(",", "."))
+    m_conf = re.search(
+        r'["\']confidence_surface["\']\s*:\s*([0-9]+(?:[.,][0-9]+)?)',
+        value,
+        re.IGNORECASE,
+    )
+    if m_conf:
+        conf_val = float(m_conf.group(1).replace(",", "."))
+        extracted["confidence_surface"] = conf_val if conf_val <= 1.0 else conf_val / 100.0
+    m_ref = re.search(
+        r'["\'](?:reference_dimensionnelle_visible|reference_visible)["\']\s*:\s*(true|false|oui|non)',
+        value,
+        re.IGNORECASE,
+    )
+    if m_ref:
+        extracted["reference_dimensionnelle_visible"] = m_ref.group(1).lower() in ("true", "oui")
+    m_desc = re.search(
+        r'["\'](?:description_scene|description)["\']\s*:\s*["\']([^"\']+)["\']',
+        value,
+        re.IGNORECASE,
+    )
+    if m_desc:
+        extracted["description_scene"] = m_desc.group(1).strip()
+
+    m_mat = re.search(
+        r'["\'](?:materiaux_visibles|materiaux|matériaux)["\']\s*:\s*\[(.*?)\]',
+        value,
+        re.DOTALL | re.IGNORECASE,
+    )
+    if m_mat:
+        items = [i.strip(' "\'\n\r\t') for i in m_mat.group(1).split(",") if i.strip(' "\'\n\r\t')]
+        extracted["materiaux_visibles"] = items
+
+    if extracted:
+        logger.info("Successfully recovered vision data via fallback regex extractor.")
+        return extracted
+
+    logger.error("Failed to parse vision model response. Content preview: %s", value[:300])
+    raise ValueError("The vision model returned invalid structured JSON.")
 
 
 def _model_trace(result: Any) -> dict[str, Any]:
@@ -229,16 +388,34 @@ def _enrich_description(request: MatchRequest) -> tuple[str, dict[str, Any], dic
         return combined, {"source": "audio", "transcription": _model_trace(transcription)}, None
     if request.image is None:
         raise ValueError("image is required when modalite_source is image.")
+    if request.image_analysis is not None:
+        analysis = request.image_analysis.model_dump()
+        combined = "\n\n".join(part for part in (description, "Analyse visuelle validee : " + json.dumps(analysis, ensure_ascii=False)) if part)
+        return combined, {"source": "image", "analysis_confirmed_by_user": True}, analysis
     image = request.image
     if (image.data_base64 is None) == (image.url is None):
         raise ValueError("image requires exactly one of data_base64 or url.")
     image_input = ImageInput(media_type=image.media_type, data=_decode_base64(image.data_base64, MAX_IMAGE_BYTES, "image.data_base64") if image.data_base64 is not None else None, url=image.url)
-    vision = _capability_registry("VISION_TOOLREGISTRY_PROVIDER").vision.analyze_photo(
+    vision = _vision_registry(request.provider, request.model).vision.analyze_photo(
         VisionAnalysisRequest(image=image_input, prompt="Analyse cette image conformément aux instructions système.", system_prompt=load_system_prompt("vision_analysis_system_prompt.txt"), response_mime_type="application/json", response_json_schema=VISION_SCHEMA)
     )
     analysis = _parse_structured_vision(vision.content)
     combined = "\n\n".join(part for part in (description, "Analyse visuelle structurée : " + json.dumps(analysis, ensure_ascii=False)) if part)
     return combined, {"source": "image", "vision": _model_trace(vision)}, analysis
+
+
+def _photo_analysis_from_vision(content: str) -> PhotoAnalysis:
+    analysis = _parse_structured_vision(content)
+    return PhotoAnalysis(
+        type_piece=analysis.get("type_piece_ou_zone") or "Zone non identifiee",
+        surface_m2=analysis.get("surface_estimee_m2"),
+        confidence_surface=analysis.get("confidence_surface", 0),
+        materiaux=analysis.get("materiaux_visibles", []),
+        reference_visible=analysis.get("reference_dimensionnelle_visible", False),
+        description=analysis.get("description_scene") or "",
+        observations=analysis.get("observations_etat", []),
+        incertitudes=analysis.get("incertitudes", []),
+    )
 
 
 @router.get("/api/v1/catalogue/prestations")
@@ -254,6 +431,42 @@ def list_catalogue_prestations(company_id: int) -> dict[str, Any]:
         return {"items": [{"catalogue_item_id": item["id"], "sku_catalogue": item["sku_catalogue"], "label": display_text(item["label"]), "unite": item["unite"], "prix_unitaire": float(item["unit_sale_price"]), "cout_unitaire": float(item["unit_cost"])} for item in items]}
     except KeyError as error:
         raise HTTPException(503, "DATABASE_URL absent.") from error
+
+@router.post("/api/devis/photo-analyze")
+@router.post("/api/v1/devis/photo-analyze")
+def analyze_photo(request: PhotoAnalyzeRequest) -> dict[str, Any]:
+    """Analyze one JPEG/PNG chantier photo without generating a quotation."""
+    try:
+        image = request.image
+        if image.media_type not in {"image/jpeg", "image/png"}:
+            raise ValueError("Only image/jpeg and image/png are accepted.")
+        if (image.data_base64 is None) == (image.url is None):
+            raise ValueError("image requires exactly one of data_base64 or url.")
+        image_input = ImageInput(
+            media_type=image.media_type,
+            data=_decode_base64(image.data_base64, MAX_IMAGE_BYTES, "image.data_base64") if image.data_base64 else None,
+            url=image.url,
+        )
+        vision = _vision_registry(request.provider, request.model).vision.analyze_photo(
+            VisionAnalysisRequest(
+                image=image_input,
+                prompt="Analyse cette photo de chantier et retourne uniquement le JSON structure demande.",
+                system_prompt=load_system_prompt("vision_analysis_system_prompt.txt"),
+                response_mime_type="application/json",
+                response_json_schema=VISION_SCHEMA,
+                max_output_tokens=4096,
+            )
+        )
+        analysis = _photo_analysis_from_vision(vision.content)
+        result_dict = analysis.model_dump()
+        result_dict["type_pièce"] = result_dict["type_piece"]
+        result_dict["matériaux"] = result_dict["materiaux"]
+        return {**result_dict, "model_trace": _model_trace(vision)}
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    except Exception as error:
+        logger.exception("Photo analysis request failed.")
+        raise HTTPException(503, "Service d analyse photo indisponible.") from error
 
 
 @router.get("/api/v1/catalogue/components")

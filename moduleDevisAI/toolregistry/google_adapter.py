@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import os
 from typing import Any
 
 from ._adapter import ProviderAdapter
@@ -38,6 +39,15 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
             "max_output_tokens": request.max_output_tokens
             or self._config.max_output_tokens,
         }
+        thinking_budget_env = os.getenv("GOOGLE_THINKING_BUDGET")
+        if thinking_budget_env is not None:
+            try:
+                generation_config["thinking_config"] = {"thinking_budget": int(thinking_budget_env)}
+            except ValueError:
+                pass
+        else:
+            generation_config["thinking_config"] = {"thinking_budget": 0}
+
         if request.response_mime_type is not None:
             generation_config["response_mime_type"] = request.response_mime_type
         if request.response_json_schema is not None:
@@ -73,6 +83,15 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
             "max_output_tokens": request.max_output_tokens
             or self._config.max_output_tokens,
         }
+        thinking_budget_env = os.getenv("GOOGLE_THINKING_BUDGET")
+        if thinking_budget_env is not None:
+            try:
+                generation_config["thinking_config"] = {"thinking_budget": int(thinking_budget_env)}
+            except ValueError:
+                pass
+        else:
+            generation_config["thinking_config"] = {"thinking_budget": 0}
+
         if request.temperature is not None:
             generation_config["temperature"] = request.temperature
         if request.response_mime_type is not None:
@@ -136,24 +155,32 @@ class GoogleAdapter(ProviderAdapter, BaseTextModel, BaseVisionModel, BaseTranscr
         return f"System instructions:\n{system_prompt}\n\nUser request:\n{prompt}"
 
     def _generated_content(self, response: Any, model: str, operation: str) -> GeneratedContent:
-        content = getattr(response, "text", None)
-        if not isinstance(content, str) or not content.strip():
-            content = getattr(response, "output_text", None)
+        content: str | None = None
+
+        # Prioritize non-thought candidate text parts so internal thought monologue is never returned
+        candidates = getattr(response, "candidates", None) or []
+        for candidate in candidates:
+            content_obj = getattr(candidate, "content", None)
+            parts = getattr(content_obj, "parts", None) if content_obj is not None else None
+            if not parts:
+                continue
+            non_thought_parts = [
+                part.text
+                for part in parts
+                if isinstance(getattr(part, "text", None), str)
+                and not getattr(part, "thought", False)
+                and part.text.strip()
+            ]
+            if non_thought_parts:
+                candidate_text = "".join(non_thought_parts).strip()
+                if candidate_text:
+                    content = candidate_text
+                    break
 
         if not isinstance(content, str) or not content.strip():
-            candidates = getattr(response, "candidates", None) or []
-            for candidate in candidates:
-                parts = getattr(candidate, "content", None)
-                parts = getattr(parts, "parts", None) if parts is not None else None
-                if not parts:
-                    continue
-                for part in parts:
-                    part_text = getattr(part, "text", None)
-                    if isinstance(part_text, str) and part_text.strip():
-                        content = part_text
-                        break
-                if isinstance(content, str) and content.strip():
-                    break
+            content = getattr(response, "text", None)
+        if not isinstance(content, str) or not content.strip():
+            content = getattr(response, "output_text", None)
 
         if not isinstance(content, str) or not content.strip():
             raise ProviderResponseError(

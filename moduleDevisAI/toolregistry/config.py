@@ -27,7 +27,7 @@ class ToolRegistryConfig:
     groq_transcription_model: str = "whisper-large-v3-turbo"
     timeout_seconds: float = 120.0
     max_retries: int = 1
-    max_output_tokens: int = 1024
+    max_output_tokens: int = 4096
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "ToolRegistryConfig":
@@ -68,7 +68,7 @@ class ToolRegistryConfig:
             ),
             max_retries=_non_negative_int(values.get("TOOLREGISTRY_MAX_RETRIES"), 1),
             max_output_tokens=_positive_int(
-                values.get("TOOLREGISTRY_MAX_OUTPUT_TOKENS"), 1024
+                values.get("TOOLREGISTRY_MAX_OUTPUT_TOKENS"), 4096
             ),
         )
 

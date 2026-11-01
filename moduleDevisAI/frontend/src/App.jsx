@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import VoiceRecorder from "./VoiceRecorder";
 import QuoteReview from "./components/QuoteReview";
+import PhotoUpload from "./components/PhotoUpload";
 
 const providers = [
   {
@@ -47,9 +48,11 @@ export default function App() {
   const [quoteModel, setQuoteModel] = useState("gemini-3.8-flash");
   const [description, setDescription] = useState("");
   const [transcription, setTranscription] = useState(null);
+  const [photoResult, setPhotoResult] = useState(null);
   const [matching, setMatching] = useState(false);
   const [matchError, setMatchError] = useState("");
   const [quote, setQuote] = useState(null);
+
   const provider =
     providers.find((item) => item.id === providerId) || providers[0];
   const availableProviders = providers.filter(
@@ -63,6 +66,7 @@ export default function App() {
   const quoteProvider =
     quoteProviders.find((item) => item.id === quoteProviderId) ||
     quoteProviders[0];
+
   const setInputMode = (next) => {
     const nextProvider = providers.find(
       (item) => (next === "audio" ? item.audio : item.text).length > 0,
@@ -71,15 +75,19 @@ export default function App() {
     setProviderId(nextProvider.id);
     setModel((next === "audio" ? nextProvider.audio : nextProvider.text)[0]);
     setTranscription(null);
+    setPhotoResult(null);
     setMatchError("");
   };
+
   const setProvider = (id) => {
     const next = providers.find((item) => item.id === id) || providers[0];
     setProviderId(next.id);
     setModel((mode === "audio" ? next.audio : next.text)[0] || "");
     setTranscription(null);
+    setPhotoResult(null);
     setMatchError("");
   };
+
   const setQuoteProvider = (id) => {
     const next =
       quoteProviders.find((item) => item.id === id) || quoteProviders[0];
@@ -87,11 +95,16 @@ export default function App() {
     setQuoteModel(next.text[0]);
     setMatchError("");
   };
+
   const ready =
     mode === "text"
       ? Boolean(description.trim())
-      : Boolean(transcription?.transcription_texte?.trim());
-  const matchCatalogue = async () => {
+      : mode === "audio"
+        ? Boolean(transcription?.transcription_texte?.trim())
+        : Boolean(photoResult?.description?.trim());
+
+  const matchCatalogue = async (overridePhotoResult = null) => {
+    const activePhoto = overridePhotoResult || photoResult;
     const companyId = Number(import.meta.env.VITE_COMPANY_ID);
     if (!Number.isInteger(companyId) || companyId < 1) {
       setMatchError("Configurez VITE_COMPANY_ID avant de lancer le matching.");
@@ -100,6 +113,11 @@ export default function App() {
     setMatching(true);
     setMatchError("");
     try {
+      const activeDescription =
+        mode === "image" && activePhoto?.description
+          ? activePhoto.description
+          : description.trim();
+
       const response = await fetch(
         import.meta.env.VITE_MATCH_URL || "/api/v1/devis/match-catalogue",
         {
@@ -107,10 +125,16 @@ export default function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             company_id: companyId,
-            description_libre: description.trim(),
-            modalite_source: "texte",
-            provider: mode === "audio" ? quoteProviderId : providerId,
-            model: mode === "audio" ? quoteModel : model,
+            description_libre: activeDescription,
+            modalite_source: mode === "image" ? "image" : "texte",
+            provider: mode === "text" ? providerId : quoteProviderId,
+            model: mode === "text" ? model : quoteModel,
+            ...(mode === "image" && activePhoto
+              ? {
+                  image: activePhoto.image,
+                  image_analysis: activePhoto.analysis,
+                }
+              : {}),
           }),
         },
       );
@@ -127,9 +151,11 @@ export default function App() {
       setMatching(false);
     }
   };
+
   if (quote) {
     return <QuoteReview quote={quote} onBack={() => setQuote(null)} />;
   }
+
   return (
     <div className="shell">
       <header className="hero">
@@ -139,14 +165,16 @@ export default function App() {
           </p>
           <h1>Créer un devis à partir d’une demande</h1>
           <p>
-            Choisissez le moteur adapté, saisissez ou dictez le besoin, puis
-            vérifiez les informations avant le chiffrage.
+            Choisissez le moteur adapté, saisissez ou importez le besoin (texte,
+            audio ou photo de chantier), puis vérifiez les informations avant le
+            chiffrage automatique.
           </p>
         </div>
         <div className="registry">
           <Settings2 size={17} /> Tool Registry
         </div>
       </header>
+
       <div className="layout">
         <main className="card">
           <section className="engine">
@@ -155,7 +183,9 @@ export default function App() {
               <label>
                 {mode === "audio"
                   ? "Fournisseur de transcription"
-                  : "Fournisseur"}
+                  : mode === "image"
+                    ? "Fournisseur d'analyse vision"
+                    : "Fournisseur"}
                 <select
                   value={providerId}
                   onChange={(event) => setProvider(event.target.value)}
@@ -168,7 +198,11 @@ export default function App() {
                 </select>
               </label>
               <label>
-                {mode === "audio" ? "Modèle de transcription" : "Modèle"}
+                {mode === "audio"
+                  ? "Modèle de transcription"
+                  : mode === "image"
+                    ? "Modèle vision"
+                    : "Modèle"}
                 <select
                   value={model}
                   onChange={(event) => setModel(event.target.value)}
@@ -182,12 +216,13 @@ export default function App() {
                 </select>
               </label>
             </div>
-            {mode === "audio" && (
+
+            {(mode === "audio" || mode === "image") && (
               <div className="quote-engine">
                 <p className="section-label">GÉNÉRATION DU DEVIS</p>
                 <div className="fields">
                   <label>
-                    Fournisseur
+                    Fournisseur devis
                     <select
                       value={quoteProviderId}
                       onChange={(event) => setQuoteProvider(event.target.value)}
@@ -200,7 +235,7 @@ export default function App() {
                     </select>
                   </label>
                   <label>
-                    Modèle
+                    Modèle devis
                     <select
                       value={quoteModel}
                       onChange={(event) => setQuoteModel(event.target.value)}
@@ -214,6 +249,7 @@ export default function App() {
               </div>
             )}
           </section>
+
           <section className="content">
             <div className="mode-picker">
               <button
@@ -232,9 +268,10 @@ export default function App() {
                 className={mode === "image" ? "selected" : ""}
                 onClick={() => setInputMode("image")}
               >
-                <Image size={16} /> Image <small>Bientôt</small>
+                <Image size={16} /> Image
               </button>
             </div>
+
             {mode === "text" && (
               <label className="description">
                 Décrivez les travaux
@@ -246,6 +283,7 @@ export default function App() {
                 />
               </label>
             )}
+
             {mode === "audio" && (
               <VoiceRecorder
                 provider={providerId}
@@ -261,13 +299,28 @@ export default function App() {
                 }}
               />
             )}
+
             {mode === "image" && (
-              <div className="future">
-                <Image size={28} />
-                <strong>Analyse d’image bientôt disponible</strong>
-                <span>Cette étape est réservée à une prochaine itération.</span>
-              </div>
+              <PhotoUpload
+                provider={providerId}
+                model={model}
+                loadingMatch={matching}
+                onSourceChange={() => {
+                  setPhotoResult(null);
+                  setDescription("");
+                  setMatchError("");
+                }}
+                onConfirmed={(result, autoSubmit) => {
+                  setPhotoResult(result);
+                  setDescription(result.description);
+                  setMatchError("");
+                  if (autoSubmit) {
+                    matchCatalogue(result);
+                  }
+                }}
+              />
             )}
+
             {mode === "audio" && transcription && (
               <section className="transcript">
                 <div>
@@ -285,46 +338,84 @@ export default function App() {
             )}
           </section>
         </main>
+
         <aside>
           <section className="summary">
             <p className="section-label">RÉSUMÉ</p>
             <dl>
-              <dt>{mode === "audio" ? "Transcription" : "Fournisseur"}</dt>
+              <dt>
+                {mode === "audio"
+                  ? "Transcription"
+                  : mode === "image"
+                    ? "Vision"
+                    : "Fournisseur"}
+              </dt>
               <dd>{provider.label}</dd>
-              <dt>{mode === "audio" ? "Modèle audio" : "Modèle"}</dt>
+              <dt>
+                {mode === "audio"
+                  ? "Modèle audio"
+                  : mode === "image"
+                    ? "Modèle vision"
+                    : "Modèle"}
+              </dt>
               <dd>{model || "—"}</dd>
-              {mode === "audio" && (
+
+              {(mode === "audio" || mode === "image") && (
                 <>
-                  <dt>Génération</dt>
+                  <dt>Génération devis</dt>
                   <dd>{quoteProvider.label}</dd>
                   <dt>Modèle devis</dt>
                   <dd>{quoteModel}</dd>
                 </>
               )}
-              <dt>Source</dt>
+
+              <dt>Modalité source</dt>
               <dd>
                 {mode === "text"
-                  ? "Texte"
+                  ? "Texte libre"
                   : mode === "audio"
-                    ? "Audio"
-                    : "Image"}
+                    ? "Enregistrement vocal"
+                    : "Photo de chantier"}
               </dd>
+
+              {mode === "image" && photoResult && (
+                <>
+                  <dt>Pièce / zone</dt>
+                  <dd>{photoResult.analysis?.type_piece || "—"}</dd>
+                  <dt>Surface estimée</dt>
+                  <dd>
+                    {photoResult.analysis?.surface_m2 !== null &&
+                    photoResult.analysis?.surface_m2 !== undefined
+                      ? `${photoResult.analysis?.surface_m2} m²`
+                      : "À calibrer"}
+                  </dd>
+                  <dt>Repère dimensionnel</dt>
+                  <dd>
+                    {photoResult.analysis?.reference_visible ? "Oui" : "Non"}
+                  </dd>
+                </>
+              )}
             </dl>
           </section>
+
           <button
             className="validate"
-            disabled={!ready || mode === "image" || matching}
-            onClick={matchCatalogue}
+            disabled={!ready || matching}
+            onClick={() => matchCatalogue()}
           >
             {matching ? "Génération en cours…" : "Générer le devis"}{" "}
             <ArrowRight size={17} />
           </button>
+
           {matchError && <p className="error">{matchError}</p>}
+
           <p className="hint">
             <Bot size={18} />
             <b>Conseil</b>
             <br />
-            Une demande précise améliore le rapprochement avec le catalogue.
+            {mode === "image"
+              ? "Une photo nette avec un repère métrique visible (porte, prise, équipement) améliore l'estimation de surface."
+              : "Une demande précise améliore le rapprochement avec le catalogue."}
           </p>
         </aside>
       </div>
