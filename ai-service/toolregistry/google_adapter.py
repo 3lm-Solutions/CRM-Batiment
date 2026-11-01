@@ -53,7 +53,7 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
         self,
         description: str,
         system_prompt: Optional[str] = None,
-        max_tokens: int = 1000,
+        max_tokens: int = 8192,
     ) -> DevisGenerationResult:
         with log_api_call("google", self.text_model, "texte") as ctx:
             try:
@@ -64,6 +64,9 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
                         system_instruction=system_prompt or "",
                         max_output_tokens=max_tokens,
                         response_mime_type="application/json",
+                        automatic_function_calling=genai_types.AutomaticFunctionCallingConfig(
+                            disable=True
+                        ),
                     ),
                 )
             except TimeoutError as e:
@@ -71,13 +74,13 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
             except (ClientError, ServerError) as e:
                 raise ProviderAPIError("google", self.text_model, e) from e
 
-            raw_json = json.loads(response.text)
             usage = response.usage_metadata
             tokens_in = getattr(usage, "prompt_token_count", None) if usage else None
             tokens_out = getattr(usage, "candidates_token_count", None) if usage else None
             ctx["tokens_input"] = tokens_in
             ctx["tokens_output"] = tokens_out
             ctx["cout_estime_usd"] = 0.0  # free tier
+            raw_json = _parse_json_response(response, "google", self.text_model)
 
             return DevisGenerationResult(
                 raw_json=raw_json,
@@ -108,6 +111,9 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
                     config=genai_types.GenerateContentConfig(
                         max_output_tokens=800,
                         response_mime_type="application/json",
+                        automatic_function_calling=genai_types.AutomaticFunctionCallingConfig(
+                            disable=True
+                        ),
                     ),
                 )
             except TimeoutError as e:
@@ -115,10 +121,10 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
             except (ClientError, ServerError) as e:
                 raise ProviderAPIError("google", self.vision_model, e) from e
 
-            raw_json = json.loads(response.text)
             usage = response.usage_metadata
             tokens_in = getattr(usage, "prompt_token_count", None) if usage else None
             tokens_out = getattr(usage, "candidates_token_count", None) if usage else None
+            raw_json = _parse_json_response(response, "google", self.vision_model)
 
             return PhotoAnalysisResult(
                 type_piece=raw_json.get("type_piece"),
@@ -133,3 +139,28 @@ class GoogleAdapter(BaseTextModel, BaseVisionModel):
                 tokens_output=tokens_out,
                 cout_estime_usd=0.0,
             )
+
+
+def _parse_json_response(response, provider: str, model: str) -> dict:
+    text = (getattr(response, "text", None) or "").strip()
+    finish_reason = None
+    candidates = getattr(response, "candidates", None) or []
+    if candidates:
+        finish_reason = str(getattr(candidates[0], "finish_reason", "") or "")
+
+    if not text:
+        raise ProviderAPIError(
+            provider,
+            model,
+            ValueError(f"Réponse vide (finish_reason={finish_reason or 'inconnu'})"),
+        )
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        truncated = "MAX_TOKENS" in finish_reason.upper() if finish_reason else False
+        detail = (
+            "JSON tronqué par max_output_tokens"
+            if truncated
+            else f"JSON invalide: {exc}"
+        )
+        raise ProviderAPIError(provider, model, ValueError(detail)) from exc

@@ -29,7 +29,7 @@ from devis_generation.pipeline import (
     envoyer_devis,
     supprimer_occurrence,
 )
-from serialization import apply_quantite_updates, apply_remise_update, session_to_dict
+from serialization import apply_cout_updates, apply_quantite_updates, apply_remise_update, session_to_dict
 from toolregistry import ToolRegistry
 from toolregistry.config import ToolRegistryConfig
 
@@ -62,9 +62,15 @@ class QuantiteUpdate(BaseModel):
     quantite_ouvrage: Optional[float] = None
 
 
+class CoutUpdate(BaseModel):
+    uid: str
+    cout_unitaire_manuel: Optional[float] = None
+
+
 class RecalcRequest(BaseModel):
     taux_marge: float = Field(..., ge=0, le=2)
     quantites: Optional[List[QuantiteUpdate]] = None
+    couts: Optional[List[CoutUpdate]] = None
     remise_ht: float = Field(0, ge=0)
     remise_libelle: str = Field("Remise commerciale", max_length=120)
 
@@ -74,6 +80,7 @@ class OptionsRequest(BaseModel):
     options: List[str] = Field(default_factory=list)
     taux_marge: float = Field(0.30, ge=0, le=2)
     quantites: Optional[List[QuantiteUpdate]] = None
+    couts: Optional[List[CoutUpdate]] = None
 
 
 class AjoutPrestationRequest(BaseModel):
@@ -81,6 +88,7 @@ class AjoutPrestationRequest(BaseModel):
     quantite_ouvrage: Optional[float] = None
     taux_marge: float = Field(0.30, ge=0, le=2)
     quantites: Optional[List[QuantiteUpdate]] = None
+    couts: Optional[List[CoutUpdate]] = None
 
 
 class EnvoyerDevisRequest(BaseModel):
@@ -185,6 +193,8 @@ def recalculer(devis_id: int, body: RecalcRequest) -> dict:
     if body.quantites:
         apply_quantite_updates(devis, [q.model_dump() for q in body.quantites])
     try:
+        if body.couts:
+            apply_cout_updates(devis, [c.model_dump() for c in body.couts])
         apply_remise_update(devis, body.remise_ht, body.remise_libelle)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -197,10 +207,16 @@ def _apply_quantites(devis, updates: Optional[List[QuantiteUpdate]]) -> None:
         apply_quantite_updates(devis, [q.model_dump() for q in updates])
 
 
+def _apply_couts(devis, updates: Optional[List[CoutUpdate]]) -> None:
+    if updates:
+        apply_cout_updates(devis, [c.model_dump() for c in updates])
+
+
 @app.post("/api/devis/{devis_id}/options")
 def maj_options(devis_id: int, body: OptionsRequest) -> dict:
     devis = _session(devis_id)
     _apply_quantites(devis, body.quantites)
+    _apply_couts(devis, body.couts)
     try:
         appliquer_options_occurrence(devis, body.uid, body.options)
     except ValueError as exc:
@@ -213,6 +229,7 @@ def maj_options(devis_id: int, body: OptionsRequest) -> dict:
 def ajouter(devis_id: int, body: AjoutPrestationRequest) -> dict:
     devis = _session(devis_id)
     _apply_quantites(devis, body.quantites)
+    _apply_couts(devis, body.couts)
     try:
         ajouter_occurrence(devis, body.prestation_id, body.quantite_ouvrage)
     except Exception as exc:

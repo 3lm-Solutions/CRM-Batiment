@@ -1,7 +1,20 @@
--- Données minimales pour tester ai-service (base VIDE, tables déjà créées).
---
--- Commande :
---   psql -U postgres -d devis_ia_test -f scripts/seed_test_data.sql
+-- Données minimales pour tester ai-service.
+-- TRUNCATE en tête : relancer ce fichier n'ajoute pas de doublons.
+
+TRUNCATE TABLE
+  choix_options_compositions,
+  prestations_compositions,
+  choix_options,
+  options_prestations,
+  lignes_devis,
+  devis,
+  prestations,
+  categories_prestations,
+  materiaux,
+  services_main_oeuvre,
+  clients,
+  companies
+RESTART IDENTITY CASCADE;
 
 INSERT INTO companies (id, nom, "tvaDefaut", devise, "createdAt", "updatedAt")
 VALUES (1, 'Bâtiment Test SARL', 20.0, 'EUR', now(), now());

@@ -19,7 +19,9 @@ class CataloguePrestation:
     prix_vente_max: float
     description: Optional[str] = None
     categorie_nom: Optional[str] = None
-    options: list = field(default_factory=list)  # noms des OptionPrestation associées
+    # Structure légère envoyée au LLM, sans aucun prix ni composition métier :
+    # [{"id", "nom", "description", "choix": [{"id", "nom", "description"}]}]
+    options: list = field(default_factory=list)
 
 
 class BaseCatalogueProvider(ABC):
@@ -30,8 +32,8 @@ class BaseCatalogueProvider(ABC):
 
     - FewShotCatalogueProvider : ignore le contenu de `description` pour la
       recherche, retourne tout le catalogue de l'entreprise.
-    - RAGCatalogueProvider : utilise `description` pour ne récupérer que les
-      prestations les plus pertinentes par similarité sémantique.
+    - RAGCatalogueProvider : utilise `description` (mistral-embed) pour ne
+      récupérer que les prestations au-dessus du seuil de similarité.
     """
 
     @abstractmethod

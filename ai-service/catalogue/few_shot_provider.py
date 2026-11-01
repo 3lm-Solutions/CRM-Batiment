@@ -16,23 +16,24 @@ from .base import BaseCatalogueProvider, CataloguePrestation
 from .repository import fetch_prestations
 
 FEW_SHOT_EXAMPLES = """
-Exemples de correspondance description -> prestations (few-shot BTP) :
+Exemples illustratifs de comportement (les IDs ci-dessous sont fictifs ;
+utilise exclusivement les IDs du catalogue réel fourni plus haut) :
 
 Description : "Il faut refaire le carrelage de la salle de bain, environ 8m2"
-Prestations attendues : Pose de carrelage (unité: m2, quantité d'ouvrage: 8)
+Réponse : {"prestations": [{"prestation_id": 101, "quantite_ouvrage": 8, "options": []}]}
 
-Description : "Remplacer deux fenêtres au premier étage"
-Prestations attendues : Remplacement de fenêtre (unité: pièce, quantité d'ouvrage: 2)
+Description : "Installer deux luminaires avec une finition chromée"
+Réponse : {"prestations": [{"prestation_id": 205, "quantite_ouvrage": 2, "options": [{"option_id": 31, "choix_id": 88}]}]}
 
 Description : "Il fait froid dans le salon, les fenêtres sont vieilles"
-Prestations attendues : aucune quantité d'ouvrage claire -> quantite_ouvrage: null
+Réponse : {"prestations": [{"prestation_id": 304, "quantite_ouvrage": null, "options": []}]}
 """.strip()
 
 _RESPONSE_FORMAT_INSTRUCTIONS = """
 Réponds uniquement avec un JSON de la forme :
-{"prestations": [{"prestation_id": <id du catalogue ci-dessus>, "quantite_ouvrage": <nombre ou null>, "options": ["nom option", ...]}]}
+{"prestations": [{"prestation_id": <id du catalogue ci-dessus>, "quantite_ouvrage": <nombre ou null>, "options": [{"option_id": <id option du catalogue>, "choix_id": <id choix associé>}, ...]}]}
 Si la quantité d'ouvrage n'est pas mentionnée dans la description, mets `quantite_ouvrage: null`.
-N'invente jamais un prestation_id qui n'existe pas dans le catalogue fourni.
+Pour chaque prestation, sélectionne un choix d'option uniquement s'il est explicitement mentionné ou déductible sans ambiguïté de la demande. Si aucune option ne s'applique, retourne `options: []`. Ne sélectionne jamais un choix par défaut et n'invente jamais un `prestation_id`, `option_id` ou `choix_id` absent du catalogue fourni. Un seul choix est autorisé par `option_id`.
 """.strip()
 
 
@@ -70,6 +71,7 @@ class FewShotCatalogueProvider(BaseCatalogueProvider):
                 {
                     "id": p.id,
                     "nom": p.nom,
+                    "description": p.description,
                     "unite": p.unite,
                     "categorie": p.categorie_nom,
                     "options": p.options,

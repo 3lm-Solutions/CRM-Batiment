@@ -1,0 +1,2009 @@
+{
+  "examples": [
+    {
+      "synthetic_id": "SYN_001",
+      "source_scenario_id": "SCENARIO_001",
+      "split": "optimization",
+      "description": "Bonjour, nous préparons une rénovation dans une maison habitée et souhaitons isoler ce lot dans le devis. Dans le garage, il faut enlever une cloison en brique creuse de 3,2 m par 2,5 m. Le client souhaite un montant détaillé pour ce seul poste avant de confirmer l'intervention.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 1,
+            "quantite_ouvrage": 8,
+            "options": [
+              {
+                "option_id": 1,
+                "choix_id": 2
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "enlever une cloison en brique creuse de 3,2 m par 2,5 m",
+          "quantity_status": "calculable",
+          "quantity_explanation": "3,2 × 2,5 = 8 m²."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_002",
+      "source_scenario_id": "SCENARIO_002",
+      "split": "optimization",
+      "description": "Le chantier est accessible en semaine et le client veut une estimation détaillée avant de fixer la date des travaux. On doit ouvrir un mur porteur en brique pleine pour une baie de 2,40 m, avec l'IPN. La zone sera débarrassée avant le passage de l'équipe et les mesures pourront être contrôlées à l'arrivée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 6,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 5,
+                "choix_id": 22
+              },
+              {
+                "option_id": 6,
+                "choix_id": 27
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "ouvrir un mur porteur en brique pleine pour une baie de 2,40 m",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Une ouverture mur porteur est facturée au forfait ; la largeur identifie le choix 2 m à 3 m."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_003",
+      "source_scenario_id": "SCENARIO_003",
+      "split": "optimization",
+      "description": "Suite à la visite du logement, voici le besoin à chiffrer séparément afin de comparer les solutions proposées. Je voudrais fermer le bureau avec une cloison en BA13 hydrofuge avec laine de verre 45mm sur 24 m². Merci d'indiquer clairement ce lot dans la proposition, car il sera validé séparément des autres travaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 8,
+            "quantite_ouvrage": 24,
+            "options": [
+              {
+                "option_id": 8,
+                "choix_id": 33
+              },
+              {
+                "option_id": 9,
+                "choix_id": 37
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "cloison en BA13 hydrofuge avec laine de verre 45mm sur 24 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface de 24 m² est donnée explicitement."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_004",
+      "source_scenario_id": "SCENARIO_004",
+      "split": "optimization",
+      "description": "Nous rénovons cette pièce progressivement ; merci de prévoir ce poste avec la fourniture et la pose correspondantes. Pour le mur froid de la chambre, prévoir l'isolation intérieure en laine de roche 100mm, surface de 32 m2. Aucune autre fourniture ou réparation n'est demandée dans cette description.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 17,
+            "quantite_ouvrage": 32,
+            "options": [
+              {
+                "option_id": 20,
+                "choix_id": 82
+              },
+              {
+                "option_id": 21,
+                "choix_id": 88
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "isolation intérieure en laine de roche 100mm, surface de 32 m2",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface est indiquée dans la demande."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_005",
+      "source_scenario_id": "SCENARIO_005",
+      "split": "optimization",
+      "description": "Le propriétaire souhaite finaliser ce point avant l'arrivée des autres corps de métier et demande un devis précis. Les combles perdus font 7 m sur 9 : on veut un soufflage d'ouate de cellulose en R=8. Le choix des finitions a déjà été arrêté et ne doit pas être remplacé par une variante non précisée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 18,
+            "quantite_ouvrage": 63,
+            "options": [
+              {
+                "option_id": 22,
+                "choix_id": 93
+              },
+              {
+                "option_id": 23,
+                "choix_id": 96
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "combles perdus font 7 m sur 9 : on veut un soufflage d'ouate de cellulose en R=8",
+          "quantity_status": "calculable",
+          "quantity_explanation": "7 × 9 = 63 m²."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_006",
+      "source_scenario_id": "SCENARIO_006",
+      "split": "optimization",
+      "description": "Pour éviter toute confusion avec les autres pièces de la maison, cette demande concerne uniquement la zone décrite ci-dessous. Remplacement complet de la douche : une douche italienne avec paroi coulissante. Le client souhaite une planification après acceptation du devis et ne demande pas d'autre intervention ici.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 22,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 29,
+                "choix_id": 115
+              },
+              {
+                "option_id": 30,
+                "choix_id": 122
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "une douche italienne avec paroi coulissante",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Une installation douche complète correspond à un forfait."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_007",
+      "source_scenario_id": "SCENARIO_007",
+      "split": "optimization",
+      "description": "Pouvez-vous établir un chiffrage clair pour ce travail, le logement restant occupé pendant la préparation du chantier ? Dans les deux toilettes du rez-de-chaussée, poser deux WC suspendus. Cette demande concerne uniquement les éléments mentionnés ; le reste du logement n'est pas concerné.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 23,
+            "quantite_ouvrage": 2,
+            "options": [
+              {
+                "option_id": 31,
+                "choix_id": 125
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "poser deux WC suspendus",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Deux équipements sont demandés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_008",
+      "source_scenario_id": "SCENARIO_008",
+      "split": "optimization",
+      "description": "Après les relevés effectués sur place, le client souhaite disposer d'un prix distinct pour cette intervention. Il faut refaire 14 mètres de tuyauterie multicouche en diamètre 16 mm sous l'évier et jusqu'au cellier. La visite de contrôle pourra confirmer les dimensions, sans changer les travaux explicitement demandés.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 27,
+            "quantite_ouvrage": 14,
+            "options": [
+              {
+                "option_id": 36,
+                "choix_id": 146
+              },
+              {
+                "option_id": 37,
+                "choix_id": 148
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "14 mètres de tuyauterie multicouche en diamètre 16 mm",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur est explicitement donnée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_009",
+      "source_scenario_id": "SCENARIO_009",
+      "split": "optimization",
+      "description": "Cette demande fait partie d'une remise à niveau du logement ; les accès seront dégagés avant le démarrage. Rénovation électrique de la chambre : 8 prises doubles, 4 interrupteurs va-et-vient et 6 spots LED encastrés. Merci de garder les opérations de ce lot distinctes pour faciliter la lecture du devis final.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 29,
+            "quantite_ouvrage": 8,
+            "options": [
+              {
+                "option_id": 38,
+                "choix_id": 152
+              }
+            ]
+          },
+          {
+            "prestation_id": 30,
+            "quantite_ouvrage": 4,
+            "options": [
+              {
+                "option_id": 39,
+                "choix_id": 157
+              }
+            ]
+          },
+          {
+            "prestation_id": 31,
+            "quantite_ouvrage": 6,
+            "options": [
+              {
+                "option_id": 40,
+                "choix_id": 161
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "8 prises doubles",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Huit prises sont demandées."
+        },
+        {
+          "prestation_index": 1,
+          "excerpt": "4 interrupteurs va-et-vient",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Quatre interrupteurs sont demandés."
+        },
+        {
+          "prestation_index": 2,
+          "excerpt": "6 spots LED encastrés",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Six luminaires sont demandés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_010",
+      "source_scenario_id": "SCENARIO_010",
+      "split": "optimization",
+      "description": "Merci de préparer une estimation pour le chantier suivant, en tenant compte des caractéristiques précisées par le client. Merci de chiffrer 28 m² de carrelage de sol 30x60, pose diagonale avec colle C2 renforcée. Le chantier sera préparé par le client, qui attend uniquement le chiffrage des travaux décrits.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 35,
+            "quantite_ouvrage": 28,
+            "options": [
+              {
+                "option_id": 45,
+                "choix_id": 186
+              },
+              {
+                "option_id": 46,
+                "choix_id": 190
+              },
+              {
+                "option_id": 47,
+                "choix_id": 195
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "28 m² de carrelage de sol 30x60, pose diagonale avec colle C2 renforcée",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et les trois choix sont formulés explicitement."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_011",
+      "source_scenario_id": "SCENARIO_011",
+      "split": "optimization",
+      "description": "Le maître d'ouvrage souhaite valider ce lot avant de lancer la rénovation complète de la pièce. Avant la pose du stratifié, il faudra un ragréage fibré haute résistance en 3-10 mm dans le séjour ; la surface sera relevée sur place. Les informations ci-dessus correspondent au besoin retenu après échange avec l'occupant.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 38,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 51,
+                "choix_id": 215
+              },
+              {
+                "option_id": 52,
+                "choix_id": 217
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "ragréage fibré haute résistance en 3-10 mm",
+          "quantity_status": "absent",
+          "quantity_explanation": "Aucune surface n'est fournie dans la description."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_012",
+      "source_scenario_id": "SCENARIO_012",
+      "split": "optimization",
+      "description": "Nous avons besoin d'un devis lisible pour cette intervention, sans ajouter de prestations non demandées. Le salon comporte 58 m² de murs à repeindre en satin acrylique. Le devis servira à valider ce poste avant toute commande de matériaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 40,
+            "quantite_ouvrage": 58,
+            "options": [
+              {
+                "option_id": 53,
+                "choix_id": 220
+              },
+              {
+                "option_id": 54,
+                "choix_id": 223
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "58 m² de murs à repeindre en satin acrylique",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La quantité et les finitions sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_013",
+      "source_scenario_id": "SCENARIO_013",
+      "split": "optimization",
+      "description": "Bonjour, nous préparons une rénovation dans une maison habitée et souhaitons isoler ce lot dans le devis. Dans l'appartement, pose de 35 m2 de parquet flottant stratifié en 10mm. Le client souhaite un montant détaillé pour ce seul poste avant de confirmer l'intervention.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 46,
+            "quantite_ouvrage": 35,
+            "options": [
+              {
+                "option_id": 60,
+                "choix_id": 248
+              },
+              {
+                "option_id": 61,
+                "choix_id": 254
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "35 m2 de parquet flottant stratifié en 10mm",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface est donnée explicitement."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_014",
+      "source_scenario_id": "SCENARIO_014",
+      "split": "optimization",
+      "description": "Le chantier est accessible en semaine et le client veut une estimation détaillée avant de fixer la date des travaux. Il nous faut trois portes intérieures coulissantes à galandage en MDF peint pour les chambres. La zone sera débarrassée avant le passage de l'équipe et les mesures pourront être contrôlées à l'arrivée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 51,
+            "quantite_ouvrage": 3,
+            "options": [
+              {
+                "option_id": 68,
+                "choix_id": 285
+              },
+              {
+                "option_id": 69,
+                "choix_id": 290
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "trois portes intérieures coulissantes à galandage en MDF peint",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Trois portes sont explicitement demandées."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_015",
+      "source_scenario_id": "SCENARIO_015",
+      "split": "optimization",
+      "description": "Suite à la visite du logement, voici le besoin à chiffrer séparément afin de comparer les solutions proposées. À l'arrière de la maison, remplacement de 4 fenêtres aluminium coulissantes en triple vitrage. Merci d'indiquer clairement ce lot dans la proposition, car il sera validé séparément des autres travaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 54,
+            "quantite_ouvrage": 4,
+            "options": [
+              {
+                "option_id": 74,
+                "choix_id": 309
+              },
+              {
+                "option_id": 75,
+                "choix_id": 314
+              },
+              {
+                "option_id": 76,
+                "choix_id": 319
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "4 fenêtres aluminium coulissantes en triple vitrage",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Le nombre de fenêtres est explicite."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_016",
+      "source_scenario_id": "SCENARIO_016",
+      "split": "optimization",
+      "description": "Nous rénovons cette pièce progressivement ; merci de prévoir ce poste avec la fourniture et la pose correspondantes. La porte d'entrée sera en aluminium avec serrure 5 points, une seule unité. Aucune autre fourniture ou réparation n'est demandée dans cette description.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 55,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 77,
+                "choix_id": 322
+              },
+              {
+                "option_id": 78,
+                "choix_id": 327
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "porte d'entrée sera en aluminium avec serrure 5 points, une seule unité",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Une porte est demandée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_017",
+      "source_scenario_id": "SCENARIO_017",
+      "split": "optimization",
+      "description": "Le propriétaire souhaite finaliser ce point avant l'arrivée des autres corps de métier et demande un devis précis. Réfection de 96 m² de toiture en tuiles béton, dépose et repose comprises. Le choix des finitions a déjà été arrêté et ne doit pas être remplacé par une variante non précisée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 58,
+            "quantite_ouvrage": 96,
+            "options": [
+              {
+                "option_id": 84,
+                "choix_id": 348
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Réfection de 96 m² de toiture en tuiles béton",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface de couverture est indiquée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_018",
+      "source_scenario_id": "SCENARIO_018",
+      "split": "optimization",
+      "description": "Pour éviter toute confusion avec les autres pièces de la maison, cette demande concerne uniquement la zone décrite ci-dessous. Les gouttières de la façade côté jardin sont à changer : 28 ml en PVC, profil carré. Le client souhaite une planification après acceptation du devis et ne demande pas d'autre intervention ici.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 61,
+            "quantite_ouvrage": 28,
+            "options": [
+              {
+                "option_id": 87,
+                "choix_id": 362
+              },
+              {
+                "option_id": 88,
+                "choix_id": 366
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "28 ml en PVC, profil carré",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur, le matériau et la forme sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_019",
+      "source_scenario_id": "SCENARIO_019",
+      "split": "optimization",
+      "description": "Pouvez-vous établir un chiffrage clair pour ce travail, le logement restant occupé pendant la préparation du chantier ? Sur le pignon, il faut reprendre 70 m² d'enduit de façade monocouche taloché. Cette demande concerne uniquement les éléments mentionnés ; le reste du logement n'est pas concerné.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 64,
+            "quantite_ouvrage": 70,
+            "options": [
+              {
+                "option_id": 91,
+                "choix_id": 374
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "70 m² d'enduit de façade monocouche taloché",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et la finition sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_020",
+      "source_scenario_id": "SCENARIO_020",
+      "split": "optimization",
+      "description": "Après les relevés effectués sur place, le client souhaite disposer d'un prix distinct pour cette intervention. Nous souhaitons isoler par l'extérieur 90 m2 du mur arrière, avec fibre de bois 160mm et enduit taloché. La visite de contrôle pourra confirmer les dimensions, sans changer les travaux explicitement demandés.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 66,
+            "quantite_ouvrage": 90,
+            "options": [
+              {
+                "option_id": 93,
+                "choix_id": 385
+              },
+              {
+                "option_id": 94,
+                "choix_id": 390
+              },
+              {
+                "option_id": 95,
+                "choix_id": 392
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "isoler par l'extérieur 90 m2 du mur arrière, avec fibre de bois 160mm et enduit taloché",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La quantité et les trois choix sont directement exprimés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_021",
+      "source_scenario_id": "SCENARIO_021",
+      "split": "optimization",
+      "description": "Cette demande fait partie d'une remise à niveau du logement ; les accès seront dégagés avant le démarrage. Pour la maison, installer une VMC double flux avec 5 bouches d'extraction. Merci de garder les opérations de ce lot distinctes pour faciliter la lecture du devis final.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 71,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 101,
+                "choix_id": 421
+              },
+              {
+                "option_id": 102,
+                "choix_id": 424
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "installer une VMC double flux avec 5 bouches d'extraction",
+          "quantity_status": "explicit",
+          "quantity_explanation": "L'installation VMC est un forfait ; cinq bouches est une option."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_022",
+      "source_scenario_id": "SCENARIO_022",
+      "split": "optimization",
+      "description": "Merci de préparer une estimation pour le chantier suivant, en tenant compte des caractéristiques précisées par le client. La nouvelle terrasse fera 6 m par 4,5 m, en composite sur plots réglables. Le chantier sera préparé par le client, qui attend uniquement le chiffrage des travaux décrits.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 73,
+            "quantite_ouvrage": 27,
+            "options": [
+              {
+                "option_id": 104,
+                "choix_id": 432
+              },
+              {
+                "option_id": 105,
+                "choix_id": 437
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "terrasse fera 6 m par 4,5 m, en composite sur plots réglables",
+          "quantity_status": "calculable",
+          "quantity_explanation": "6 × 4,5 = 27 m²."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_023",
+      "source_scenario_id": "SCENARIO_023",
+      "split": "optimization",
+      "description": "Le maître d'ouvrage souhaite valider ce lot avant de lancer la rénovation complète de la pièce. Prévoir un portail battant deux vantaux en aluminium, motorisé par vérins. Les informations ci-dessus correspondent au besoin retenu après échange avec l'occupant.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 75,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 108,
+                "choix_id": 450
+              },
+              {
+                "option_id": 109,
+                "choix_id": 453
+              },
+              {
+                "option_id": 110,
+                "choix_id": 458
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "portail battant deux vantaux en aluminium, motorisé par vérins",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Un portail correspond à un forfait."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_024",
+      "source_scenario_id": "SCENARIO_024",
+      "split": "optimization",
+      "description": "Nous avons besoin d'un devis lisible pour cette intervention, sans ajouter de prestations non demandées. Cuisine de 5 mètres linéaires en entrée de gamme, avec un plan de travail granit de 2,8 mètres. Le devis servira à valider ce poste avant toute commande de matériaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 78,
+            "quantite_ouvrage": 5,
+            "options": [
+              {
+                "option_id": 114,
+                "choix_id": 475
+              }
+            ]
+          },
+          {
+            "prestation_id": 79,
+            "quantite_ouvrage": 2.8,
+            "options": [
+              {
+                "option_id": 115,
+                "choix_id": 479
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Cuisine de 5 mètres linéaires en entrée de gamme",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur de cuisine est indiquée."
+        },
+        {
+          "prestation_index": 1,
+          "excerpt": "plan de travail granit de 2,8 mètres",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur du plan de travail est indiquée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_025",
+      "source_scenario_id": "SCENARIO_025",
+      "split": "validation",
+      "description": "Bonjour, nous préparons une rénovation dans une maison habitée et souhaitons isoler ce lot dans le devis. Dans la salle de réunion, poser un faux plafond placo acoustique avec une retombée de 10-20 cm sur 22 m². Le client souhaite un montant détaillé pour ce seul poste avant de confirmer l'intervention.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 12,
+            "quantite_ouvrage": 22,
+            "options": [
+              {
+                "option_id": 14,
+                "choix_id": 59
+              },
+              {
+                "option_id": 15,
+                "choix_id": 62
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "faux plafond placo acoustique avec une retombée de 10-20 cm sur 22 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface, le type de plaque et la hauteur perdue sont précisés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_026",
+      "source_scenario_id": "SCENARIO_026",
+      "split": "validation",
+      "description": "Le chantier est accessible en semaine et le client veut une estimation détaillée avant de fixer la date des travaux. Le mur du couloir est très abîmé : prévoir un enduit plâtre lissé, métrage à faire lors de la visite. La zone sera débarrassée avant le passage de l'équipe et les mesures pourront être contrôlées à l'arrivée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 15,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 19,
+                "choix_id": 78
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "prévoir un enduit plâtre lissé",
+          "quantity_status": "absent",
+          "quantity_explanation": "La surface n'est pas mentionnée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_027",
+      "source_scenario_id": "SCENARIO_027",
+      "split": "validation",
+      "description": "Suite à la visite du logement, voici le besoin à chiffrer séparément afin de comparer les solutions proposées. Sous la dalle de la buanderie, on souhaite isoler 30 m² avec du polystyrène extrudé XPS en 80mm. Merci d'indiquer clairement ce lot dans la proposition, car il sera validé séparément des autres travaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 20,
+            "quantite_ouvrage": 30,
+            "options": [
+              {
+                "option_id": 25,
+                "choix_id": 101
+              },
+              {
+                "option_id": 26,
+                "choix_id": 106
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "isoler 30 m² avec du polystyrène extrudé XPS en 80mm",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et les deux choix sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_028",
+      "source_scenario_id": "SCENARIO_028",
+      "split": "validation",
+      "description": "Nous rénovons cette pièce progressivement ; merci de prévoir ce poste avec la fourniture et la pose correspondantes. Le plafond entre le salon et l'étage doit recevoir une isolation phonique par membrane acoustique sur 27 m². Aucune autre fourniture ou réparation n'est demandée dans cette description.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 21,
+            "quantite_ouvrage": 27,
+            "options": [
+              {
+                "option_id": 27,
+                "choix_id": 109
+              },
+              {
+                "option_id": 28,
+                "choix_id": 114
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "plafond entre le salon et l'étage doit recevoir une isolation phonique par membrane acoustique sur 27 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Le support, l'isolant et la surface sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_029",
+      "source_scenario_id": "SCENARIO_029",
+      "split": "validation",
+      "description": "Le propriétaire souhaite finaliser ce point avant l'arrivée des autres corps de métier et demande un devis précis. On remplace le ballon actuel par un chauffe-eau solaire de 300L. Le choix des finitions a déjà été arrêté et ne doit pas être remplacé par une variante non précisée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 26,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 34,
+                "choix_id": 139
+              },
+              {
+                "option_id": 35,
+                "choix_id": 143
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "remplace le ballon actuel par un chauffe-eau solaire de 300L",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Le remplacement est un forfait ; la capacité est une option."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_030",
+      "source_scenario_id": "SCENARIO_030",
+      "split": "validation",
+      "description": "Pour éviter toute confusion avec les autres pièces de la maison, cette demande concerne uniquement la zone décrite ci-dessous. Installer trois thermostats connectés, un dans chaque zone de chauffage. Le client souhaite une planification après acceptation du devis et ne demande pas d'autre intervention ici.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 34,
+            "quantite_ouvrage": 3,
+            "options": [
+              {
+                "option_id": 44,
+                "choix_id": 178
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Installer trois thermostats connectés",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Trois équipements domotiques sont demandés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_031",
+      "source_scenario_id": "SCENARIO_031",
+      "split": "validation",
+      "description": "Pouvez-vous établir un chiffrage clair pour ce travail, le logement restant occupé pendant la préparation du chantier ? Crédence cuisine : 9 m² de carrelage mural 30x60 derrière le plan de travail. Cette demande concerne uniquement les éléments mentionnés ; le reste du logement n'est pas concerné.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 36,
+            "quantite_ouvrage": 9,
+            "options": [
+              {
+                "option_id": 48,
+                "choix_id": 201
+              },
+              {
+                "option_id": 49,
+                "choix_id": 205
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "9 m² de carrelage mural 30x60 derrière le plan de travail",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La pièce, le format et la surface sont identifiables."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_032",
+      "source_scenario_id": "SCENARIO_032",
+      "split": "validation",
+      "description": "Après les relevés effectués sur place, le client souhaite disposer d'un prix distinct pour cette intervention. Dans la douche, poser 12 m2 de faïence en mosaïque. La visite de contrôle pourra confirmer les dimensions, sans changer les travaux explicitement demandés.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 37,
+            "quantite_ouvrage": 12,
+            "options": [
+              {
+                "option_id": 50,
+                "choix_id": 211
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "poser 12 m2 de faïence en mosaïque",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le type de faïence sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_033",
+      "source_scenario_id": "SCENARIO_033",
+      "split": "validation",
+      "description": "Cette demande fait partie d'une remise à niveau du logement ; les accès seront dégagés avant le démarrage. La façade côté rue mesure 10 m de large pour 5,5 m de haut : peinture siloxane à prévoir. Merci de garder les opérations de ce lot distinctes pour faciliter la lecture du devis final.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 42,
+            "quantite_ouvrage": 55,
+            "options": [
+              {
+                "option_id": 56,
+                "choix_id": 232
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "façade côté rue mesure 10 m de large pour 5,5 m de haut : peinture siloxane",
+          "quantity_status": "calculable",
+          "quantity_explanation": "10 × 5,5 = 55 m²."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_034",
+      "source_scenario_id": "SCENARIO_034",
+      "split": "validation",
+      "description": "Merci de préparer une estimation pour le chantier suivant, en tenant compte des caractéristiques précisées par le client. Pose de parquet massif en hêtre cloué dans la bibliothèque, soit 21 mètres carrés. Le chantier sera préparé par le client, qui attend uniquement le chiffrage des travaux décrits.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 47,
+            "quantite_ouvrage": 21,
+            "options": [
+              {
+                "option_id": 62,
+                "choix_id": 258
+              },
+              {
+                "option_id": 63,
+                "choix_id": 264
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "parquet massif en hêtre cloué dans la bibliothèque, soit 21 mètres carrés",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et les deux choix sont indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_035",
+      "source_scenario_id": "SCENARIO_035",
+      "split": "validation",
+      "description": "Le maître d'ouvrage souhaite valider ce lot avant de lancer la rénovation complète de la pièce. Pour le studio, revêtement vinyle en lames clipsables sur 40 m². Les informations ci-dessus correspondent au besoin retenu après échange avec l'occupant.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 49,
+            "quantite_ouvrage": 40,
+            "options": [
+              {
+                "option_id": 65,
+                "choix_id": 273
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "revêtement vinyle en lames clipsables sur 40 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le type de vinyle sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_036",
+      "source_scenario_id": "SCENARIO_036",
+      "split": "validation",
+      "description": "Nous avons besoin d'un devis lisible pour cette intervention, sans ajouter de prestations non demandées. Le bureau doit recevoir 16 m2 de moquette bouclée collée. Le devis servira à valider ce poste avant toute commande de matériaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 50,
+            "quantite_ouvrage": 16,
+            "options": [
+              {
+                "option_id": 66,
+                "choix_id": 277
+              },
+              {
+                "option_id": 67,
+                "choix_id": 281
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "16 m2 de moquette bouclée collée",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La quantité, le type et la pose sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_037",
+      "source_scenario_id": "SCENARIO_037",
+      "split": "validation",
+      "description": "Bonjour, nous préparons une rénovation dans une maison habitée et souhaitons isoler ce lot dans le devis. Fabrication et pose d'un placard de chambre de 3,2 ml, avec portes coulissantes, étagères, tiroirs et penderie. Le client souhaite un montant détaillé pour ce seul poste avant de confirmer l'intervention.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 52,
+            "quantite_ouvrage": 3.2,
+            "options": [
+              {
+                "option_id": 70,
+                "choix_id": 294
+              },
+              {
+                "option_id": 71,
+                "choix_id": 298
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "placard de chambre de 3,2 ml, avec portes coulissantes, étagères, tiroirs et penderie",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur et les deux options sont explicitement décrites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_038",
+      "source_scenario_id": "SCENARIO_038",
+      "split": "validation",
+      "description": "Le chantier est accessible en semaine et le client veut une estimation détaillée avant de fixer la date des travaux. L'escalier existant sera rénové avec des marches en béton ciré. La zone sera débarrassée avant le passage de l'équipe et les mesures pourront être contrôlées à l'arrivée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 53,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 72,
+                "choix_id": 302
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "escalier existant sera rénové avec des marches en béton ciré",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La rénovation d'escalier est un forfait."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_039",
+      "source_scenario_id": "SCENARIO_039",
+      "split": "validation",
+      "description": "Suite à la visite du logement, voici le besoin à chiffrer séparément afin de comparer les solutions proposées. Créer deux baies vitrées à galandage avec châssis mixte bois-alu. Merci d'indiquer clairement ce lot dans la proposition, car il sera validé séparément des autres travaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 57,
+            "quantite_ouvrage": 2,
+            "options": [
+              {
+                "option_id": 82,
+                "choix_id": 342
+              },
+              {
+                "option_id": 83,
+                "choix_id": 346
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "deux baies vitrées à galandage avec châssis mixte bois-alu",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Deux baies sont demandées."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_040",
+      "source_scenario_id": "SCENARIO_040",
+      "split": "validation",
+      "description": "Nous rénovons cette pièce progressivement ; merci de prévoir ce poste avec la fourniture et la pose correspondantes. Nettoyage de 75 m² de toiture à la haute pression avant l'hiver. Aucune autre fourniture ou réparation n'est demandée dans cette description.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 60,
+            "quantite_ouvrage": 75,
+            "options": [
+              {
+                "option_id": 86,
+                "choix_id": 358
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Nettoyage de 75 m² de toiture à la haute pression",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et la méthode sont indiquées."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_041",
+      "source_scenario_id": "SCENARIO_041",
+      "split": "validation",
+      "description": "Le propriétaire souhaite finaliser ce point avant l'arrivée des autres corps de métier et demande un devis précis. La charpente du grenier présente des traces d'insectes ; je veux un traitement curatif gel + injection. La surface sera mesurée après diagnostic. Le choix des finitions a déjà été arrêté et ne doit pas être remplacé par une variante non précisée.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 62,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 89,
+                "choix_id": 369
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "traitement curatif gel + injection",
+          "quantity_status": "absent",
+          "quantity_explanation": "Aucune surface de charpente n'est fournie."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_042",
+      "source_scenario_id": "SCENARIO_042",
+      "split": "validation",
+      "description": "Pour éviter toute confusion avec les autres pièces de la maison, cette demande concerne uniquement la zone décrite ci-dessous. Ravalement complet des 85 m² de la façade arrière, y compris la préparation du support. Le client souhaite une planification après acceptation du devis et ne demande pas d'autre intervention ici.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 63,
+            "quantite_ouvrage": 85,
+            "options": [
+              {
+                "option_id": 90,
+                "choix_id": 371
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Ravalement complet des 85 m² de la façade arrière",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le type de ravalement sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_043",
+      "source_scenario_id": "SCENARIO_043",
+      "split": "validation",
+      "description": "Pouvez-vous établir un chiffrage clair pour ce travail, le logement restant occupé pendant la préparation du chantier ? Nous voulons une pergola bioclimatique à lames orientables pour une zone de plus de 20 m². Cette demande concerne uniquement les éléments mentionnés ; le reste du logement n'est pas concerné.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 77,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 112,
+                "choix_id": 469
+              },
+              {
+                "option_id": 113,
+                "choix_id": 474
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "pergola bioclimatique à lames orientables pour une zone de plus de 20 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La pergola est un forfait ; la tranche de surface est une option."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_044",
+      "source_scenario_id": "SCENARIO_044",
+      "split": "validation",
+      "description": "Après les relevés effectués sur place, le client souhaite disposer d'un prix distinct pour cette intervention. Rénovation complète de la salle de bains de 6-8 m², avec une finition premium. La visite de contrôle pourra confirmer les dimensions, sans changer les travaux explicitement demandés.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 82,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 118,
+                "choix_id": 498
+              },
+              {
+                "option_id": 119,
+                "choix_id": 502
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "Rénovation complète de la salle de bains de 6-8 m², avec une finition premium",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La rénovation est un forfait ; surface et gamme sont des options."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_045",
+      "source_scenario_id": "SCENARIO_045",
+      "split": "validation",
+      "description": "Cette demande fait partie d'une remise à niveau du logement ; les accès seront dégagés avant le démarrage. Le sol de l'atelier, 25 m², sera traité en résine époxy avec finition lisse mate. Merci de garder les opérations de ce lot distinctes pour faciliter la lecture du devis final.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 87,
+            "quantite_ouvrage": 25,
+            "options": [
+              {
+                "option_id": 126,
+                "choix_id": 527
+              },
+              {
+                "option_id": 127,
+                "choix_id": 531
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "sol de l'atelier, 25 m², sera traité en résine époxy avec finition lisse mate",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et les deux choix sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_046",
+      "source_scenario_id": "SCENARIO_046",
+      "split": "validation",
+      "description": "Merci de préparer une estimation pour le chantier suivant, en tenant compte des caractéristiques précisées par le client. Le mur de cave est humide ; prévoir un drainage périphérique. La longueur du mur sera confirmée sur chantier. Le chantier sera préparé par le client, qui attend uniquement le chiffrage des travaux décrits.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 88,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 128,
+                "choix_id": 535
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "prévoir un drainage périphérique",
+          "quantity_status": "absent",
+          "quantity_explanation": "La longueur en mètres linéaires n'est pas indiquée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_047",
+      "source_scenario_id": "SCENARIO_047",
+      "split": "validation",
+      "description": "Le maître d'ouvrage souhaite valider ce lot avant de lancer la rénovation complète de la pièce. Sécuriser le balcon avec 8 ml de garde-corps en inox, modèle vitré. Les informations ci-dessus correspondent au besoin retenu après échange avec l'occupant.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 91,
+            "quantite_ouvrage": 8,
+            "options": [
+              {
+                "option_id": 131,
+                "choix_id": 545
+              },
+              {
+                "option_id": 132,
+                "choix_id": 552
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "8 ml de garde-corps en inox, modèle vitré",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La longueur, le matériau et le type sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_048",
+      "source_scenario_id": "SCENARIO_048",
+      "split": "validation",
+      "description": "Nous avons besoin d'un devis lisible pour cette intervention, sans ajouter de prestations non demandées. Dans la véranda, remplacer 7 vitrages de 1,2 m par 1,5 m par du double vitrage ITR argon. Le devis servira à valider ce poste avant toute commande de matériaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 94,
+            "quantite_ouvrage": 12.6,
+            "options": [
+              {
+                "option_id": 136,
+                "choix_id": 566
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "7 vitrages de 1,2 m par 1,5 m par du double vitrage ITR argon",
+          "quantity_status": "calculable",
+          "quantity_explanation": "7 × 1,2 × 1,5 = 12,6 m²."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_049",
+      "source_scenario_id": "SCENARIO_049",
+      "split": "optimization",
+      "description": "Bonjour, dans la salle d'eau du premier étage, l'ancien revêtement mural se décolle et nous voulons repartir sur un support propre avant les finitions. Il faut déposer environ 15 m² de carrelage mural existant, puis évacuer les déchets ; la pièce sera libérée avant l'intervention. Merci de distinguer clairement ce poste dans le devis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 5,
+            "quantite_ouvrage": 15,
+            "options": []
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "déposer environ 15 m² de carrelage mural existant",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface à déposer est explicitement indiquée."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_050",
+      "source_scenario_id": "SCENARIO_050",
+      "split": "optimization",
+      "description": "Pour transformer le cellier, le sol doit être remis à niveau avant les finitions prévues dans cette pièce. Prévoir sur 45 m² une chape béton allégée entre 7 et 8 cm, avec une réalisation homogène sur toute la surface. Le local sera vidé avant l'arrivée de l'équipe et ce lot doit apparaître séparément dans le devis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 10,
+            "quantite_ouvrage": 45,
+            "options": [
+              {
+                "option_id": 11,
+                "choix_id": 45
+              },
+              {
+                "option_id": 12,
+                "choix_id": 50
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "sur 45 m² une chape béton allégée entre 7 et 8 cm",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface, le type de chape et l'épaisseur sont explicitement indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_051",
+      "source_scenario_id": "SCENARIO_051",
+      "split": "optimization",
+      "description": "La salle de bains a connu de la condensation et le plafond doit être repris proprement avant la remise en service de la pièce. Il y a 18 m² de plafond à peindre avec une peinture anti-humidité, sans travaux complémentaires sur les murs. Merci de prévoir un chiffrage détaillé de cette finition.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 41,
+            "quantite_ouvrage": 18,
+            "options": [
+              {
+                "option_id": 55,
+                "choix_id": 229
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "18 m² de plafond à peindre avec une peinture anti-humidité",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le type de peinture sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_052",
+      "source_scenario_id": "SCENARIO_052",
+      "split": "optimization",
+      "description": "Dans l'entrée, nous souhaitons mettre en valeur le mur de la niche sans refaire le reste des parois. Merci de réaliser sur 14 m² un enduit décoratif Tadelakt, avec une finition continue sur la zone concernée. Le support sera préparé avant l'intervention et ce seul revêtement doit être chiffré.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 44,
+            "quantite_ouvrage": 14,
+            "options": [
+              {
+                "option_id": 58,
+                "choix_id": 240
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "sur 14 m² un enduit décoratif Tadelakt",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le type d'enduit sont explicitement indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_053",
+      "source_scenario_id": "SCENARIO_053",
+      "split": "optimization",
+      "description": "Le circuit de chauffage est conservé, mais les appareils de la pièce de vie doivent être modernisés avant l'hiver. Nous voulons remplacer trois radiateurs par des modèles à eau chaude en acier, raccordés aux arrivées existantes. Merci de chiffrer uniquement cette fourniture et cette pose.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 67,
+            "quantite_ouvrage": 3,
+            "options": [
+              {
+                "option_id": 96,
+                "choix_id": 398
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "remplacer trois radiateurs par des modèles à eau chaude en acier",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Trois radiateurs et leur type sont explicitement demandés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_054",
+      "source_scenario_id": "SCENARIO_054",
+      "split": "optimization",
+      "description": "La cuisine ne dispose pas d'une évacuation d'air suffisante et le client souhaite corriger ce point sans modifier les meubles. Prévoir un extracteur de cuisine au-dessus de la zone de cuisson, avec une seule unité à installer. L'accès au faux plafond sera assuré le jour du chantier.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 72,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 103,
+                "choix_id": 427
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "un extracteur de cuisine au-dessus de la zone de cuisson, avec une seule unité",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Une unité et le type d'extracteur sont explicitement indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_055",
+      "source_scenario_id": "SCENARIO_055",
+      "split": "validation",
+      "description": "Les anciennes persiennes de la façade sont très usées et le client veut améliorer le confort d'utilisation sans changer les fenêtres. Il faut poser cinq volets roulants en aluminium avec motorisation radio, répartis sur les ouvertures existantes. Merci de prévoir ce lot complet dans le devis, sans intervention sur les châssis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 56,
+            "quantite_ouvrage": 5,
+            "options": [
+              {
+                "option_id": 79,
+                "choix_id": 329
+              },
+              {
+                "option_id": 80,
+                "choix_id": 334
+              },
+              {
+                "option_id": 81,
+                "choix_id": 338
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "poser cinq volets roulants en aluminium avec motorisation radio",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Le nombre de volets, le matériau et la motorisation sont donnés."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_056",
+      "source_scenario_id": "SCENARIO_056",
+      "split": "validation",
+      "description": "Après les dernières intempéries, quelques éléments de la couverture se sont fissurés sur le versant arrière. Nous souhaitons une réparation ciblée avec remplacement des tuiles sur environ 18 m², sans refaire l'ensemble de la toiture. Le devis devra distinguer cette réparation ponctuelle des autres postes éventuels.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 59,
+            "quantite_ouvrage": 18,
+            "options": [
+              {
+                "option_id": 85,
+                "choix_id": 353
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "remplacement des tuiles sur environ 18 m²",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface concernée et le type de réparation sont explicites."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_057",
+      "source_scenario_id": "SCENARIO_057",
+      "split": "validation",
+      "description": "L'accès entre le portail et le garage est aujourd'hui en terre et devient difficile par temps de pluie. Il faut créer une allée de 32 m² en pavés autobloquants, avec une finition régulière sur toute la zone de passage. Le terrain sera dégagé avant le début des travaux et aucun aménagement paysager n'est demandé.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 76,
+            "quantite_ouvrage": 32,
+            "options": [
+              {
+                "option_id": 111,
+                "choix_id": 464
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "créer une allée de 32 m² en pavés autobloquants",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le matériau de l'allée sont indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_058",
+      "source_scenario_id": "SCENARIO_058",
+      "split": "validation",
+      "description": "La crédence actuelle de la cuisine est à remplacer lors de la pose du nouveau plan de travail. Prévoir 6 m² de crédence en verre trempé derrière les zones de cuisson et d'évier, avec une pose nette sur le support existant. Merci de chiffrer uniquement cette finition murale.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 80,
+            "quantite_ouvrage": 6,
+            "options": [
+              {
+                "option_id": 116,
+                "choix_id": 486
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "6 m² de crédence en verre trempé",
+          "quantity_status": "explicit",
+          "quantity_explanation": "La surface et le matériau sont explicitement indiqués."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_059",
+      "source_scenario_id": "SCENARIO_059",
+      "split": "validation",
+      "description": "La salle de bains est déjà rénovée, mais il manque les éléments de finition nécessaires pour l'usage quotidien. Le client souhaite la pose d'un pack complet de six accessoires, sans changement du meuble vasque ni de la douche. Merci de présenter ce poste comme une intervention distincte et limitée à ces équipements.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 85,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 123,
+                "choix_id": 519
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "pose d'un pack complet de six accessoires",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Le pack choisi est explicite ; la prestation est facturée au forfait."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    },
+    {
+      "synthetic_id": "SYN_060",
+      "source_scenario_id": "SCENARIO_060",
+      "split": "validation",
+      "description": "Pour séparer le coin bureau du séjour tout en conservant la lumière naturelle, nous voulons installer une verrière intérieure avec porte et cadre en acier noir. Une seule réalisation est prévue sur l'ouverture existante ; les cloisons alentours ne sont pas à modifier. Merci de chiffrer cette pose comme un poste autonome.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 96,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 139,
+                "choix_id": 575
+              },
+              {
+                "option_id": 140,
+                "choix_id": 578
+              }
+            ]
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "prestation_index": 0,
+          "excerpt": "installer une verrière intérieure avec porte et cadre en acier noir",
+          "quantity_status": "explicit",
+          "quantity_explanation": "Une verrière est explicitement demandée avec son type et le matériau du cadre."
+        }
+      ],
+      "requires_review": false,
+      "issues": []
+    }
+  ],
+  "split_summary": {
+    "optimization_count": 30,
+    "validation_count": 30,
+    "optimization_percentage": 50.0,
+    "validation_percentage": 50.0
+  }
+}

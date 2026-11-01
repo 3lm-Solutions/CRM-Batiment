@@ -69,17 +69,134 @@ def fetch_prestations(company_id: int) -> List[CataloguePrestation]:
     ]
 
 
-def _fetch_options(prestation_id: int) -> List[str]:
-    """Noms des ChoixOption (pas OptionPrestation) : c'est ce que le LLM
-    doit renvoyer et ce que l'UI affiche en cases à cocher."""
+def fetch_prestations_by_ids(
+    company_id: int, prestation_ids: List[int]
+) -> List[CataloguePrestation]:
+    """Lecture seule des prestations demandées, dans l'ordre des IDs fournis."""
+    if not prestation_ids:
+        return []
+
     query = """
-        SELECT co.nom
-        FROM choix_options co
-        JOIN options_prestations op ON op.id = co."optionId"
-        WHERE op."prestationId" = %s AND co.actif = true
+        SELECT
+            p.id,
+            p.nom,
+            p.unite,
+            p."prixVenteMin"  AS prix_vente_min,
+            p."prixVenteMax"  AS prix_vente_max,
+            p.description,
+            c.nom AS categorie_nom
+        FROM prestations p
+        LEFT JOIN categories_prestations c ON c.id = p."categorieId"
+        WHERE p."companyId" = %s AND p.actif = true AND p.id = ANY(%s)
+    """
+    with _get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query, (company_id, list(prestation_ids)))
+            rows = cur.fetchall()
+
+    by_id = {
+        row["id"]: CataloguePrestation(
+            id=row["id"],
+            nom=row["nom"],
+            unite=row["unite"],
+            prix_vente_min=row["prix_vente_min"],
+            prix_vente_max=row["prix_vente_max"],
+            description=row["description"],
+            categorie_nom=row["categorie_nom"],
+            options=[],
+        )
+        for row in rows
+    }
+    options_by_prestation = _fetch_options_for_ids(list(by_id.keys()))
+    ordered = []
+    for prestation_id in prestation_ids:
+        prestation = by_id.get(prestation_id)
+        if prestation is None:
+            continue
+        prestation.options = options_by_prestation.get(prestation_id, [])
+        ordered.append(prestation)
+    return ordered
+
+
+def _fetch_options_for_ids(prestation_ids: List[int]) -> dict:
+    if not prestation_ids:
+        return {}
+    query = """
+        SELECT op."prestationId" AS prestation_id,
+               op.id AS option_id, op.nom AS option_nom,
+               op.description AS option_description, co.id AS choix_id,
+               co.nom AS choix_nom, co.description AS choix_description
+        FROM options_prestations op
+        LEFT JOIN choix_options co ON co."optionId" = op.id AND co.actif = true
+        WHERE op."prestationId" = ANY(%s)
+        ORDER BY op."prestationId", op.ordre, co.ordre
+    """
+    with _get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query, (list(prestation_ids),))
+            rows = cur.fetchall()
+
+    grouped: dict = {prestation_id: [] for prestation_id in prestation_ids}
+    options_by_id: dict = {}
+    for row in rows:
+        option = options_by_id.get(row["option_id"])
+        if option is None:
+            option = {
+                "id": row["option_id"],
+                "nom": row["option_nom"],
+                "description": row["option_description"],
+                "choix": [],
+            }
+            options_by_id[row["option_id"]] = option
+            grouped.setdefault(row["prestation_id"], []).append(option)
+        if row["choix_id"] is not None:
+            option["choix"].append(
+                {
+                    "id": row["choix_id"],
+                    "nom": row["choix_nom"],
+                    "description": row["choix_description"],
+                }
+            )
+    return grouped
+
+
+def _fetch_options(prestation_id: int) -> List[dict]:
+    """Arbre OptionPrestation -> ChoixOption léger destiné au contexte LLM.
+
+    Les composants, coûts et règles de prix ne sont volontairement jamais
+    transmis au modèle : ils sont relus en base seulement après sa sélection.
+    """
+    query = """
+        SELECT op.id AS option_id, op.nom AS option_nom,
+               op.description AS option_description, co.id AS choix_id,
+               co.nom AS choix_nom, co.description AS choix_description
+        FROM options_prestations op
+        LEFT JOIN choix_options co ON co."optionId" = op.id AND co.actif = true
+        WHERE op."prestationId" = %s
         ORDER BY op.ordre, co.ordre
     """
     with _get_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, (prestation_id,))
-            return [r[0] for r in cur.fetchall()]
+            rows = cur.fetchall()
+
+    options_by_id = {}
+    for row in rows:
+        option = options_by_id.setdefault(
+            row["option_id"],
+            {
+                "id": row["option_id"],
+                "nom": row["option_nom"],
+                "description": row["option_description"],
+                "choix": [],
+            },
+        )
+        if row["choix_id"] is not None:
+            option["choix"].append(
+                {
+                    "id": row["choix_id"],
+                    "nom": row["choix_nom"],
+                    "description": row["choix_description"],
+                }
+            )
+    return list(options_by_id.values())

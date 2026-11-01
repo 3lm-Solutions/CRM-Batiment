@@ -21,6 +21,7 @@ from .pricing import (
     appliquer_taux_marge,
     construire_occurrence,
     resoudre_occurrences,
+    verifier_couts_manuels_manquants,
     verifier_fourchette,
     verifier_quantites_manquantes,
 )
@@ -48,7 +49,7 @@ def demarrer_generation_devis(
     system_prompt = catalogue_provider.build_system_prompt(description, company_id)
     resultat_llm = registry.generate_devis_from_text(description, system_prompt=system_prompt)
 
-    occurrences = resoudre_occurrences(resultat_llm.raw_json)
+    occurrences = resoudre_occurrences(resultat_llm.raw_json, company_id=company_id)
 
     devis_id = repository.create_devis_brouillon(
         company_id=company_id,
@@ -84,23 +85,48 @@ def appliquer_marge_et_verifier(devis: DevisEnConstruction, taux_marge: float) -
 
     alertes_fourchette = verifier_fourchette(devis.occurrences)
     quantites_manquantes = verifier_quantites_manquantes(devis.occurrences)
+    couts_manquants = verifier_couts_manuels_manquants(devis.occurrences)
 
     return {
         "occurrences": devis.occurrences,
         "alertes_fourchette": alertes_fourchette,
         "quantites_manquantes": quantites_manquantes,
+        "couts_manquants": couts_manquants,
         "envoi_bloque_quantite_manquante": len(quantites_manquantes) > 0,
+        "envoi_bloque_cout_manquant": len(couts_manquants) > 0,
     }
 
 
 def aplatir_lignes(devis: DevisEnConstruction) -> List[dict]:
     lignes = []
+    taux = devis.taux_marge if devis.taux_marge is not None else 0.0
     for occ in devis.occurrences:
+        if not occ.composants:
+            if occ.cout_unitaire_manuel is None:
+                continue
+            qte = occ.quantite_ouvrage or 0.0
+            pu = round(float(occ.cout_unitaire_manuel) * (1 + taux), 2)
+            lignes.append(
+                {
+                    "prestationId": occ.prestation_id,
+                    "description": occ.nom,
+                    "materiauId": None,
+                    "serviceMainOeuvreId": None,
+                    "quantite": qte,
+                    "unite": occ.unite,
+                    "prixUnitaireVente": pu,
+                    "prixAchat": 0,
+                    "mainOeuvre": occ.cout_unitaire_manuel,
+                    "totalHT": round(qte * pu, 2),
+                    "coutTotal": round(qte * float(occ.cout_unitaire_manuel), 2),
+                }
+            )
+            continue
         for comp in occ.composants:
             lignes.append(
                 {
                     "prestationId": occ.prestation_id,
-                    "description": f"{occ.nom} — {comp.nom}",
+                    "description": comp.nom,
                     "materiauId": comp.id if comp.type == "materiau" else None,
                     "serviceMainOeuvreId": comp.id if comp.type == "service_main_oeuvre" else None,
                     "quantite": comp.quantite_calculee or 0,
@@ -147,6 +173,9 @@ def apercu_session(devis: DevisEnConstruction) -> Dict:
     if etat["envoi_bloque_quantite_manquante"]:
         n = len(etat["quantites_manquantes"])
         raisons.append(f"{n} quantité{'s' if n > 1 else ''} manquante{'s' if n > 1 else ''}")
+    if etat["envoi_bloque_cout_manquant"]:
+        n = len(etat["couts_manquants"])
+        raisons.append(f"{n} coût{'s' if n > 1 else ''} unitaire{'s' if n > 1 else ''} à saisir")
     if not peut_envoyer_devis(resultat_marge):
         for a in resultat_marge["alertes"]:
             raisons.append(a["message"])
@@ -162,12 +191,18 @@ def apercu_session(devis: DevisEnConstruction) -> Dict:
         "occurrences": devis.occurrences,
         "alertes_fourchette": etat["alertes_fourchette"],
         "quantites_manquantes": etat["quantites_manquantes"],
+        "couts_manquants": etat["couts_manquants"],
         "envoi_bloque_quantite_manquante": etat["envoi_bloque_quantite_manquante"],
+        "envoi_bloque_cout_manquant": etat["envoi_bloque_cout_manquant"],
         "total_ht": total_ht,
         "total_tva": total_tva,
         "total_ttc": round(total_ht + total_tva, 2),
         "resultat_marge": resultat_marge,
-        "peut_envoyer": (not etat["envoi_bloque_quantite_manquante"]) and peut_envoyer_devis(resultat_marge),
+        "peut_envoyer": (
+            (not etat["envoi_bloque_quantite_manquante"])
+            and (not etat["envoi_bloque_cout_manquant"])
+            and peut_envoyer_devis(resultat_marge)
+        ),
         "raisons_blocage": raisons,
         "lignes_apercu": lignes,
     }
@@ -179,8 +214,10 @@ def appliquer_options_occurrence(devis: DevisEnConstruction, uid: str, options_c
         prestation_id=occ.prestation_id,
         quantite_ouvrage=occ.quantite_ouvrage,
         options_choisies=options_choisies,
+        company_id=devis.company_id,
         uid=occ.uid,
     )
+    rebuilt.cout_unitaire_manuel = occ.cout_unitaire_manuel
     idx = devis.occurrences.index(occ)
     devis.occurrences[idx] = rebuilt
 
@@ -192,7 +229,12 @@ def ajouter_occurrence(
     options_choisies=None,
 ) -> None:
     devis.occurrences.append(
-        construire_occurrence(prestation_id, quantite_ouvrage, options_choisies or [])
+        construire_occurrence(
+            prestation_id,
+            quantite_ouvrage,
+            options_choisies or [],
+            company_id=devis.company_id,
+        )
     )
 
 
@@ -223,6 +265,12 @@ def valider_et_sauvegarder(devis: DevisEnConstruction) -> Dict:
         noms = [m["prestation_nom"] for m in manquantes]
         raise ValueError(
             f"Impossible de sauvegarder : quantité d'ouvrage manquante pour : {', '.join(noms)}"
+        )
+    couts_manquants = verifier_couts_manuels_manquants(devis.occurrences)
+    if couts_manquants:
+        noms = [c["prestation_nom"] for c in couts_manquants]
+        raise ValueError(
+            f"Impossible de sauvegarder : coût unitaire à saisir pour : {', '.join(noms)}"
         )
 
     lignes = aplatir_lignes(devis)

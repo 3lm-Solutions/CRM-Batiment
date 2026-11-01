@@ -39,16 +39,20 @@ def _connection():
         conn.close()
 
 
-def fetch_prestation_full(prestation_id: int) -> dict:
+def fetch_prestation_full(prestation_id: int, company_id: Optional[int] = None) -> dict:
     """Nom, unité, bornes de prix — nécessaire pour construire une OccurrencePrestation."""
     query = """
         SELECT id, nom, unite, "prixVenteMin" AS prix_vente_min, "prixVenteMax" AS prix_vente_max
         FROM prestations
         WHERE id = %s
     """
+    params = [prestation_id]
+    if company_id is not None:
+        query += ' AND "companyId" = %s'
+        params.append(company_id)
     with _connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(query, (prestation_id,))
+            cur.execute(query, params)
             row = cur.fetchone()
             if row is None:
                 raise ValueError(f"Prestation introuvable : id={prestation_id}")
@@ -107,6 +111,35 @@ def fetch_choix_option_id_by_name(prestation_id: int, option_nom: str) -> Option
             cur.execute(query, (prestation_id, option_nom))
             row = cur.fetchone()
             return row[0] if row else None
+
+
+def fetch_choix_option_for_selection(
+    prestation_id: int, option_id: int, choix_id: int, company_id: Optional[int] = None
+) -> Optional[dict]:
+    """Valide le triplet retourné par le LLM et retourne le choix réel.
+
+    Cette requête interdit qu'un choix d'une autre option, d'une autre
+    prestation ou d'une autre entreprise soit utilisé dans le devis.
+    """
+    query = """
+        SELECT co.id, co.nom
+        FROM options_prestations op
+        JOIN choix_options co ON co."optionId" = op.id
+        JOIN prestations p ON p.id = op."prestationId"
+        WHERE p.id = %s
+          AND op.id = %s
+          AND co.id = %s
+          AND co.actif = true
+    """
+    params = [prestation_id, option_id, choix_id]
+    if company_id is not None:
+        query += ' AND p."companyId" = %s'
+        params.append(company_id)
+    with _connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query, params)
+            row = cur.fetchone()
+            return dict(row) if row else None
 
 
 def fetch_choix_option_composition(choix_option_id: int) -> List[dict]:

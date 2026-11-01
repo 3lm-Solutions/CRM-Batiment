@@ -1,0 +1,589 @@
+company_id,prestation_id,prestation,prestation_actif,option_id,option,choix_id,choix,choix_actif
+1,1,Démolition cloison,t,1,Type de cloison,1,Cloison en plâtre,t
+1,1,Démolition cloison,t,1,Type de cloison,2,Cloison en brique creuse,t
+1,1,Démolition cloison,t,1,Type de cloison,3,Cloison en plaques de plâtre,t
+1,1,Démolition cloison,t,1,Type de cloison,4,Cloison en béton cellulaire,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,5,Carrelage,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,6,Parquet collé,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,7,Parquet flottant,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,8,Moquette,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,9,Vinyle / PVC,t
+1,2,Dépose revêtement sol,t,2,Type de revêtement,10,Lino,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,11,Baignoire,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,12,Douche / receveur,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,13,WC,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,14,Lavabo / vasque,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,15,Bidet,t
+1,3,Dépose sanitaires,t,3,Type d'équipement,16,Meuble vasque,t
+1,4,Démolition murale partielle,t,4,Type de mur,17,Brique,t
+1,4,Démolition murale partielle,t,4,Type de mur,18,Béton,t
+1,4,Démolition murale partielle,t,4,Type de mur,19,Pierre,t
+1,4,Démolition murale partielle,t,4,Type de mur,20,Parpaing,t
+1,5,Dépose carrelage mural,t,,,,,
+1,6,Ouverture mur porteur,t,5,Type de mur,21,Béton armé,t
+1,6,Ouverture mur porteur,t,5,Type de mur,22,Brique pleine,t
+1,6,Ouverture mur porteur,t,5,Type de mur,23,Pierre,t
+1,6,Ouverture mur porteur,t,5,Type de mur,24,Parpaing,t
+1,6,Ouverture mur porteur,t,6,Largeur ouverture,25,< 1m,t
+1,6,Ouverture mur porteur,t,6,Largeur ouverture,26,1m à 2m,t
+1,6,Ouverture mur porteur,t,6,Largeur ouverture,27,2m à 3m,t
+1,6,Ouverture mur porteur,t,6,Largeur ouverture,28,> 3m,t
+1,7,Création ouverture fenêtre,t,7,Type de mur,29,Brique,t
+1,7,Création ouverture fenêtre,t,7,Type de mur,30,Parpaing,t
+1,7,Création ouverture fenêtre,t,7,Type de mur,31,Pierre,t
+1,8,Montage cloison placo,t,8,Type de placo,32,BA13 standard,t
+1,8,Montage cloison placo,t,8,Type de placo,33,BA13 hydrofuge,t
+1,8,Montage cloison placo,t,8,Type de placo,34,BA13 phonique,t
+1,8,Montage cloison placo,t,8,Type de placo,35,BA13 feu (rose),t
+1,8,Montage cloison placo,t,8,Type de placo,36,Double parement,t
+1,8,Montage cloison placo,t,9,Isolation intégrée,37,Sans isolation,t
+1,8,Montage cloison placo,t,9,Isolation intégrée,38,Laine de verre 45mm,t
+1,8,Montage cloison placo,t,9,Isolation intégrée,39,Laine de verre 70mm,t
+1,8,Montage cloison placo,t,9,Isolation intégrée,40,Laine de roche 45mm,t
+1,9,Montage cloison briques,t,10,Épaisseur,41,5cm,t
+1,9,Montage cloison briques,t,10,Épaisseur,42,7cm,t
+1,9,Montage cloison briques,t,10,Épaisseur,43,10cm,t
+1,10,Chape béton,t,11,Type de chape,44,Chape traditionnelle,t
+1,10,Chape béton,t,11,Type de chape,45,Chape allégée,t
+1,10,Chape béton,t,11,Type de chape,46,Chape fibrée,t
+1,10,Chape béton,t,11,Type de chape,47,Chape liquide anhydrite,t
+1,10,Chape béton,t,12,Épaisseur,48,3-4 cm,t
+1,10,Chape béton,t,12,Épaisseur,49,5-6 cm,t
+1,10,Chape béton,t,12,Épaisseur,50,7-8 cm,t
+1,10,Chape béton,t,12,Épaisseur,51,> 8 cm,t
+1,11,Montage mur agglo,t,13,Type d'agglo,52,Creux 20cm,t
+1,11,Montage mur agglo,t,13,Type d'agglo,53,Creux 15cm,t
+1,11,Montage mur agglo,t,13,Type d'agglo,54,Plein 20cm,t
+1,11,Montage mur agglo,t,13,Type d'agglo,55,Plein 15cm,t
+1,11,Montage mur agglo,t,13,Type d'agglo,56,Béton cellulaire,t
+1,12,Faux plafond placo,t,14,Type de plaque,57,BA13 standard,t
+1,12,Faux plafond placo,t,14,Type de plaque,58,BA13 hydrofuge,t
+1,12,Faux plafond placo,t,14,Type de plaque,59,Acoustique haute performance,t
+1,12,Faux plafond placo,t,14,Type de plaque,60,Feu M1,t
+1,12,Faux plafond placo,t,15,Hauteur sous plafond perdue,61,5-10 cm,t
+1,12,Faux plafond placo,t,15,Hauteur sous plafond perdue,62,10-20 cm,t
+1,12,Faux plafond placo,t,15,Hauteur sous plafond perdue,63,20-40 cm,t
+1,12,Faux plafond placo,t,15,Hauteur sous plafond perdue,64,> 40 cm,t
+1,13,Faux plafond dalles,t,16,Type de dalle,65,Minérale standard,t
+1,13,Faux plafond dalles,t,16,Type de dalle,66,Minérale acoustique,t
+1,13,Faux plafond dalles,t,16,Type de dalle,67,Métallique,t
+1,13,Faux plafond dalles,t,16,Type de dalle,68,PVC,t
+1,14,Doublage mur,t,17,Type d'isolant,69,Polystyrène expansé (PSE),t
+1,14,Doublage mur,t,17,Type d'isolant,70,Polystyrène extrudé (XPS),t
+1,14,Doublage mur,t,17,Type d'isolant,71,Laine de verre,t
+1,14,Doublage mur,t,17,Type d'isolant,72,Laine de roche,t
+1,14,Doublage mur,t,18,Épaisseur isolant,73,40mm,t
+1,14,Doublage mur,t,18,Épaisseur isolant,74,60mm,t
+1,14,Doublage mur,t,18,Épaisseur isolant,75,80mm,t
+1,14,Doublage mur,t,18,Épaisseur isolant,76,100mm,t
+1,14,Doublage mur,t,18,Épaisseur isolant,77,120mm,t
+1,15,Enduit plâtre mur,t,19,Finition,78,Lissé,t
+1,15,Enduit plâtre mur,t,19,Finition,79,Taloché,t
+1,15,Enduit plâtre mur,t,19,Finition,80,Projeté,t
+1,16,Bandes à joints,t,,,,,
+1,17,Isolation mur intérieur,t,20,Type d'isolant,81,Laine de verre,t
+1,17,Isolation mur intérieur,t,20,Type d'isolant,82,Laine de roche,t
+1,17,Isolation mur intérieur,t,20,Type d'isolant,83,Polystyrène expansé,t
+1,17,Isolation mur intérieur,t,20,Type d'isolant,84,Polyuréthane,t
+1,17,Isolation mur intérieur,t,20,Type d'isolant,85,Fibre de bois,t
+1,17,Isolation mur intérieur,t,21,Épaisseur,86,60mm (R=1.85),t
+1,17,Isolation mur intérieur,t,21,Épaisseur,87,80mm (R=2.50),t
+1,17,Isolation mur intérieur,t,21,Épaisseur,88,100mm (R=3.15),t
+1,17,Isolation mur intérieur,t,21,Épaisseur,89,120mm (R=3.75),t
+1,17,Isolation mur intérieur,t,21,Épaisseur,90,140mm (R=4.35),t
+1,18,Isolation combles soufflage,t,22,Type d'isolant,91,Laine de verre,t
+1,18,Isolation combles soufflage,t,22,Type d'isolant,92,Laine de roche,t
+1,18,Isolation combles soufflage,t,22,Type d'isolant,93,Ouate de cellulose,t
+1,18,Isolation combles soufflage,t,22,Type d'isolant,94,Fibre de bois,t
+1,18,Isolation combles soufflage,t,23,Résistance thermique,95,R=7 (30cm),t
+1,18,Isolation combles soufflage,t,23,Résistance thermique,96,R=8 (35cm),t
+1,18,Isolation combles soufflage,t,23,Résistance thermique,97,R=10 (40cm),t
+1,19,Isolation combles rampants,t,24,Type d'isolant,98,Laine de verre,t
+1,19,Isolation combles rampants,t,24,Type d'isolant,99,Laine de roche,t
+1,19,Isolation combles rampants,t,24,Type d'isolant,100,Fibre de bois,t
+1,20,Isolation sol,t,25,Type d'isolant,101,Polystyrène extrudé (XPS),t
+1,20,Isolation sol,t,25,Type d'isolant,102,Polyuréthane,t
+1,20,Isolation sol,t,25,Type d'isolant,103,Laine de roche haute densité,t
+1,20,Isolation sol,t,26,Épaisseur,104,40mm,t
+1,20,Isolation sol,t,26,Épaisseur,105,60mm,t
+1,20,Isolation sol,t,26,Épaisseur,106,80mm,t
+1,20,Isolation sol,t,26,Épaisseur,107,100mm,t
+1,21,Isolation phonique,t,27,Support,108,Mur,t
+1,21,Isolation phonique,t,27,Support,109,Plafond,t
+1,21,Isolation phonique,t,27,Support,110,Cloison,t
+1,21,Isolation phonique,t,28,Type d'isolant,111,Laine de roche,t
+1,21,Isolation phonique,t,28,Type d'isolant,112,Mousse acoustique,t
+1,21,Isolation phonique,t,28,Type d'isolant,113,Placo phonique + laine,t
+1,21,Isolation phonique,t,28,Type d'isolant,114,Membrane acoustique,t
+1,22,Installation douche complète,t,29,Type de douche,115,Douche italienne,t
+1,22,Installation douche complète,t,29,Type de douche,116,Receveur extra-plat,t
+1,22,Installation douche complète,t,29,Type de douche,117,Receveur surélevé,t
+1,22,Installation douche complète,t,29,Type de douche,118,Cabine de douche complète,t
+1,22,Installation douche complète,t,30,Paroi,119,Sans paroi,t
+1,22,Installation douche complète,t,30,Paroi,120,Paroi fixe,t
+1,22,Installation douche complète,t,30,Paroi,121,Paroi battante,t
+1,22,Installation douche complète,t,30,Paroi,122,Paroi coulissante,t
+1,22,Installation douche complète,t,30,Paroi,123,Rideau de douche,t
+1,23,Remplacement WC,t,31,Type de WC,124,WC posé classique,t
+1,23,Remplacement WC,t,31,Type de WC,125,WC suspendu,t
+1,23,Remplacement WC,t,31,Type de WC,126,WC broyeur,t
+1,23,Remplacement WC,t,31,Type de WC,127,WC lavant,t
+1,24,Installation lavabo,t,32,Type de vasque,128,Vasque à poser,t
+1,24,Installation lavabo,t,32,Type de vasque,129,Vasque encastrée,t
+1,24,Installation lavabo,t,32,Type de vasque,130,Lavabo suspendu,t
+1,24,Installation lavabo,t,32,Type de vasque,131,Lave-mains,t
+1,25,Pose baignoire,t,33,Type de baignoire,132,Baignoire standard,t
+1,25,Pose baignoire,t,33,Type de baignoire,133,Baignoire balnéo,t
+1,25,Pose baignoire,t,33,Type de baignoire,134,Baignoire îlot,t
+1,25,Pose baignoire,t,33,Type de baignoire,135,Baignoire d'angle,t
+1,26,Remplacement chauffe-eau,t,34,Type de chauffe-eau,136,Électrique (cumulus),t
+1,26,Remplacement chauffe-eau,t,34,Type de chauffe-eau,137,Gaz,t
+1,26,Remplacement chauffe-eau,t,34,Type de chauffe-eau,138,Thermodynamique,t
+1,26,Remplacement chauffe-eau,t,34,Type de chauffe-eau,139,Solaire,t
+1,26,Remplacement chauffe-eau,t,35,Capacité,140,100L,t
+1,26,Remplacement chauffe-eau,t,35,Capacité,141,150L,t
+1,26,Remplacement chauffe-eau,t,35,Capacité,142,200L,t
+1,26,Remplacement chauffe-eau,t,35,Capacité,143,300L,t
+1,27,Remplacement tuyauterie,t,36,Type de tuyau,144,PER,t
+1,27,Remplacement tuyauterie,t,36,Type de tuyau,145,Cuivre,t
+1,27,Remplacement tuyauterie,t,36,Type de tuyau,146,Multicouche,t
+1,27,Remplacement tuyauterie,t,37,Diamètre,147,12mm,t
+1,27,Remplacement tuyauterie,t,37,Diamètre,148,16mm,t
+1,27,Remplacement tuyauterie,t,37,Diamètre,149,20mm,t
+1,27,Remplacement tuyauterie,t,37,Diamètre,150,25mm,t
+1,28,Création point d'eau,t,,,,,
+1,29,Pose prise électrique,t,38,Type de prise,151,Prise simple 2P+T,t
+1,29,Pose prise électrique,t,38,Type de prise,152,Prise double,t
+1,29,Pose prise électrique,t,38,Type de prise,153,Prise USB,t
+1,29,Pose prise électrique,t,38,Type de prise,154,Prise étanche (IP44),t
+1,29,Pose prise électrique,t,38,Type de prise,155,Prise spécialisée 32A,t
+1,30,Pose interrupteur,t,39,Type d'interrupteur,156,Simple allumage,t
+1,30,Pose interrupteur,t,39,Type d'interrupteur,157,Va-et-vient,t
+1,30,Pose interrupteur,t,39,Type d'interrupteur,158,Double allumage,t
+1,30,Pose interrupteur,t,39,Type d'interrupteur,159,Variateur,t
+1,30,Pose interrupteur,t,39,Type d'interrupteur,160,Bouton poussoir,t
+1,31,Pose luminaire,t,40,Type de luminaire,161,Spot encastré LED,t
+1,31,Pose luminaire,t,40,Type de luminaire,162,Suspension,t
+1,31,Pose luminaire,t,40,Type de luminaire,163,Applique murale,t
+1,31,Pose luminaire,t,40,Type de luminaire,164,Plafonnier,t
+1,31,Pose luminaire,t,40,Type de luminaire,165,Bandeau LED,t
+1,31,Pose luminaire,t,40,Type de luminaire,166,Réglette LED,t
+1,32,Mise aux normes tableau,t,41,Type d'installation,167,Monophasé standard,t
+1,32,Mise aux normes tableau,t,41,Type d'installation,168,Monophasé renforcé,t
+1,32,Mise aux normes tableau,t,41,Type d'installation,169,Triphasé,t
+1,32,Mise aux normes tableau,t,42,Nombre de circuits,170,< 10 circuits,t
+1,32,Mise aux normes tableau,t,42,Nombre de circuits,171,10 à 20 circuits,t
+1,32,Mise aux normes tableau,t,42,Nombre de circuits,172,> 20 circuits,t
+1,33,Remplacement tableau,t,43,Nombre de rangées,173,1 rangée (13 modules),t
+1,33,Remplacement tableau,t,43,Nombre de rangées,174,2 rangées (26 modules),t
+1,33,Remplacement tableau,t,43,Nombre de rangées,175,3 rangées (39 modules),t
+1,33,Remplacement tableau,t,43,Nombre de rangées,176,4 rangées (52 modules),t
+1,34,Installation domotique,t,44,Type d'équipement,177,Interrupteur connecté,t
+1,34,Installation domotique,t,44,Type d'équipement,178,Thermostat connecté,t
+1,34,Installation domotique,t,44,Type d'équipement,179,Volets roulants connectés,t
+1,34,Installation domotique,t,44,Type d'équipement,180,Prise connectée,t
+1,34,Installation domotique,t,44,Type d'équipement,181,Détecteur de mouvement,t
+1,35,Pose carrelage sol,t,45,Format,182,20x20 cm,t
+1,35,Pose carrelage sol,t,45,Format,183,30x30 cm,t
+1,35,Pose carrelage sol,t,45,Format,184,45x45 cm,t
+1,35,Pose carrelage sol,t,45,Format,185,60x60 cm,t
+1,35,Pose carrelage sol,t,45,Format,186,30x60 cm,t
+1,35,Pose carrelage sol,t,45,Format,187,120x60 cm,t
+1,35,Pose carrelage sol,t,45,Format,188,120x120 cm,t
+1,35,Pose carrelage sol,t,46,Type de pose,189,Pose droite,t
+1,35,Pose carrelage sol,t,46,Type de pose,190,Pose diagonale,t
+1,35,Pose carrelage sol,t,46,Type de pose,191,Pose décalée 1/3,t
+1,35,Pose carrelage sol,t,46,Type de pose,192,Pose en chevron,t
+1,35,Pose carrelage sol,t,46,Type de pose,193,Pose cabochon,t
+1,35,Pose carrelage sol,t,47,Type de colle,194,Colle C1 (intérieur),t
+1,35,Pose carrelage sol,t,47,Type de colle,195,Colle C2 (renforcée),t
+1,35,Pose carrelage sol,t,47,Type de colle,196,Colle C2S1 (déformable),t
+1,35,Pose carrelage sol,t,47,Type de colle,197,Colle C2S2 (grands formats),t
+1,36,Pose carrelage mural,t,48,Format,198,10x10 cm,t
+1,36,Pose carrelage mural,t,48,Format,199,10x20 cm (métro),t
+1,36,Pose carrelage mural,t,48,Format,200,20x20 cm,t
+1,36,Pose carrelage mural,t,48,Format,201,30x60 cm,t
+1,36,Pose carrelage mural,t,48,Format,202,25x75 cm,t
+1,36,Pose carrelage mural,t,48,Format,203,Grand format > 60cm,t
+1,36,Pose carrelage mural,t,49,Pièce,204,Salle de bain,t
+1,36,Pose carrelage mural,t,49,Pièce,205,Cuisine (crédence),t
+1,36,Pose carrelage mural,t,49,Pièce,206,WC,t
+1,36,Pose carrelage mural,t,49,Pièce,207,Autre,t
+1,37,Pose faïence,t,50,Type,208,Faïence classique,t
+1,37,Pose faïence,t,50,Type,209,Carreaux métro,t
+1,37,Pose faïence,t,50,Type,210,Zellige,t
+1,37,Pose faïence,t,50,Type,211,Mosaïque,t
+1,37,Pose faïence,t,50,Type,212,Carreaux de ciment,t
+1,38,Ragréage sol,t,51,Type de ragréage,213,Autolissant standard (P3),t
+1,38,Ragréage sol,t,51,Type de ragréage,214,Autolissant renforcé (P4),t
+1,38,Ragréage sol,t,51,Type de ragréage,215,Fibré haute résistance,t
+1,38,Ragréage sol,t,52,Épaisseur,216,1-3 mm,t
+1,38,Ragréage sol,t,52,Épaisseur,217,3-10 mm,t
+1,38,Ragréage sol,t,52,Épaisseur,218,10-30 mm,t
+1,39,Primaire d'accrochage,t,,,,,
+1,40,Peinture mur intérieur,t,53,Finition,219,Mat,t
+1,40,Peinture mur intérieur,t,53,Finition,220,Satin,t
+1,40,Peinture mur intérieur,t,53,Finition,221,Velours,t
+1,40,Peinture mur intérieur,t,53,Finition,222,Brillant,t
+1,40,Peinture mur intérieur,t,54,Type de peinture,223,Acrylique,t
+1,40,Peinture mur intérieur,t,54,Type de peinture,224,Glycéro,t
+1,40,Peinture mur intérieur,t,54,Type de peinture,225,Alkyde,t
+1,40,Peinture mur intérieur,t,54,Type de peinture,226,Bio-sourcée,t
+1,41,Peinture plafond,t,55,Type,227,Acrylique mat,t
+1,41,Peinture plafond,t,55,Type,228,Glycéro,t
+1,41,Peinture plafond,t,55,Type,229,Anti-humidité,t
+1,41,Peinture plafond,t,55,Type,230,Anti-moisissure,t
+1,42,Peinture extérieure façade,t,56,Type de peinture,231,Acrylique,t
+1,42,Peinture extérieure façade,t,56,Type de peinture,232,Siloxane,t
+1,42,Peinture extérieure façade,t,56,Type de peinture,233,Pliolite,t
+1,42,Peinture extérieure façade,t,56,Type de peinture,234,Hydropliolite,t
+1,43,Peinture boiseries,t,57,Finition,235,Laque brillante,t
+1,43,Peinture boiseries,t,57,Finition,236,Laque satinée,t
+1,43,Peinture boiseries,t,57,Finition,237,Mat,t
+1,43,Peinture boiseries,t,57,Finition,238,Vernis,t
+1,44,Enduit décoratif,t,58,Type d'enduit,239,Stuc vénitien,t
+1,44,Enduit décoratif,t,58,Type d'enduit,240,Tadelakt,t
+1,44,Enduit décoratif,t,58,Type d'enduit,241,Béton ciré,t
+1,44,Enduit décoratif,t,58,Type d'enduit,242,Enduit à la chaux,t
+1,44,Enduit décoratif,t,58,Type d'enduit,243,Enduit texturé,t
+1,45,Préparation murs,t,59,État du support,244,Bon état (lessivage),t
+1,45,Préparation murs,t,59,État du support,245,Fissures légères (rebouchage),t
+1,45,Préparation murs,t,59,État du support,246,Mauvais état (enduit complet),t
+1,45,Préparation murs,t,59,État du support,247,Décollement (décapage),t
+1,46,Pose parquet flottant,t,60,Type de parquet,248,Stratifié,t
+1,46,Pose parquet flottant,t,60,Type de parquet,249,Contrecollé chêne,t
+1,46,Pose parquet flottant,t,60,Type de parquet,250,Contrecollé noyer,t
+1,46,Pose parquet flottant,t,60,Type de parquet,251,PVC clipsable,t
+1,46,Pose parquet flottant,t,61,Épaisseur,252,7mm,t
+1,46,Pose parquet flottant,t,61,Épaisseur,253,8mm,t
+1,46,Pose parquet flottant,t,61,Épaisseur,254,10mm,t
+1,46,Pose parquet flottant,t,61,Épaisseur,255,12mm,t
+1,46,Pose parquet flottant,t,61,Épaisseur,256,14mm,t
+1,47,Pose parquet massif,t,62,Essence,257,Chêne,t
+1,47,Pose parquet massif,t,62,Essence,258,Hêtre,t
+1,47,Pose parquet massif,t,62,Essence,259,Noyer,t
+1,47,Pose parquet massif,t,62,Essence,260,Bambou,t
+1,47,Pose parquet massif,t,62,Essence,261,Teck,t
+1,47,Pose parquet massif,t,62,Essence,262,Wengé,t
+1,47,Pose parquet massif,t,63,Type de pose,263,Collé,t
+1,47,Pose parquet massif,t,63,Type de pose,264,Cloué,t
+1,47,Pose parquet massif,t,63,Type de pose,265,Pose à l'anglaise,t
+1,47,Pose parquet massif,t,63,Type de pose,266,Pose en point de Hongrie,t
+1,47,Pose parquet massif,t,63,Type de pose,267,Pose en chevron,t
+1,48,Ponçage vitrification parquet,t,64,Finition,268,Vitrification mat,t
+1,48,Ponçage vitrification parquet,t,64,Finition,269,Vitrification satin,t
+1,48,Ponçage vitrification parquet,t,64,Finition,270,Vitrification brillant,t
+1,48,Ponçage vitrification parquet,t,64,Finition,271,Huilé,t
+1,48,Ponçage vitrification parquet,t,64,Finition,272,Ciré,t
+1,49,Pose sol vinyle/PVC,t,65,Type,273,Lames clipsables,t
+1,49,Pose sol vinyle/PVC,t,65,Type,274,Dalles clipsables,t
+1,49,Pose sol vinyle/PVC,t,65,Type,275,Rouleau collé,t
+1,49,Pose sol vinyle/PVC,t,65,Type,276,Lames adhésives,t
+1,50,Pose moquette,t,66,Type de moquette,277,Bouclée,t
+1,50,Pose moquette,t,66,Type de moquette,278,Velours,t
+1,50,Pose moquette,t,66,Type de moquette,279,Aiguilletée,t
+1,50,Pose moquette,t,66,Type de moquette,280,Shaggy,t
+1,50,Pose moquette,t,67,Type de pose,281,Collée,t
+1,50,Pose moquette,t,67,Type de pose,282,Tendue (thibaude),t
+1,50,Pose moquette,t,67,Type de pose,283,Libre (pose flottante),t
+1,51,Pose porte intérieure,t,68,Type de porte,284,Battante standard,t
+1,51,Pose porte intérieure,t,68,Type de porte,285,Coulissante à galandage,t
+1,51,Pose porte intérieure,t,68,Type de porte,286,Coulissante en applique,t
+1,51,Pose porte intérieure,t,68,Type de porte,287,Pliante,t
+1,51,Pose porte intérieure,t,68,Type de porte,288,Vitrée,t
+1,51,Pose porte intérieure,t,69,Matériau,289,Bois massif,t
+1,51,Pose porte intérieure,t,69,Matériau,290,MDF peint,t
+1,51,Pose porte intérieure,t,69,Matériau,291,MDF plaqué,t
+1,51,Pose porte intérieure,t,69,Matériau,292,Verre,t
+1,52,Pose placard sur mesure,t,70,Type de portes,293,Portes battantes,t
+1,52,Pose placard sur mesure,t,70,Type de portes,294,Portes coulissantes,t
+1,52,Pose placard sur mesure,t,70,Type de portes,295,Sans portes (dressing ouvert),t
+1,52,Pose placard sur mesure,t,71,Aménagement intérieur,296,Étagères simples,t
+1,52,Pose placard sur mesure,t,71,Aménagement intérieur,297,Étagères + penderie,t
+1,52,Pose placard sur mesure,t,71,Aménagement intérieur,298,Étagères + tiroirs + penderie,t
+1,52,Pose placard sur mesure,t,71,Aménagement intérieur,299,Sur mesure complet,t
+1,53,Rénovation escalier,t,72,Matériau marches,300,Bois massif,t
+1,53,Rénovation escalier,t,72,Matériau marches,301,Bois stratifié,t
+1,53,Rénovation escalier,t,72,Matériau marches,302,Béton ciré,t
+1,53,Rénovation escalier,t,72,Matériau marches,303,Carrelage,t
+1,53,Rénovation escalier,t,73,Type de garde-corps,304,Bois,t
+1,53,Rénovation escalier,t,73,Type de garde-corps,305,Inox + câbles,t
+1,53,Rénovation escalier,t,73,Type de garde-corps,306,Verre,t
+1,53,Rénovation escalier,t,73,Type de garde-corps,307,Fer forgé,t
+1,54,Pose fenêtre,t,74,Matériau,308,PVC,t
+1,54,Pose fenêtre,t,74,Matériau,309,Aluminium,t
+1,54,Pose fenêtre,t,74,Matériau,310,Bois,t
+1,54,Pose fenêtre,t,74,Matériau,311,Mixte bois-alu,t
+1,54,Pose fenêtre,t,75,Type d'ouverture,312,Battante (à la française),t
+1,54,Pose fenêtre,t,75,Type d'ouverture,313,Oscillo-battante,t
+1,54,Pose fenêtre,t,75,Type d'ouverture,314,Coulissante,t
+1,54,Pose fenêtre,t,75,Type d'ouverture,315,Fixe,t
+1,54,Pose fenêtre,t,75,Type d'ouverture,316,Basculante,t
+1,54,Pose fenêtre,t,76,Vitrage,317,Double vitrage standard,t
+1,54,Pose fenêtre,t,76,Vitrage,318,Double vitrage ITR,t
+1,54,Pose fenêtre,t,76,Vitrage,319,Triple vitrage,t
+1,54,Pose fenêtre,t,76,Vitrage,320,Vitrage phonique,t
+1,55,Pose porte d'entrée,t,77,Matériau,321,PVC,t
+1,55,Pose porte d'entrée,t,77,Matériau,322,Aluminium,t
+1,55,Pose porte d'entrée,t,77,Matériau,323,Bois,t
+1,55,Pose porte d'entrée,t,77,Matériau,324,Acier / blindée,t
+1,55,Pose porte d'entrée,t,77,Matériau,325,Composite,t
+1,55,Pose porte d'entrée,t,78,Serrure,326,3 points,t
+1,55,Pose porte d'entrée,t,78,Serrure,327,5 points,t
+1,55,Pose porte d'entrée,t,78,Serrure,328,Serrure connectée,t
+1,56,Pose volets,t,79,Type,329,Volets roulants,t
+1,56,Pose volets,t,79,Type,330,Volets battants,t
+1,56,Pose volets,t,79,Type,331,Volets coulissants,t
+1,56,Pose volets,t,79,Type,332,Persiennes,t
+1,56,Pose volets,t,80,Matériau,333,PVC,t
+1,56,Pose volets,t,80,Matériau,334,Aluminium,t
+1,56,Pose volets,t,80,Matériau,335,Bois,t
+1,56,Pose volets,t,81,Motorisation,336,Manuel,t
+1,56,Pose volets,t,81,Motorisation,337,Motorisé filaire,t
+1,56,Pose volets,t,81,Motorisation,338,Motorisé radio,t
+1,56,Pose volets,t,81,Motorisation,339,Motorisé solaire,t
+1,57,Pose baie vitrée,t,82,Type,340,Coulissante 2 vantaux,t
+1,57,Pose baie vitrée,t,82,Type,341,Coulissante 3 vantaux,t
+1,57,Pose baie vitrée,t,82,Type,342,À galandage,t
+1,57,Pose baie vitrée,t,82,Type,343,Battante,t
+1,57,Pose baie vitrée,t,83,Matériau,344,PVC,t
+1,57,Pose baie vitrée,t,83,Matériau,345,Aluminium,t
+1,57,Pose baie vitrée,t,83,Matériau,346,Mixte bois-alu,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,347,Tuiles terre cuite,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,348,Tuiles béton,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,349,Ardoises naturelles,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,350,Ardoises synthétiques,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,351,Bac acier,t
+1,58,Réfection toiture complète,t,84,Matériau couverture,352,Zinc,t
+1,59,Réparation toiture,t,85,Type de réparation,353,Remplacement tuiles,t
+1,59,Réparation toiture,t,85,Type de réparation,354,Reprise étanchéité,t
+1,59,Réparation toiture,t,85,Type de réparation,355,Reprise faîtage,t
+1,59,Réparation toiture,t,85,Type de réparation,356,Reprise noue,t
+1,59,Réparation toiture,t,85,Type de réparation,357,Remplacement solin,t
+1,60,Nettoyage toiture,t,86,Méthode,358,Haute pression,t
+1,60,Nettoyage toiture,t,86,Méthode,359,Brosse + mousse biocide,t
+1,60,Nettoyage toiture,t,86,Méthode,360,Traitement hydrofuge seul,t
+1,61,Remplacement gouttières,t,87,Matériau,361,Zinc,t
+1,61,Remplacement gouttières,t,87,Matériau,362,PVC,t
+1,61,Remplacement gouttières,t,87,Matériau,363,Aluminium laqué,t
+1,61,Remplacement gouttières,t,87,Matériau,364,Cuivre,t
+1,61,Remplacement gouttières,t,88,Forme,365,Demi-ronde,t
+1,61,Remplacement gouttières,t,88,Forme,366,Carrée,t
+1,61,Remplacement gouttières,t,88,Forme,367,Havraise,t
+1,62,Traitement charpente,t,89,Type de traitement,368,Préventif (injection),t
+1,62,Traitement charpente,t,89,Type de traitement,369,Curatif (gel + injection),t
+1,62,Traitement charpente,t,89,Type de traitement,370,Curatif + remplacement bois,t
+1,63,Ravalement façade,t,90,Type,371,Ravalement complet,t
+1,63,Ravalement façade,t,90,Type,372,Ravalement partiel,t
+1,63,Ravalement façade,t,90,Type,373,Simple nettoyage + peinture,t
+1,64,Enduit façade,t,91,Type d'enduit,374,Monocouche taloché,t
+1,64,Enduit façade,t,91,Type d'enduit,375,Monocouche gratté,t
+1,64,Enduit façade,t,91,Type d'enduit,376,Traditionnel 3 couches,t
+1,64,Enduit façade,t,91,Type d'enduit,377,Enduit projeté,t
+1,65,Nettoyage façade,t,92,Méthode,378,Haute pression,t
+1,65,Nettoyage façade,t,92,Méthode,379,Sablage,t
+1,65,Nettoyage façade,t,92,Méthode,380,Gommage,t
+1,65,Nettoyage façade,t,92,Méthode,381,Nébulisation,t
+1,65,Nettoyage façade,t,92,Méthode,382,Peeling chimique,t
+1,66,Isolation thermique extérieure (ITE),t,93,Type d'isolant,383,Polystyrène expansé (PSE),t
+1,66,Isolation thermique extérieure (ITE),t,93,Type d'isolant,384,Laine de roche,t
+1,66,Isolation thermique extérieure (ITE),t,93,Type d'isolant,385,Fibre de bois,t
+1,66,Isolation thermique extérieure (ITE),t,93,Type d'isolant,386,Polyuréthane,t
+1,66,Isolation thermique extérieure (ITE),t,94,Épaisseur,387,100mm,t
+1,66,Isolation thermique extérieure (ITE),t,94,Épaisseur,388,120mm,t
+1,66,Isolation thermique extérieure (ITE),t,94,Épaisseur,389,140mm,t
+1,66,Isolation thermique extérieure (ITE),t,94,Épaisseur,390,160mm,t
+1,66,Isolation thermique extérieure (ITE),t,94,Épaisseur,391,200mm,t
+1,66,Isolation thermique extérieure (ITE),t,95,Finition,392,Enduit taloché,t
+1,66,Isolation thermique extérieure (ITE),t,95,Finition,393,Enduit gratté,t
+1,66,Isolation thermique extérieure (ITE),t,95,Finition,394,Bardage bois,t
+1,66,Isolation thermique extérieure (ITE),t,95,Finition,395,Bardage composite,t
+1,67,Pose radiateur,t,96,Type,396,Électrique à inertie,t
+1,67,Pose radiateur,t,96,Type,397,Électrique rayonnant,t
+1,67,Pose radiateur,t,96,Type,398,Eau chaude (acier),t
+1,67,Pose radiateur,t,96,Type,399,Eau chaude (fonte),t
+1,67,Pose radiateur,t,96,Type,400,Sèche-serviette,t
+1,68,Pose plancher chauffant,t,97,Type,401,Hydraulique (eau),t
+1,68,Pose plancher chauffant,t,97,Type,402,Électrique (câble),t
+1,68,Pose plancher chauffant,t,97,Type,403,Électrique (trame),t
+1,69,Installation climatisation,t,98,Type,404,Split mural,t
+1,69,Installation climatisation,t,98,Type,405,Multi-split,t
+1,69,Installation climatisation,t,98,Type,406,Gainable,t
+1,69,Installation climatisation,t,98,Type,407,Console,t
+1,69,Installation climatisation,t,98,Type,408,Cassette,t
+1,69,Installation climatisation,t,99,Puissance,409,2.5 kW (< 25 m²),t
+1,69,Installation climatisation,t,99,Puissance,410,3.5 kW (25-35 m²),t
+1,69,Installation climatisation,t,99,Puissance,411,5 kW (35-50 m²),t
+1,69,Installation climatisation,t,99,Puissance,412,7 kW (> 50 m²),t
+1,70,Remplacement chaudière,t,100,Type,413,Chaudière gaz condensation,t
+1,70,Remplacement chaudière,t,100,Type,414,Pompe à chaleur air/eau,t
+1,70,Remplacement chaudière,t,100,Type,415,Pompe à chaleur air/air,t
+1,70,Remplacement chaudière,t,100,Type,416,Chaudière granulés,t
+1,70,Remplacement chaudière,t,100,Type,417,Poêle à granulés,t
+1,71,Installation VMC,t,101,Type de VMC,418,Simple flux autoréglable,t
+1,71,Installation VMC,t,101,Type de VMC,419,Simple flux hygroréglable A,t
+1,71,Installation VMC,t,101,Type de VMC,420,Simple flux hygroréglable B,t
+1,71,Installation VMC,t,101,Type de VMC,421,Double flux,t
+1,71,Installation VMC,t,102,Nombre de bouches,422,3 bouches,t
+1,71,Installation VMC,t,102,Nombre de bouches,423,4 bouches,t
+1,71,Installation VMC,t,102,Nombre de bouches,424,5 bouches,t
+1,71,Installation VMC,t,102,Nombre de bouches,425,6 bouches,t
+1,72,Pose extracteur,t,103,Type,426,Extracteur salle de bain,t
+1,72,Pose extracteur,t,103,Type,427,Extracteur cuisine,t
+1,72,Pose extracteur,t,103,Type,428,Aérateur mural,t
+1,72,Pose extracteur,t,103,Type,429,Extracteur mécanique en ligne,t
+1,73,Pose terrasse,t,104,Matériau,430,Bois naturel (pin traité),t
+1,73,Pose terrasse,t,104,Matériau,431,"Bois exotique (ipé, teck)",t
+1,73,Pose terrasse,t,104,Matériau,432,Composite,t
+1,73,Pose terrasse,t,104,Matériau,433,Carrelage extérieur,t
+1,73,Pose terrasse,t,104,Matériau,434,Pierre naturelle,t
+1,73,Pose terrasse,t,104,Matériau,435,Dalle béton,t
+1,73,Pose terrasse,t,105,Structure,436,Sur lambourdes bois,t
+1,73,Pose terrasse,t,105,Structure,437,Sur plots réglables,t
+1,73,Pose terrasse,t,105,Structure,438,Collée sur dalle,t
+1,74,Pose clôture,t,106,Type,439,Grillage souple,t
+1,74,Pose clôture,t,106,Type,440,Panneaux rigides,t
+1,74,Pose clôture,t,106,Type,441,Palissade bois,t
+1,74,Pose clôture,t,106,Type,442,Panneaux alu,t
+1,74,Pose clôture,t,106,Type,443,Gabions,t
+1,74,Pose clôture,t,106,Type,444,Mur en parpaing,t
+1,74,Pose clôture,t,107,Hauteur,445,1.00m,t
+1,74,Pose clôture,t,107,Hauteur,446,1.20m,t
+1,74,Pose clôture,t,107,Hauteur,447,1.50m,t
+1,74,Pose clôture,t,107,Hauteur,448,1.80m,t
+1,74,Pose clôture,t,107,Hauteur,449,2.00m,t
+1,75,Pose portail,t,108,Type,450,Battant 2 vantaux,t
+1,75,Pose portail,t,108,Type,451,Coulissant,t
+1,75,Pose portail,t,108,Type,452,Portillon,t
+1,75,Pose portail,t,109,Matériau,453,Aluminium,t
+1,75,Pose portail,t,109,Matériau,454,Fer forgé,t
+1,75,Pose portail,t,109,Matériau,455,PVC,t
+1,75,Pose portail,t,109,Matériau,456,Bois,t
+1,75,Pose portail,t,110,Motorisation,457,Manuel,t
+1,75,Pose portail,t,110,Motorisation,458,Motorisé (vérins),t
+1,75,Pose portail,t,110,Motorisation,459,Motorisé (bras articulés),t
+1,75,Pose portail,t,110,Motorisation,460,Motorisé (rail au sol),t
+1,76,Création allée,t,111,Matériau,461,Graviers stabilisés,t
+1,76,Création allée,t,111,Matériau,462,Béton désactivé,t
+1,76,Création allée,t,111,Matériau,463,Béton imprimé,t
+1,76,Création allée,t,111,Matériau,464,Pavés autobloquants,t
+1,76,Création allée,t,111,Matériau,465,Dalles pierre naturelle,t
+1,76,Création allée,t,111,Matériau,466,Enrobé,t
+1,77,Pose pergola,t,112,Type,467,Bois,t
+1,77,Pose pergola,t,112,Type,468,Aluminium classique,t
+1,77,Pose pergola,t,112,Type,469,Bioclimatique (lames orientables),t
+1,77,Pose pergola,t,112,Type,470,Toile rétractable,t
+1,77,Pose pergola,t,113,Surface,471,< 10 m²,t
+1,77,Pose pergola,t,113,Surface,472,10-15 m²,t
+1,77,Pose pergola,t,113,Surface,473,15-20 m²,t
+1,77,Pose pergola,t,113,Surface,474,> 20 m²,t
+1,78,Pose cuisine équipée,t,114,Gamme,475,Entrée de gamme (mélaminé),t
+1,78,Pose cuisine équipée,t,114,Gamme,476,Milieu de gamme (stratifié),t
+1,78,Pose cuisine équipée,t,114,Gamme,477,Haut de gamme (laqué / bois massif),t
+1,79,Pose plan de travail,t,115,Matériau,478,Stratifié,t
+1,79,Pose plan de travail,t,115,Matériau,479,Granit,t
+1,79,Pose plan de travail,t,115,Matériau,480,Quartz (Silestone),t
+1,79,Pose plan de travail,t,115,Matériau,481,Bois massif,t
+1,79,Pose plan de travail,t,115,Matériau,482,Inox,t
+1,79,Pose plan de travail,t,115,Matériau,483,Céramique,t
+1,79,Pose plan de travail,t,115,Matériau,484,Dekton / Neolith,t
+1,80,Pose crédence cuisine,t,116,Matériau,485,Carrelage / faïence,t
+1,80,Pose crédence cuisine,t,116,Matériau,486,Verre trempé,t
+1,80,Pose crédence cuisine,t,116,Matériau,487,Inox brossé,t
+1,80,Pose crédence cuisine,t,116,Matériau,488,Stratifié,t
+1,80,Pose crédence cuisine,t,116,Matériau,489,Pierre naturelle,t
+1,81,Installation électroménager,t,117,Type,490,Four encastrable,t
+1,81,Installation électroménager,t,117,Type,491,Plaque de cuisson,t
+1,81,Installation électroménager,t,117,Type,492,Hotte aspirante,t
+1,81,Installation électroménager,t,117,Type,493,Lave-vaisselle,t
+1,81,Installation électroménager,t,117,Type,494,Réfrigérateur encastrable,t
+1,81,Installation électroménager,t,117,Type,495,Micro-ondes encastrable,t
+1,82,Rénovation SDB complète,t,118,Surface,496,< 4 m²,t
+1,82,Rénovation SDB complète,t,118,Surface,497,4-6 m²,t
+1,82,Rénovation SDB complète,t,118,Surface,498,6-8 m²,t
+1,82,Rénovation SDB complète,t,118,Surface,499,> 8 m²,t
+1,82,Rénovation SDB complète,t,119,Gamme,500,Économique,t
+1,82,Rénovation SDB complète,t,119,Gamme,501,Standard,t
+1,82,Rénovation SDB complète,t,119,Gamme,502,Premium,t
+1,82,Rénovation SDB complète,t,119,Gamme,503,Luxe,t
+1,83,Pose meuble vasque,t,120,Type,504,Simple vasque (60cm),t
+1,83,Pose meuble vasque,t,120,Type,505,Simple vasque (80cm),t
+1,83,Pose meuble vasque,t,120,Type,506,Double vasque (120cm),t
+1,83,Pose meuble vasque,t,120,Type,507,Suspendu,t
+1,83,Pose meuble vasque,t,120,Type,508,Sur pied,t
+1,84,Pose paroi de douche,t,121,Type,509,Paroi fixe,t
+1,84,Pose paroi de douche,t,121,Type,510,Porte battante,t
+1,84,Pose paroi de douche,t,121,Type,511,Porte coulissante,t
+1,84,Pose paroi de douche,t,121,Type,512,Porte pliante,t
+1,84,Pose paroi de douche,t,121,Type,513,Paroi walk-in,t
+1,84,Pose paroi de douche,t,122,Verre,514,Transparent,t
+1,84,Pose paroi de douche,t,122,Verre,515,Sérigraphié,t
+1,84,Pose paroi de douche,t,122,Verre,516,Dépoli,t
+1,84,Pose paroi de douche,t,122,Verre,517,Fumé,t
+1,85,Pose accessoires SDB,t,123,Pack,518,Pack standard (3 accessoires),t
+1,85,Pose accessoires SDB,t,123,Pack,519,Pack complet (6 accessoires),t
+1,85,Pose accessoires SDB,t,123,Pack,520,Pack PMR / accessibilité,t
+1,85,Pose accessoires SDB,t,123,Pack,521,Pack design / premium,t
+1,86,Chape fluide,t,124,Type,522,Anhydrite (sulfate de calcium),t
+1,86,Chape fluide,t,124,Type,523,Ciment,t
+1,86,Chape fluide,t,125,Épaisseur,524,3-4 cm,t
+1,86,Chape fluide,t,125,Épaisseur,525,5-6 cm,t
+1,86,Chape fluide,t,125,Épaisseur,526,7-8 cm,t
+1,87,Sol résine,t,126,Type de résine,527,Époxy,t
+1,87,Sol résine,t,126,Type de résine,528,Polyuréthane,t
+1,87,Sol résine,t,126,Type de résine,529,Méthacrylate,t
+1,87,Sol résine,t,127,Finition,530,Lisse brillant,t
+1,87,Sol résine,t,127,Finition,531,Lisse mat,t
+1,87,Sol résine,t,127,Finition,532,Quartz coloré (antidérapant),t
+1,87,Sol résine,t,127,Finition,533,Effet béton,t
+1,88,Traitement humidité,t,128,Technique,534,Injection de résine,t
+1,88,Traitement humidité,t,128,Technique,535,Drainage périphérique,t
+1,88,Traitement humidité,t,128,Technique,536,Cuvelage,t
+1,88,Traitement humidité,t,128,Technique,537,Membrane d'étanchéité,t
+1,89,Traitement termites,t,129,Type de traitement,538,Barrière chimique,t
+1,89,Traitement termites,t,129,Type de traitement,539,Pièges (stations appât),t
+1,89,Traitement termites,t,129,Type de traitement,540,Injection bois,t
+1,90,Assainissement non collectif,t,130,Type,541,Fosse septique toutes eaux,t
+1,90,Assainissement non collectif,t,130,Type,542,Micro-station d'épuration,t
+1,90,Assainissement non collectif,t,130,Type,543,Filtre compact,t
+1,90,Assainissement non collectif,t,130,Type,544,Filtre à sable,t
+1,91,Pose garde-corps,t,131,Matériau,545,Inox,t
+1,91,Pose garde-corps,t,131,Matériau,546,Aluminium,t
+1,91,Pose garde-corps,t,131,Matériau,547,Fer forgé,t
+1,91,Pose garde-corps,t,131,Matériau,548,Verre + inox,t
+1,91,Pose garde-corps,t,131,Matériau,549,Câbles + inox,t
+1,91,Pose garde-corps,t,132,Type,550,À barreaux,t
+1,91,Pose garde-corps,t,132,Type,551,À lisses horizontales,t
+1,91,Pose garde-corps,t,132,Type,552,Vitré,t
+1,91,Pose garde-corps,t,132,Type,553,À câbles,t
+1,92,Pose rampe escalier,t,133,Matériau,554,Bois,t
+1,92,Pose rampe escalier,t,133,Matériau,555,Inox,t
+1,92,Pose rampe escalier,t,133,Matériau,556,Fer forgé,t
+1,92,Pose rampe escalier,t,133,Matériau,557,Corde,t
+1,93,Pose grille de défense,t,134,Type,558,Fixe (scellée),t
+1,93,Pose grille de défense,t,134,Type,559,Ouvrante,t
+1,93,Pose grille de défense,t,134,Type,560,Amovible,t
+1,93,Pose grille de défense,t,135,Matériau,561,Fer forgé,t
+1,93,Pose grille de défense,t,135,Matériau,562,Acier peint,t
+1,93,Pose grille de défense,t,135,Matériau,563,Aluminium,t
+1,94,Remplacement vitrage,t,136,Type de vitrage,564,Simple vitrage,t
+1,94,Remplacement vitrage,t,136,Type de vitrage,565,Double vitrage standard,t
+1,94,Remplacement vitrage,t,136,Type de vitrage,566,Double vitrage ITR argon,t
+1,94,Remplacement vitrage,t,136,Type de vitrage,567,Triple vitrage,t
+1,94,Remplacement vitrage,t,136,Type de vitrage,568,Vitrage feuilleté sécurité,t
+1,95,Pose miroir,t,137,Fixation,569,Collé,t
+1,95,Pose miroir,t,137,Fixation,570,Fixation mécanique (pattes),t
+1,95,Pose miroir,t,138,Finition,571,Bords polis,t
+1,95,Pose miroir,t,138,Finition,572,Bords biseautés,t
+1,95,Pose miroir,t,138,Finition,573,Avec cadre,t
+1,96,Pose verrière intérieure,t,139,Type,574,Verrière fixe,t
+1,96,Pose verrière intérieure,t,139,Type,575,Verrière avec porte,t
+1,96,Pose verrière intérieure,t,139,Type,576,Verrière imposte (au-dessus d'une porte),t
+1,96,Pose verrière intérieure,t,139,Type,577,Verrière cloison complète,t
+1,96,Pose verrière intérieure,t,140,Matériau cadre,578,Acier noir,t
+1,96,Pose verrière intérieure,t,140,Matériau cadre,579,Aluminium noir,t
+1,96,Pose verrière intérieure,t,140,Matériau cadre,580,Aluminium blanc,t
+1,96,Pose verrière intérieure,t,140,Matériau cadre,581,Bois peint,t
+1,97,Pose cloison vitrée bureau,t,141,Type,582,Vitrée toute hauteur,t
+1,97,Pose cloison vitrée bureau,t,141,Type,583,Semi-vitrée (allège),t
+1,97,Pose cloison vitrée bureau,t,141,Type,584,Coulissante,t

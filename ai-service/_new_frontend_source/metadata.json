@@ -1,0 +1,7 @@
+{
+  "name": "ArtisanDevis IA — Estimation & Chiffrage Travaux Multi-Modal",
+  "description": "Module d'estimation et génération de devis multi-modale (Texte, Photo, Vocal) avec validation humaine assistée par IA et aperçu contractuel.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

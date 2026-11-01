@@ -13,7 +13,19 @@ def _env(key: str, default: str = "") -> str:
 @dataclass
 class CatalogueConfig:
     strategie: str = field(default_factory=lambda: _env("CATALOGUE_STRATEGY", "few_shot"))
-    rag_top_k: int = field(default_factory=lambda: int(_env("CATALOGUE_RAG_TOP_K", "8")))
+    rag_similarity_threshold: float = field(
+        default_factory=lambda: float(
+            _env("CATALOGUE_RAG_SIMILARITY_THRESHOLD", "0.80790842")
+        )
+    )
+    rag_embeddings_path: str = field(
+        default_factory=lambda: _env(
+            "CATALOGUE_RAG_EMBEDDINGS_PATH", "data/mistral_catalogue_embeddings.npz"
+        )
+    )
+    rag_embedding_model: str = field(
+        default_factory=lambda: _env("CATALOGUE_RAG_EMBEDDING_MODEL", "mistral-embed")
+    )
     cache_ttl_seconds: int = field(
         default_factory=lambda: int(_env("CATALOGUE_CACHE_TTL_SECONDS", "300"))
     )

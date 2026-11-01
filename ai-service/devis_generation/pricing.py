@@ -37,24 +37,33 @@ def construire_occurrence(
     prestation_id: int,
     quantite_ouvrage=None,
     options_choisies=None,
+    choix_option_ids=None,
+    company_id=None,
     uid: str = None,
 ) -> OccurrencePrestation:
     """Résout une prestation catalogue en occurrence (composants de base + options)."""
     options_choisies = options_choisies or []
-    prestation = repository.fetch_prestation_full(prestation_id)
+    prestation = repository.fetch_prestation_full(prestation_id, company_id=company_id)
 
     composants = [
         _ligne_composition_vers_composant(row)
         for row in repository.fetch_prestation_composition(prestation_id)
     ]
 
-    for option_nom in options_choisies:
-        choix_option_id = repository.fetch_choix_option_id_by_name(prestation_id, option_nom)
-        if choix_option_id is not None:
-            composants += [
-                _ligne_composition_vers_composant(row)
-                for row in repository.fetch_choix_option_composition(choix_option_id)
-            ]
+    if choix_option_ids is None:
+        # Chemin conservé pour les cases à cocher de l'interface actuelle.
+        choix_option_ids = [
+            choix_id
+            for option_nom in options_choisies
+            if (choix_id := repository.fetch_choix_option_id_by_name(prestation_id, option_nom))
+            is not None
+        ]
+
+    for choix_option_id in choix_option_ids:
+        composants += [
+            _ligne_composition_vers_composant(row)
+            for row in repository.fetch_choix_option_composition(choix_option_id)
+        ]
 
     kwargs = dict(
         prestation_id=prestation_id,
@@ -65,6 +74,7 @@ def construire_occurrence(
         quantite_ouvrage=quantite_ouvrage,
         composants=composants,
         options_choisies=list(options_choisies),
+        choix_option_ids=list(choix_option_ids),
         options_disponibles=repository.fetch_choix_option_noms(prestation_id),
     )
     if uid:
@@ -72,20 +82,48 @@ def construire_occurrence(
     return OccurrencePrestation(**kwargs)
 
 
-def resoudre_occurrences(raw_llm_json: dict) -> List[OccurrencePrestation]:
+def resoudre_occurrences(raw_llm_json: dict, company_id=None) -> List[OccurrencePrestation]:
     """
     À partir du JSON du LLM ({"prestations": [{"prestation_id", "quantite_ouvrage",
-    "options": [...]}]}), résout chaque prestation en interrogeant la BD :
-    infos de base, composants de la prestation, composants des options choisies.
+    "options": [{"option_id", "choix_id"}]}]}), vérifie chaque identifiant
+    auprès de la BD avant de charger les composants réels de la prestation et
+    des choix d'option. Le LLM ne fournit donc jamais de donnée de prix.
     """
     occurrences = []
 
     for item in raw_llm_json.get("prestations", []):
+        prestation_id = item["prestation_id"]
+        selections = item.get("options") or []
+        choix_option_ids = []
+        choix_option_noms = []
+        option_ids_vus = set()
+        for selection in selections:
+            if not isinstance(selection, dict):
+                raise ValueError("Format d'option LLM invalide : objet attendu.")
+            option_id = selection.get("option_id")
+            choix_id = selection.get("choix_id")
+            if type(option_id) is not int or type(choix_id) is not int:
+                raise ValueError("Format d'option LLM invalide : option_id et choix_id entiers requis.")
+            if option_id in option_ids_vus:
+                raise ValueError(f"Plusieurs choix ont été fournis pour l'option {option_id}.")
+            choix = repository.fetch_choix_option_for_selection(
+                prestation_id, option_id, choix_id, company_id=company_id
+            )
+            if choix is None:
+                raise ValueError(
+                    f"Sélection LLM invalide : choix {choix_id} non lié à l'option {option_id} "
+                    f"de la prestation {prestation_id}."
+                )
+            option_ids_vus.add(option_id)
+            choix_option_ids.append(choix_id)
+            choix_option_noms.append(choix["nom"])
         occurrences.append(
             construire_occurrence(
-                prestation_id=item["prestation_id"],
+                prestation_id=prestation_id,
                 quantite_ouvrage=item.get("quantite_ouvrage"),
-                options_choisies=item.get("options") or [],
+                options_choisies=choix_option_noms,
+                choix_option_ids=choix_option_ids,
+                company_id=company_id,
             )
         )
 
@@ -103,6 +141,15 @@ def appliquer_taux_marge(occurrences: List[OccurrencePrestation], taux_marge: fl
     Mutation en place (modifie les objets passés en argument).
     """
     for occ in occurrences:
+        if not occ.composants:
+            cout = occ.cout_unitaire_manuel
+            if cout is None or occ.quantite_ouvrage is None:
+                occ.prix_vente_total = 0.0
+            else:
+                pu = round(float(cout) * (1 + taux_marge), 2)
+                occ.prix_vente_total = round(pu * occ.quantite_ouvrage, 2)
+            continue
+
         for comp in occ.composants:
             comp.prix_vente_unitaire = round(comp.cout_unitaire * (1 + taux_marge), 2)
 
@@ -182,4 +229,17 @@ def verifier_quantites_manquantes(occurrences: List[OccurrencePrestation]) -> Li
         }
         for occ in occurrences
         if occ.quantite_ouvrage is None
+    ]
+
+
+def verifier_couts_manuels_manquants(occurrences: List[OccurrencePrestation]) -> List[Dict]:
+    """Prestations sans composition catalogue et sans coût unitaire saisi."""
+    return [
+        {
+            "uid": occ.uid,
+            "prestation_id": occ.prestation_id,
+            "prestation_nom": occ.nom,
+        }
+        for occ in occurrences
+        if not occ.composants and occ.cout_unitaire_manuel is None
     ]

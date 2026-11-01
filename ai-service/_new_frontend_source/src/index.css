@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color-scheme: light;
+  }
+
+  code, kbd, samp, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-serif-title {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+/* Texture millimétrée subtile style papier calque / carnet d'architecte */
+.architect-grid {
+  background-color: #fbfbfa;
+  background-image: 
+    linear-gradient(to right, rgba(203, 213, 225, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.25) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.architect-grid-dense {
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.45) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+/* Cachet / Tampon encreur artisanal pour conformité RGE et marge */
+.stamp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-width: 2px;
+  border-style: dashed;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 800;
+  transform: rotate(-1.5deg);
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.68rem;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

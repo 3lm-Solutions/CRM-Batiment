@@ -1,182 +1,22 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Devis IA — Société de bâtiment</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">IA</span>
-      <div>
-        <strong>Devis IA</strong>
-        <span class="muted">CRM bâtiment — génération multi-modale</span>
-      </div>
-    </div>
-    <div id="health-badge" class="badge">Connexion…</div>
-  </header>
-
-  <div class="page">
-  <main class="layout">
-    <section class="zone zone-saisie">
-      <p class="zone-label">Zone 1 — Saisie</p>
-      <nav class="tabs" role="tablist">
-        <button class="tab active" data-tab="texte" type="button">Texte</button>
-        <button class="tab" data-tab="photo" type="button">Photo</button>
-        <button class="tab" data-tab="vocal" type="button">Vocal</button>
-      </nav>
-
-      <div id="panel-texte" class="tab-panel active">
-        <label for="description">Description des travaux</label>
-        <textarea id="description" rows="5" placeholder="Décrivez les travaux à réaliser… ex. Pose carrelage 25 m² dans une cuisine"></textarea>
-        <button id="btn-generer" class="btn primary" type="button" disabled>Générer le devis</button>
-      </div>
-
-      <div id="panel-photo" class="tab-panel">
-        <div id="dropzone" class="dropzone">
-          <input id="photo-input" type="file" accept="image/jpeg,image/png" hidden />
-          <p><strong>Glissez une photo</strong> ou cliquez pour sélectionner</p>
-          <p class="hint">JPEG ou PNG · 10 Mo max</p>
-        </div>
-        <p id="photo-error" class="error hidden"></p>
-        <img id="photo-preview" class="photo-preview hidden" alt="Aperçu de la photo" />
-        <div id="photo-analysis" class="analysis hidden"></div>
-        <button id="btn-photo-devis" class="btn primary hidden" type="button">Valider → Edit Devis</button>
-      </div>
-
-      <div id="panel-vocal" class="tab-panel">
-        <div class="voice-controls">
-          <button id="btn-rec" class="btn rec" type="button">Enregistrer</button>
-          <button id="btn-stop" class="btn" type="button" disabled>Stop</button>
-          <button id="btn-replay" class="btn ghost" type="button" disabled>Réécouter</button>
-          <span id="chrono" class="chrono">00:00</span>
-        </div>
-        <div class="vu-wrap"><div id="vu" class="vu"></div></div>
-        <p class="hint">Arrêt automatique à 60 secondes. Vous pourrez corriger le texte avant de générer.</p>
-        <label for="transcription">Texte transcrit (éditable)</label>
-        <div class="transcribe-head">
-          <span id="confidence-badge" class="badge hidden">confiance</span>
-        </div>
-        <textarea id="transcription" rows="4" placeholder="Le texte retranscrit apparaîtra ici…"></textarea>
-        <button id="btn-vocal-devis" class="btn primary" type="button" disabled>Valider → Générer Devis</button>
-      </div>
-    </section>
-
-    <section class="zone zone-validation">
-      <p class="zone-label">Zone 2 — Validation humaine</p>
-      <div id="zone2-empty" class="empty-state">
-        <h2>Validation humaine</h2>
-        <p>Saisissez une description, une photo ou un vocal, puis générez. Les prestations détectées s’afficheront ici.</p>
-      </div>
-      <div id="zone2-work" class="hidden">
-        <div class="zone2-head">
-          <div>
-            <h2>Validation du devis <span id="devis-ref" class="muted"></span></h2>
-            <p class="hint">Ajustez les quantités et la marge — les prix se recalculent tout de suite.</p>
-          </div>
-          <label class="marge-field">
-            Taux de marge
-            <span class="marge-input">
-              <input id="taux-marge" type="number" min="0" max="200" step="1" value="30" />
-              <span>%</span>
-            </span>
-          </label>
-        </div>
-        <div id="loading" class="skeleton hidden"></div>
-        <div id="occ-list"></div>
-        <button id="btn-add" class="btn ghost" type="button">+ Ajouter une prestation</button>
-        <button id="btn-add-remise" class="btn ghost" type="button">+ Ajouter une remise</button>
-      </div>
-    </section>
-  </main>
-
-  <aside class="zone zone-apercu" id="zone3">
-    <h2>Zone 3 — Aperçu</h2>
-    <dl class="totals">
-      <div><dt>Total HT</dt><dd id="t-ht">—</dd></div>
-      <div><dt>TVA <span id="t-tva-rate" class="muted"></span></dt><dd id="t-tva">—</dd></div>
-      <div><dt>Total TTC</dt><dd id="t-ttc">—</dd></div>
-    </dl>
-    <div id="marque-box" class="marque">
-      <span>Taux de marque</span>
-      <strong id="t-marque">—</strong>
-      <p id="marque-msg" class="hint"></p>
-    </div>
-    <button id="btn-preview" class="btn ghost full" type="button">Voir l’aperçu client</button>
-    <button id="btn-save" class="btn full" type="button" disabled>Enregistrer le brouillon</button>
-    <button id="btn-send" class="btn primary full" type="button" disabled title="">Envoyer au client</button>
-    <p id="send-hint" class="hint"></p>
-  </aside>
-  </div>
-
-  <dialog id="modal-add">
-    <form method="dialog" class="modal">
-      <h3>Ajouter une prestation</h3>
-      <select id="select-prestation"></select>
-      <menu>
-        <button value="cancel" class="btn ghost" type="submit">Annuler</button>
-        <button id="confirm-add" value="default" class="btn primary" type="button">Ajouter</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-preview">
-    <div class="modal preview-doc">
-      <header>
-        <h3>Aperçu client — lignes plates</h3>
-        <button type="button" class="btn ghost" id="close-preview">Fermer</button>
-      </header>
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Qté</th>
-            <th>P.U. HT</th>
-            <th>TVA %</th>
-            <th>Montant TVA</th>
-            <th>Total HT</th>
-          </tr>
-        </thead>
-        <tbody id="preview-body"></tbody>
-      </table>
-      <footer id="preview-foot"></footer>
-    </div>
-  </dialog>
-
-  <dialog id="modal-remise">
-    <form class="modal" id="form-remise">
-      <h3>Ajouter une remise</h3>
-      <p class="hint">La remise est une ligne HT négative, prise en compte dans les totaux et le taux de marque.</p>
-      <label for="remise-libelle">Libellé</label>
-      <input id="remise-libelle" type="text" maxlength="120" value="Remise commerciale" />
-      <label for="remise-montant">Montant de la remise HT</label>
-      <input id="remise-montant" type="number" min="0" step="0.01" placeholder="0,00" />
-      <menu>
-        <button value="cancel" class="btn ghost" type="button" id="cancel-remise">Annuler</button>
-        <button class="btn primary" type="submit">Appliquer</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-send">
-    <form class="modal" id="form-send">
-      <h3>Envoyer le devis au client</h3>
-      <p class="hint">Un PDF du devis sera joint à l’e-mail.</p>
-      <label for="client-email">Adresse e-mail du client</label>
-      <input id="client-email" type="email" required placeholder="client@exemple.fr" />
-      <menu>
-        <button value="cancel" class="btn ghost" type="button" id="cancel-send">Annuler</button>
-        <button class="btn primary" type="submit">Envoyer le PDF</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <div id="toast" class="toast hidden" role="status"></div>
-  <script src="/static/app.js"></script>
-</body>
+<!doctype html>
+<html lang="fr" class="h-full bg-[#f8f9fa] text-stone-900 antialiased">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtisanDevis IA — Estimation & Chiffrage Travaux Multi-Modal</title>
+    <meta name="description" content="Module d'estimation et génération de devis multi-modale (Texte, Photo, Vocal) avec validation humaine assistée par IA et aperçu contractuel." />
+    <meta property="og:title" content="ArtisanDevis IA — Estimation & Chiffrage Travaux Multi-Modal" />
+    <meta property="og:description" content="Module d'estimation et génération de devis multi-modale (Texte, Photo, Vocal) avec validation humaine assistée par IA et aperçu contractuel." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/static/assets/index-DcT2EBhz.js"></script>
+    <link rel="stylesheet" crossorigin href="/static/assets/index-DVDO5QD_.css">
+  </head>
+  <body class="h-full overflow-x-hidden bg-[#f8f9fa] text-stone-900 selection:bg-amber-500/20 selection:text-amber-900">
+    <div id="root" class="h-full"></div>
+  </body>
 </html>
+

@@ -62,7 +62,7 @@ class ToolRegistry:
         self,
         description: str,
         system_prompt: Optional[str] = None,
-        max_tokens: int = 1000,
+        max_tokens: int = 8192,
     ) -> DevisGenerationResult:
         return self._call_with_fallback(
             "generate_devis_from_text",

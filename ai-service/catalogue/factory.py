@@ -8,7 +8,6 @@ from typing import Optional
 from .base import BaseCatalogueProvider
 from .config import CatalogueConfig
 from .few_shot_provider import FewShotCatalogueProvider
-from .rag_provider import RAGCatalogueProvider
 
 
 def get_catalogue_provider(config: Optional[CatalogueConfig] = None) -> BaseCatalogueProvider:
@@ -17,8 +16,12 @@ def get_catalogue_provider(config: Optional[CatalogueConfig] = None) -> BaseCata
     if config.strategie == "few_shot":
         return FewShotCatalogueProvider(cache_ttl_seconds=config.cache_ttl_seconds)
     elif config.strategie == "rag":
+        from .rag_provider import RAGCatalogueProvider
+
         return RAGCatalogueProvider(
-            top_k=config.rag_top_k, cache_ttl_seconds=config.cache_ttl_seconds
+            similarity_threshold=config.rag_similarity_threshold,
+            embeddings_path=config.rag_embeddings_path,
+            embedding_model=config.rag_embedding_model,
         )
     else:
         raise ValueError(

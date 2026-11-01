@@ -112,7 +112,7 @@ def main() -> None:
     parser.add_argument("--marges", action="store_true", help="Test unitaire marges (sans DB/API)")
     parser.add_argument("--health", action="store_true", help="Test connexion Postgres + catalogue")
     parser.add_argument("--full", action="store_true", help="Pipeline complet (LLM + DB)")
-    parser.add_argument("--description", default="Pose carrelage 25 m² dans une cuisine")
+    parser.add_argument("--description", default="Pose de carrelage au sol 60x60 sur chape existante avec plinthes périphériques et joints hydrofuges. Prévoir système d'étanchéité sous carrelage.")
     parser.add_argument("--company-id", type=int, default=1)
     parser.add_argument("--client-id", type=int, default=1)
     parser.add_argument("--createur-id", type=int, default=1)

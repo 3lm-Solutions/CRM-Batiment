@@ -1,0 +1,4950 @@
+{
+  "source": {
+    "database": "devis_ia_test",
+    "method": "Lecture seule PostgreSQL : aucune insertion, suppression, migration ou mise à jour."
+  },
+  "prestations": [
+    {
+      "id": 1,
+      "company_id": 1,
+      "nom": "Démolition cloison",
+      "description": "Démolition de cloison non porteuse + évacuation gravats"
+    },
+    {
+      "id": 2,
+      "company_id": 1,
+      "nom": "Dépose revêtement sol",
+      "description": "Dépose de revêtement de sol existant + évacuation"
+    },
+    {
+      "id": 3,
+      "company_id": 1,
+      "nom": "Dépose sanitaires",
+      "description": "Dépose d'un équipement sanitaire"
+    },
+    {
+      "id": 4,
+      "company_id": 1,
+      "nom": "Démolition murale partielle",
+      "description": "Démolition partielle de mur avec protection zones adjacentes"
+    },
+    {
+      "id": 5,
+      "company_id": 1,
+      "nom": "Dépose carrelage mural",
+      "description": "Dépose de carrelage ou faïence murale"
+    },
+    {
+      "id": 6,
+      "company_id": 1,
+      "nom": "Ouverture mur porteur",
+      "description": "Ouverture dans un mur porteur avec pose IPN"
+    },
+    {
+      "id": 7,
+      "company_id": 1,
+      "nom": "Création ouverture fenêtre",
+      "description": "Création d'une ouverture pour fenêtre dans mur existant"
+    },
+    {
+      "id": 8,
+      "company_id": 1,
+      "nom": "Montage cloison placo",
+      "description": "Montage cloison en plaque de plâtre sur rail"
+    },
+    {
+      "id": 9,
+      "company_id": 1,
+      "nom": "Montage cloison briques",
+      "description": "Montage cloison en briques plâtrières"
+    },
+    {
+      "id": 10,
+      "company_id": 1,
+      "nom": "Chape béton",
+      "description": "Réalisation d'une chape béton"
+    },
+    {
+      "id": 11,
+      "company_id": 1,
+      "nom": "Montage mur agglo",
+      "description": "Construction de mur en agglo / parpaing"
+    },
+    {
+      "id": 12,
+      "company_id": 1,
+      "nom": "Faux plafond placo",
+      "description": "Pose de faux plafond en plaques de plâtre sur ossature métallique"
+    },
+    {
+      "id": 13,
+      "company_id": 1,
+      "nom": "Faux plafond dalles",
+      "description": "Pose de faux plafond en dalles sur ossature apparente"
+    },
+    {
+      "id": 14,
+      "company_id": 1,
+      "nom": "Doublage mur",
+      "description": "Doublage isolant collé ou sur ossature"
+    },
+    {
+      "id": 15,
+      "company_id": 1,
+      "nom": "Enduit plâtre mur",
+      "description": "Application enduit plâtre sur mur"
+    },
+    {
+      "id": 16,
+      "company_id": 1,
+      "nom": "Bandes à joints",
+      "description": "Réalisation de bandes à joints sur plaques de plâtre"
+    },
+    {
+      "id": 17,
+      "company_id": 1,
+      "nom": "Isolation mur intérieur",
+      "description": "Isolation thermique mur intérieur (isolant + placo)"
+    },
+    {
+      "id": 18,
+      "company_id": 1,
+      "nom": "Isolation combles soufflage",
+      "description": "Isolation des combles perdus par soufflage"
+    },
+    {
+      "id": 19,
+      "company_id": 1,
+      "nom": "Isolation combles rampants",
+      "description": "Isolation sous rampants de toiture"
+    },
+    {
+      "id": 20,
+      "company_id": 1,
+      "nom": "Isolation sol",
+      "description": "Isolation thermique du sol"
+    },
+    {
+      "id": 21,
+      "company_id": 1,
+      "nom": "Isolation phonique",
+      "description": "Isolation acoustique mur ou plafond"
+    },
+    {
+      "id": 22,
+      "company_id": 1,
+      "nom": "Installation douche complète",
+      "description": "Installation complète d'une douche (receveur, robinetterie, raccordements)"
+    },
+    {
+      "id": 23,
+      "company_id": 1,
+      "nom": "Remplacement WC",
+      "description": "Dépose ancien WC + pose nouveau WC"
+    },
+    {
+      "id": 24,
+      "company_id": 1,
+      "nom": "Installation lavabo",
+      "description": "Pose d'un lavabo avec robinetterie et raccordement"
+    },
+    {
+      "id": 25,
+      "company_id": 1,
+      "nom": "Pose baignoire",
+      "description": "Pose de baignoire avec tablier et raccordement"
+    },
+    {
+      "id": 26,
+      "company_id": 1,
+      "nom": "Remplacement chauffe-eau",
+      "description": "Dépose + pose chauffe-eau"
+    },
+    {
+      "id": 27,
+      "company_id": 1,
+      "nom": "Remplacement tuyauterie",
+      "description": "Remplacement de tuyauterie eau chaude/froide"
+    },
+    {
+      "id": 28,
+      "company_id": 1,
+      "nom": "Création point d'eau",
+      "description": "Création d'un nouveau point d'eau (alimentation + évacuation)"
+    },
+    {
+      "id": 29,
+      "company_id": 1,
+      "nom": "Pose prise électrique",
+      "description": "Pose d'une prise électrique avec saignée et raccordement"
+    },
+    {
+      "id": 30,
+      "company_id": 1,
+      "nom": "Pose interrupteur",
+      "description": "Pose d'un interrupteur"
+    },
+    {
+      "id": 31,
+      "company_id": 1,
+      "nom": "Pose luminaire",
+      "description": "Pose d'un luminaire avec raccordement"
+    },
+    {
+      "id": 32,
+      "company_id": 1,
+      "nom": "Mise aux normes tableau",
+      "description": "Mise aux normes NF C 15-100 du tableau électrique"
+    },
+    {
+      "id": 33,
+      "company_id": 1,
+      "nom": "Remplacement tableau",
+      "description": "Remplacement du tableau électrique vétuste"
+    },
+    {
+      "id": 34,
+      "company_id": 1,
+      "nom": "Installation domotique",
+      "description": "Installation d'un équipement domotique"
+    },
+    {
+      "id": 35,
+      "company_id": 1,
+      "nom": "Pose carrelage sol",
+      "description": "Pose de carrelage au sol"
+    },
+    {
+      "id": 36,
+      "company_id": 1,
+      "nom": "Pose carrelage mural",
+      "description": "Pose de carrelage mural"
+    },
+    {
+      "id": 37,
+      "company_id": 1,
+      "nom": "Pose faïence",
+      "description": "Pose de faïence murale décorative"
+    },
+    {
+      "id": 38,
+      "company_id": 1,
+      "nom": "Ragréage sol",
+      "description": "Ragréage et préparation du sol avant pose"
+    },
+    {
+      "id": 39,
+      "company_id": 1,
+      "nom": "Primaire d'accrochage",
+      "description": "Application primaire d'accrochage avant ragréage ou colle"
+    },
+    {
+      "id": 40,
+      "company_id": 1,
+      "nom": "Peinture mur intérieur",
+      "description": "Peinture murale intérieure (2 couches)"
+    },
+    {
+      "id": 41,
+      "company_id": 1,
+      "nom": "Peinture plafond",
+      "description": "Peinture plafond (2 couches)"
+    },
+    {
+      "id": 42,
+      "company_id": 1,
+      "nom": "Peinture extérieure façade",
+      "description": "Peinture extérieure sur façade"
+    },
+    {
+      "id": 43,
+      "company_id": 1,
+      "nom": "Peinture boiseries",
+      "description": "Peinture sur boiseries (portes, plinthes, fenêtres)"
+    },
+    {
+      "id": 44,
+      "company_id": 1,
+      "nom": "Enduit décoratif",
+      "description": "Application d'enduit décoratif"
+    },
+    {
+      "id": 45,
+      "company_id": 1,
+      "nom": "Préparation murs",
+      "description": "Lessivage, rebouchage, ponçage, sous-couche"
+    },
+    {
+      "id": 46,
+      "company_id": 1,
+      "nom": "Pose parquet flottant",
+      "description": "Pose de parquet flottant avec sous-couche"
+    },
+    {
+      "id": 47,
+      "company_id": 1,
+      "nom": "Pose parquet massif",
+      "description": "Pose de parquet massif collé ou cloué"
+    },
+    {
+      "id": 48,
+      "company_id": 1,
+      "nom": "Ponçage vitrification parquet",
+      "description": "Ponçage et vitrification de parquet existant"
+    },
+    {
+      "id": 49,
+      "company_id": 1,
+      "nom": "Pose sol vinyle/PVC",
+      "description": "Pose de revêtement vinyle ou PVC"
+    },
+    {
+      "id": 50,
+      "company_id": 1,
+      "nom": "Pose moquette",
+      "description": "Pose de moquette"
+    },
+    {
+      "id": 51,
+      "company_id": 1,
+      "nom": "Pose porte intérieure",
+      "description": "Pose d'une porte intérieure avec huisserie"
+    },
+    {
+      "id": 52,
+      "company_id": 1,
+      "nom": "Pose placard sur mesure",
+      "description": "Fabrication et pose de placard sur mesure"
+    },
+    {
+      "id": 53,
+      "company_id": 1,
+      "nom": "Rénovation escalier",
+      "description": "Rénovation complète d'un escalier"
+    },
+    {
+      "id": 54,
+      "company_id": 1,
+      "nom": "Pose fenêtre",
+      "description": "Dépose + pose fenêtre avec finitions"
+    },
+    {
+      "id": 55,
+      "company_id": 1,
+      "nom": "Pose porte d'entrée",
+      "description": "Dépose + pose porte d'entrée"
+    },
+    {
+      "id": 56,
+      "company_id": 1,
+      "nom": "Pose volets",
+      "description": "Pose de volets"
+    },
+    {
+      "id": 57,
+      "company_id": 1,
+      "nom": "Pose baie vitrée",
+      "description": "Dépose + pose baie vitrée"
+    },
+    {
+      "id": 58,
+      "company_id": 1,
+      "nom": "Réfection toiture complète",
+      "description": "Dépose + repose couverture complète"
+    },
+    {
+      "id": 59,
+      "company_id": 1,
+      "nom": "Réparation toiture",
+      "description": "Remplacement tuiles/ardoises, reprises ponctuelles"
+    },
+    {
+      "id": 60,
+      "company_id": 1,
+      "nom": "Nettoyage toiture",
+      "description": "Nettoyage et traitement de toiture"
+    },
+    {
+      "id": 61,
+      "company_id": 1,
+      "nom": "Remplacement gouttières",
+      "description": "Dépose + pose de gouttières et descentes"
+    },
+    {
+      "id": 62,
+      "company_id": 1,
+      "nom": "Traitement charpente",
+      "description": "Traitement préventif ou curatif de charpente bois"
+    },
+    {
+      "id": 63,
+      "company_id": 1,
+      "nom": "Ravalement façade",
+      "description": "Ravalement complet de façade (nettoyage + enduit + peinture)"
+    },
+    {
+      "id": 64,
+      "company_id": 1,
+      "nom": "Enduit façade",
+      "description": "Application d'enduit sur façade"
+    },
+    {
+      "id": 65,
+      "company_id": 1,
+      "nom": "Nettoyage façade",
+      "description": "Nettoyage de façade"
+    },
+    {
+      "id": 66,
+      "company_id": 1,
+      "nom": "Isolation thermique extérieure (ITE)",
+      "description": "Isolation thermique par l'extérieur avec enduit de finition"
+    },
+    {
+      "id": 67,
+      "company_id": 1,
+      "nom": "Pose radiateur",
+      "description": "Pose d'un radiateur"
+    },
+    {
+      "id": 68,
+      "company_id": 1,
+      "nom": "Pose plancher chauffant",
+      "description": "Installation de plancher chauffant"
+    },
+    {
+      "id": 69,
+      "company_id": 1,
+      "nom": "Installation climatisation",
+      "description": "Installation d'un système de climatisation"
+    },
+    {
+      "id": 70,
+      "company_id": 1,
+      "nom": "Remplacement chaudière",
+      "description": "Dépose + pose chaudière ou PAC"
+    },
+    {
+      "id": 71,
+      "company_id": 1,
+      "nom": "Installation VMC",
+      "description": "Installation complète d'un système VMC"
+    },
+    {
+      "id": 72,
+      "company_id": 1,
+      "nom": "Pose extracteur",
+      "description": "Pose d'un extracteur d'air"
+    },
+    {
+      "id": 73,
+      "company_id": 1,
+      "nom": "Pose terrasse",
+      "description": "Création de terrasse extérieure"
+    },
+    {
+      "id": 74,
+      "company_id": 1,
+      "nom": "Pose clôture",
+      "description": "Pose de clôture avec poteaux"
+    },
+    {
+      "id": 75,
+      "company_id": 1,
+      "nom": "Pose portail",
+      "description": "Pose de portail avec poteaux"
+    },
+    {
+      "id": 76,
+      "company_id": 1,
+      "nom": "Création allée",
+      "description": "Création d'allée piétonne ou carrossable"
+    },
+    {
+      "id": 77,
+      "company_id": 1,
+      "nom": "Pose pergola",
+      "description": "Pose de pergola"
+    },
+    {
+      "id": 78,
+      "company_id": 1,
+      "nom": "Pose cuisine équipée",
+      "description": "Pose de meubles de cuisine équipée (par mètre linéaire)"
+    },
+    {
+      "id": 79,
+      "company_id": 1,
+      "nom": "Pose plan de travail",
+      "description": "Pose de plan de travail cuisine"
+    },
+    {
+      "id": 80,
+      "company_id": 1,
+      "nom": "Pose crédence cuisine",
+      "description": "Pose de crédence de cuisine"
+    },
+    {
+      "id": 81,
+      "company_id": 1,
+      "nom": "Installation électroménager",
+      "description": "Installation et raccordement d'un appareil électroménager"
+    },
+    {
+      "id": 82,
+      "company_id": 1,
+      "nom": "Rénovation SDB complète",
+      "description": "Rénovation complète de salle de bain (dépose + plomberie + carrelage + équipements)"
+    },
+    {
+      "id": 83,
+      "company_id": 1,
+      "nom": "Pose meuble vasque",
+      "description": "Pose d'un meuble vasque avec robinetterie"
+    },
+    {
+      "id": 84,
+      "company_id": 1,
+      "nom": "Pose paroi de douche",
+      "description": "Pose d'une paroi de douche"
+    },
+    {
+      "id": 85,
+      "company_id": 1,
+      "nom": "Pose accessoires SDB",
+      "description": "Pose d'accessoires de salle de bain (porte-serviette, miroir, etc.)"
+    },
+    {
+      "id": 86,
+      "company_id": 1,
+      "nom": "Chape fluide",
+      "description": "Réalisation de chape fluide autonivelante"
+    },
+    {
+      "id": 87,
+      "company_id": 1,
+      "nom": "Sol résine",
+      "description": "Application de sol en résine"
+    },
+    {
+      "id": 88,
+      "company_id": 1,
+      "nom": "Traitement humidité",
+      "description": "Traitement des remontées capillaires et infiltrations"
+    },
+    {
+      "id": 89,
+      "company_id": 1,
+      "nom": "Traitement termites",
+      "description": "Traitement anti-termites et insectes xylophages"
+    },
+    {
+      "id": 90,
+      "company_id": 1,
+      "nom": "Assainissement non collectif",
+      "description": "Installation ou remplacement d'un système d'assainissement individuel"
+    },
+    {
+      "id": 91,
+      "company_id": 1,
+      "nom": "Pose garde-corps",
+      "description": "Pose de garde-corps"
+    },
+    {
+      "id": 92,
+      "company_id": 1,
+      "nom": "Pose rampe escalier",
+      "description": "Pose de rampe et main courante d'escalier"
+    },
+    {
+      "id": 93,
+      "company_id": 1,
+      "nom": "Pose grille de défense",
+      "description": "Pose de grille de défense sur fenêtre"
+    },
+    {
+      "id": 94,
+      "company_id": 1,
+      "nom": "Remplacement vitrage",
+      "description": "Remplacement de vitrage sur menuiserie existante"
+    },
+    {
+      "id": 95,
+      "company_id": 1,
+      "nom": "Pose miroir",
+      "description": "Fourniture et pose de miroir sur mesure"
+    },
+    {
+      "id": 96,
+      "company_id": 1,
+      "nom": "Pose verrière intérieure",
+      "description": "Pose de verrière d'intérieur style atelier"
+    },
+    {
+      "id": 97,
+      "company_id": 1,
+      "nom": "Pose cloison vitrée bureau",
+      "description": "Pose de cloison vitrée de bureau ou séparation"
+    }
+  ],
+  "options": [
+    {
+      "id": 1,
+      "prestation_id": 1,
+      "nom": "Type de cloison",
+      "description": ""
+    },
+    {
+      "id": 2,
+      "prestation_id": 2,
+      "nom": "Type de revêtement",
+      "description": ""
+    },
+    {
+      "id": 3,
+      "prestation_id": 3,
+      "nom": "Type d'équipement",
+      "description": ""
+    },
+    {
+      "id": 4,
+      "prestation_id": 4,
+      "nom": "Type de mur",
+      "description": ""
+    },
+    {
+      "id": 5,
+      "prestation_id": 6,
+      "nom": "Type de mur",
+      "description": ""
+    },
+    {
+      "id": 6,
+      "prestation_id": 6,
+      "nom": "Largeur ouverture",
+      "description": ""
+    },
+    {
+      "id": 7,
+      "prestation_id": 7,
+      "nom": "Type de mur",
+      "description": ""
+    },
+    {
+      "id": 8,
+      "prestation_id": 8,
+      "nom": "Type de placo",
+      "description": ""
+    },
+    {
+      "id": 9,
+      "prestation_id": 8,
+      "nom": "Isolation intégrée",
+      "description": ""
+    },
+    {
+      "id": 10,
+      "prestation_id": 9,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 11,
+      "prestation_id": 10,
+      "nom": "Type de chape",
+      "description": ""
+    },
+    {
+      "id": 12,
+      "prestation_id": 10,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 13,
+      "prestation_id": 11,
+      "nom": "Type d'agglo",
+      "description": ""
+    },
+    {
+      "id": 14,
+      "prestation_id": 12,
+      "nom": "Type de plaque",
+      "description": ""
+    },
+    {
+      "id": 15,
+      "prestation_id": 12,
+      "nom": "Hauteur sous plafond perdue",
+      "description": ""
+    },
+    {
+      "id": 16,
+      "prestation_id": 13,
+      "nom": "Type de dalle",
+      "description": ""
+    },
+    {
+      "id": 17,
+      "prestation_id": 14,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 18,
+      "prestation_id": 14,
+      "nom": "Épaisseur isolant",
+      "description": ""
+    },
+    {
+      "id": 19,
+      "prestation_id": 15,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 20,
+      "prestation_id": 17,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 21,
+      "prestation_id": 17,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 22,
+      "prestation_id": 18,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 23,
+      "prestation_id": 18,
+      "nom": "Résistance thermique",
+      "description": ""
+    },
+    {
+      "id": 24,
+      "prestation_id": 19,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 25,
+      "prestation_id": 20,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 26,
+      "prestation_id": 20,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 27,
+      "prestation_id": 21,
+      "nom": "Support",
+      "description": ""
+    },
+    {
+      "id": 28,
+      "prestation_id": 21,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 29,
+      "prestation_id": 22,
+      "nom": "Type de douche",
+      "description": ""
+    },
+    {
+      "id": 30,
+      "prestation_id": 22,
+      "nom": "Paroi",
+      "description": ""
+    },
+    {
+      "id": 31,
+      "prestation_id": 23,
+      "nom": "Type de WC",
+      "description": ""
+    },
+    {
+      "id": 32,
+      "prestation_id": 24,
+      "nom": "Type de vasque",
+      "description": ""
+    },
+    {
+      "id": 33,
+      "prestation_id": 25,
+      "nom": "Type de baignoire",
+      "description": ""
+    },
+    {
+      "id": 34,
+      "prestation_id": 26,
+      "nom": "Type de chauffe-eau",
+      "description": ""
+    },
+    {
+      "id": 35,
+      "prestation_id": 26,
+      "nom": "Capacité",
+      "description": ""
+    },
+    {
+      "id": 36,
+      "prestation_id": 27,
+      "nom": "Type de tuyau",
+      "description": ""
+    },
+    {
+      "id": 37,
+      "prestation_id": 27,
+      "nom": "Diamètre",
+      "description": ""
+    },
+    {
+      "id": 38,
+      "prestation_id": 29,
+      "nom": "Type de prise",
+      "description": ""
+    },
+    {
+      "id": 39,
+      "prestation_id": 30,
+      "nom": "Type d'interrupteur",
+      "description": ""
+    },
+    {
+      "id": 40,
+      "prestation_id": 31,
+      "nom": "Type de luminaire",
+      "description": ""
+    },
+    {
+      "id": 41,
+      "prestation_id": 32,
+      "nom": "Type d'installation",
+      "description": ""
+    },
+    {
+      "id": 42,
+      "prestation_id": 32,
+      "nom": "Nombre de circuits",
+      "description": ""
+    },
+    {
+      "id": 43,
+      "prestation_id": 33,
+      "nom": "Nombre de rangées",
+      "description": ""
+    },
+    {
+      "id": 44,
+      "prestation_id": 34,
+      "nom": "Type d'équipement",
+      "description": ""
+    },
+    {
+      "id": 45,
+      "prestation_id": 35,
+      "nom": "Format",
+      "description": ""
+    },
+    {
+      "id": 46,
+      "prestation_id": 35,
+      "nom": "Type de pose",
+      "description": ""
+    },
+    {
+      "id": 47,
+      "prestation_id": 35,
+      "nom": "Type de colle",
+      "description": ""
+    },
+    {
+      "id": 48,
+      "prestation_id": 36,
+      "nom": "Format",
+      "description": ""
+    },
+    {
+      "id": 49,
+      "prestation_id": 36,
+      "nom": "Pièce",
+      "description": ""
+    },
+    {
+      "id": 50,
+      "prestation_id": 37,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 51,
+      "prestation_id": 38,
+      "nom": "Type de ragréage",
+      "description": ""
+    },
+    {
+      "id": 52,
+      "prestation_id": 38,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 53,
+      "prestation_id": 40,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 54,
+      "prestation_id": 40,
+      "nom": "Type de peinture",
+      "description": ""
+    },
+    {
+      "id": 55,
+      "prestation_id": 41,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 56,
+      "prestation_id": 42,
+      "nom": "Type de peinture",
+      "description": ""
+    },
+    {
+      "id": 57,
+      "prestation_id": 43,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 58,
+      "prestation_id": 44,
+      "nom": "Type d'enduit",
+      "description": ""
+    },
+    {
+      "id": 59,
+      "prestation_id": 45,
+      "nom": "État du support",
+      "description": ""
+    },
+    {
+      "id": 60,
+      "prestation_id": 46,
+      "nom": "Type de parquet",
+      "description": ""
+    },
+    {
+      "id": 61,
+      "prestation_id": 46,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 62,
+      "prestation_id": 47,
+      "nom": "Essence",
+      "description": ""
+    },
+    {
+      "id": 63,
+      "prestation_id": 47,
+      "nom": "Type de pose",
+      "description": ""
+    },
+    {
+      "id": 64,
+      "prestation_id": 48,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 65,
+      "prestation_id": 49,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 66,
+      "prestation_id": 50,
+      "nom": "Type de moquette",
+      "description": ""
+    },
+    {
+      "id": 67,
+      "prestation_id": 50,
+      "nom": "Type de pose",
+      "description": ""
+    },
+    {
+      "id": 68,
+      "prestation_id": 51,
+      "nom": "Type de porte",
+      "description": ""
+    },
+    {
+      "id": 69,
+      "prestation_id": 51,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 70,
+      "prestation_id": 52,
+      "nom": "Type de portes",
+      "description": ""
+    },
+    {
+      "id": 71,
+      "prestation_id": 52,
+      "nom": "Aménagement intérieur",
+      "description": ""
+    },
+    {
+      "id": 72,
+      "prestation_id": 53,
+      "nom": "Matériau marches",
+      "description": ""
+    },
+    {
+      "id": 73,
+      "prestation_id": 53,
+      "nom": "Type de garde-corps",
+      "description": ""
+    },
+    {
+      "id": 74,
+      "prestation_id": 54,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 75,
+      "prestation_id": 54,
+      "nom": "Type d'ouverture",
+      "description": ""
+    },
+    {
+      "id": 76,
+      "prestation_id": 54,
+      "nom": "Vitrage",
+      "description": ""
+    },
+    {
+      "id": 77,
+      "prestation_id": 55,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 78,
+      "prestation_id": 55,
+      "nom": "Serrure",
+      "description": ""
+    },
+    {
+      "id": 79,
+      "prestation_id": 56,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 80,
+      "prestation_id": 56,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 81,
+      "prestation_id": 56,
+      "nom": "Motorisation",
+      "description": ""
+    },
+    {
+      "id": 82,
+      "prestation_id": 57,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 83,
+      "prestation_id": 57,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 84,
+      "prestation_id": 58,
+      "nom": "Matériau couverture",
+      "description": ""
+    },
+    {
+      "id": 85,
+      "prestation_id": 59,
+      "nom": "Type de réparation",
+      "description": ""
+    },
+    {
+      "id": 86,
+      "prestation_id": 60,
+      "nom": "Méthode",
+      "description": ""
+    },
+    {
+      "id": 87,
+      "prestation_id": 61,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 88,
+      "prestation_id": 61,
+      "nom": "Forme",
+      "description": ""
+    },
+    {
+      "id": 89,
+      "prestation_id": 62,
+      "nom": "Type de traitement",
+      "description": ""
+    },
+    {
+      "id": 90,
+      "prestation_id": 63,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 91,
+      "prestation_id": 64,
+      "nom": "Type d'enduit",
+      "description": ""
+    },
+    {
+      "id": 92,
+      "prestation_id": 65,
+      "nom": "Méthode",
+      "description": ""
+    },
+    {
+      "id": 93,
+      "prestation_id": 66,
+      "nom": "Type d'isolant",
+      "description": ""
+    },
+    {
+      "id": 94,
+      "prestation_id": 66,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 95,
+      "prestation_id": 66,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 96,
+      "prestation_id": 67,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 97,
+      "prestation_id": 68,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 98,
+      "prestation_id": 69,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 99,
+      "prestation_id": 69,
+      "nom": "Puissance",
+      "description": ""
+    },
+    {
+      "id": 100,
+      "prestation_id": 70,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 101,
+      "prestation_id": 71,
+      "nom": "Type de VMC",
+      "description": ""
+    },
+    {
+      "id": 102,
+      "prestation_id": 71,
+      "nom": "Nombre de bouches",
+      "description": ""
+    },
+    {
+      "id": 103,
+      "prestation_id": 72,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 104,
+      "prestation_id": 73,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 105,
+      "prestation_id": 73,
+      "nom": "Structure",
+      "description": ""
+    },
+    {
+      "id": 106,
+      "prestation_id": 74,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 107,
+      "prestation_id": 74,
+      "nom": "Hauteur",
+      "description": ""
+    },
+    {
+      "id": 108,
+      "prestation_id": 75,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 109,
+      "prestation_id": 75,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 110,
+      "prestation_id": 75,
+      "nom": "Motorisation",
+      "description": ""
+    },
+    {
+      "id": 111,
+      "prestation_id": 76,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 112,
+      "prestation_id": 77,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 113,
+      "prestation_id": 77,
+      "nom": "Surface",
+      "description": ""
+    },
+    {
+      "id": 114,
+      "prestation_id": 78,
+      "nom": "Gamme",
+      "description": ""
+    },
+    {
+      "id": 115,
+      "prestation_id": 79,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 116,
+      "prestation_id": 80,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 117,
+      "prestation_id": 81,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 118,
+      "prestation_id": 82,
+      "nom": "Surface",
+      "description": ""
+    },
+    {
+      "id": 119,
+      "prestation_id": 82,
+      "nom": "Gamme",
+      "description": ""
+    },
+    {
+      "id": 120,
+      "prestation_id": 83,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 121,
+      "prestation_id": 84,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 122,
+      "prestation_id": 84,
+      "nom": "Verre",
+      "description": ""
+    },
+    {
+      "id": 123,
+      "prestation_id": 85,
+      "nom": "Pack",
+      "description": ""
+    },
+    {
+      "id": 124,
+      "prestation_id": 86,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 125,
+      "prestation_id": 86,
+      "nom": "Épaisseur",
+      "description": ""
+    },
+    {
+      "id": 126,
+      "prestation_id": 87,
+      "nom": "Type de résine",
+      "description": ""
+    },
+    {
+      "id": 127,
+      "prestation_id": 87,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 128,
+      "prestation_id": 88,
+      "nom": "Technique",
+      "description": ""
+    },
+    {
+      "id": 129,
+      "prestation_id": 89,
+      "nom": "Type de traitement",
+      "description": ""
+    },
+    {
+      "id": 130,
+      "prestation_id": 90,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 131,
+      "prestation_id": 91,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 132,
+      "prestation_id": 91,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 133,
+      "prestation_id": 92,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 134,
+      "prestation_id": 93,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 135,
+      "prestation_id": 93,
+      "nom": "Matériau",
+      "description": ""
+    },
+    {
+      "id": 136,
+      "prestation_id": 94,
+      "nom": "Type de vitrage",
+      "description": ""
+    },
+    {
+      "id": 137,
+      "prestation_id": 95,
+      "nom": "Fixation",
+      "description": ""
+    },
+    {
+      "id": 138,
+      "prestation_id": 95,
+      "nom": "Finition",
+      "description": ""
+    },
+    {
+      "id": 139,
+      "prestation_id": 96,
+      "nom": "Type",
+      "description": ""
+    },
+    {
+      "id": 140,
+      "prestation_id": 96,
+      "nom": "Matériau cadre",
+      "description": ""
+    },
+    {
+      "id": 141,
+      "prestation_id": 97,
+      "nom": "Type",
+      "description": ""
+    }
+  ],
+  "choix": [
+    {
+      "id": 1,
+      "option_id": 1,
+      "nom": "Cloison en plâtre",
+      "description": ""
+    },
+    {
+      "id": 2,
+      "option_id": 1,
+      "nom": "Cloison en brique creuse",
+      "description": ""
+    },
+    {
+      "id": 3,
+      "option_id": 1,
+      "nom": "Cloison en plaques de plâtre",
+      "description": ""
+    },
+    {
+      "id": 4,
+      "option_id": 1,
+      "nom": "Cloison en béton cellulaire",
+      "description": ""
+    },
+    {
+      "id": 5,
+      "option_id": 2,
+      "nom": "Carrelage",
+      "description": ""
+    },
+    {
+      "id": 6,
+      "option_id": 2,
+      "nom": "Parquet collé",
+      "description": ""
+    },
+    {
+      "id": 7,
+      "option_id": 2,
+      "nom": "Parquet flottant",
+      "description": ""
+    },
+    {
+      "id": 8,
+      "option_id": 2,
+      "nom": "Moquette",
+      "description": ""
+    },
+    {
+      "id": 9,
+      "option_id": 2,
+      "nom": "Vinyle / PVC",
+      "description": ""
+    },
+    {
+      "id": 10,
+      "option_id": 2,
+      "nom": "Lino",
+      "description": ""
+    },
+    {
+      "id": 11,
+      "option_id": 3,
+      "nom": "Baignoire",
+      "description": ""
+    },
+    {
+      "id": 12,
+      "option_id": 3,
+      "nom": "Douche / receveur",
+      "description": ""
+    },
+    {
+      "id": 13,
+      "option_id": 3,
+      "nom": "WC",
+      "description": ""
+    },
+    {
+      "id": 14,
+      "option_id": 3,
+      "nom": "Lavabo / vasque",
+      "description": ""
+    },
+    {
+      "id": 15,
+      "option_id": 3,
+      "nom": "Bidet",
+      "description": ""
+    },
+    {
+      "id": 16,
+      "option_id": 3,
+      "nom": "Meuble vasque",
+      "description": ""
+    },
+    {
+      "id": 17,
+      "option_id": 4,
+      "nom": "Brique",
+      "description": ""
+    },
+    {
+      "id": 18,
+      "option_id": 4,
+      "nom": "Béton",
+      "description": ""
+    },
+    {
+      "id": 19,
+      "option_id": 4,
+      "nom": "Pierre",
+      "description": ""
+    },
+    {
+      "id": 20,
+      "option_id": 4,
+      "nom": "Parpaing",
+      "description": ""
+    },
+    {
+      "id": 21,
+      "option_id": 5,
+      "nom": "Béton armé",
+      "description": ""
+    },
+    {
+      "id": 22,
+      "option_id": 5,
+      "nom": "Brique pleine",
+      "description": ""
+    },
+    {
+      "id": 23,
+      "option_id": 5,
+      "nom": "Pierre",
+      "description": ""
+    },
+    {
+      "id": 24,
+      "option_id": 5,
+      "nom": "Parpaing",
+      "description": ""
+    },
+    {
+      "id": 25,
+      "option_id": 6,
+      "nom": "< 1m",
+      "description": ""
+    },
+    {
+      "id": 26,
+      "option_id": 6,
+      "nom": "1m à 2m",
+      "description": ""
+    },
+    {
+      "id": 27,
+      "option_id": 6,
+      "nom": "2m à 3m",
+      "description": ""
+    },
+    {
+      "id": 28,
+      "option_id": 6,
+      "nom": "> 3m",
+      "description": ""
+    },
+    {
+      "id": 29,
+      "option_id": 7,
+      "nom": "Brique",
+      "description": ""
+    },
+    {
+      "id": 30,
+      "option_id": 7,
+      "nom": "Parpaing",
+      "description": ""
+    },
+    {
+      "id": 31,
+      "option_id": 7,
+      "nom": "Pierre",
+      "description": ""
+    },
+    {
+      "id": 32,
+      "option_id": 8,
+      "nom": "BA13 standard",
+      "description": ""
+    },
+    {
+      "id": 33,
+      "option_id": 8,
+      "nom": "BA13 hydrofuge",
+      "description": ""
+    },
+    {
+      "id": 34,
+      "option_id": 8,
+      "nom": "BA13 phonique",
+      "description": ""
+    },
+    {
+      "id": 35,
+      "option_id": 8,
+      "nom": "BA13 feu (rose)",
+      "description": ""
+    },
+    {
+      "id": 36,
+      "option_id": 8,
+      "nom": "Double parement",
+      "description": ""
+    },
+    {
+      "id": 37,
+      "option_id": 9,
+      "nom": "Sans isolation",
+      "description": ""
+    },
+    {
+      "id": 38,
+      "option_id": 9,
+      "nom": "Laine de verre 45mm",
+      "description": ""
+    },
+    {
+      "id": 39,
+      "option_id": 9,
+      "nom": "Laine de verre 70mm",
+      "description": ""
+    },
+    {
+      "id": 40,
+      "option_id": 9,
+      "nom": "Laine de roche 45mm",
+      "description": ""
+    },
+    {
+      "id": 41,
+      "option_id": 10,
+      "nom": "5cm",
+      "description": ""
+    },
+    {
+      "id": 42,
+      "option_id": 10,
+      "nom": "7cm",
+      "description": ""
+    },
+    {
+      "id": 43,
+      "option_id": 10,
+      "nom": "10cm",
+      "description": ""
+    },
+    {
+      "id": 44,
+      "option_id": 11,
+      "nom": "Chape traditionnelle",
+      "description": ""
+    },
+    {
+      "id": 45,
+      "option_id": 11,
+      "nom": "Chape allégée",
+      "description": ""
+    },
+    {
+      "id": 46,
+      "option_id": 11,
+      "nom": "Chape fibrée",
+      "description": ""
+    },
+    {
+      "id": 47,
+      "option_id": 11,
+      "nom": "Chape liquide anhydrite",
+      "description": ""
+    },
+    {
+      "id": 48,
+      "option_id": 12,
+      "nom": "3-4 cm",
+      "description": ""
+    },
+    {
+      "id": 49,
+      "option_id": 12,
+      "nom": "5-6 cm",
+      "description": ""
+    },
+    {
+      "id": 50,
+      "option_id": 12,
+      "nom": "7-8 cm",
+      "description": ""
+    },
+    {
+      "id": 51,
+      "option_id": 12,
+      "nom": "> 8 cm",
+      "description": ""
+    },
+    {
+      "id": 52,
+      "option_id": 13,
+      "nom": "Creux 20cm",
+      "description": ""
+    },
+    {
+      "id": 53,
+      "option_id": 13,
+      "nom": "Creux 15cm",
+      "description": ""
+    },
+    {
+      "id": 54,
+      "option_id": 13,
+      "nom": "Plein 20cm",
+      "description": ""
+    },
+    {
+      "id": 55,
+      "option_id": 13,
+      "nom": "Plein 15cm",
+      "description": ""
+    },
+    {
+      "id": 56,
+      "option_id": 13,
+      "nom": "Béton cellulaire",
+      "description": ""
+    },
+    {
+      "id": 57,
+      "option_id": 14,
+      "nom": "BA13 standard",
+      "description": ""
+    },
+    {
+      "id": 58,
+      "option_id": 14,
+      "nom": "BA13 hydrofuge",
+      "description": ""
+    },
+    {
+      "id": 59,
+      "option_id": 14,
+      "nom": "Acoustique haute performance",
+      "description": ""
+    },
+    {
+      "id": 60,
+      "option_id": 14,
+      "nom": "Feu M1",
+      "description": ""
+    },
+    {
+      "id": 61,
+      "option_id": 15,
+      "nom": "5-10 cm",
+      "description": ""
+    },
+    {
+      "id": 62,
+      "option_id": 15,
+      "nom": "10-20 cm",
+      "description": ""
+    },
+    {
+      "id": 63,
+      "option_id": 15,
+      "nom": "20-40 cm",
+      "description": ""
+    },
+    {
+      "id": 64,
+      "option_id": 15,
+      "nom": "> 40 cm",
+      "description": ""
+    },
+    {
+      "id": 65,
+      "option_id": 16,
+      "nom": "Minérale standard",
+      "description": ""
+    },
+    {
+      "id": 66,
+      "option_id": 16,
+      "nom": "Minérale acoustique",
+      "description": ""
+    },
+    {
+      "id": 67,
+      "option_id": 16,
+      "nom": "Métallique",
+      "description": ""
+    },
+    {
+      "id": 68,
+      "option_id": 16,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 69,
+      "option_id": 17,
+      "nom": "Polystyrène expansé (PSE)",
+      "description": ""
+    },
+    {
+      "id": 70,
+      "option_id": 17,
+      "nom": "Polystyrène extrudé (XPS)",
+      "description": ""
+    },
+    {
+      "id": 71,
+      "option_id": 17,
+      "nom": "Laine de verre",
+      "description": ""
+    },
+    {
+      "id": 72,
+      "option_id": 17,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 73,
+      "option_id": 18,
+      "nom": "40mm",
+      "description": ""
+    },
+    {
+      "id": 74,
+      "option_id": 18,
+      "nom": "60mm",
+      "description": ""
+    },
+    {
+      "id": 75,
+      "option_id": 18,
+      "nom": "80mm",
+      "description": ""
+    },
+    {
+      "id": 76,
+      "option_id": 18,
+      "nom": "100mm",
+      "description": ""
+    },
+    {
+      "id": 77,
+      "option_id": 18,
+      "nom": "120mm",
+      "description": ""
+    },
+    {
+      "id": 78,
+      "option_id": 19,
+      "nom": "Lissé",
+      "description": ""
+    },
+    {
+      "id": 79,
+      "option_id": 19,
+      "nom": "Taloché",
+      "description": ""
+    },
+    {
+      "id": 80,
+      "option_id": 19,
+      "nom": "Projeté",
+      "description": ""
+    },
+    {
+      "id": 81,
+      "option_id": 20,
+      "nom": "Laine de verre",
+      "description": ""
+    },
+    {
+      "id": 82,
+      "option_id": 20,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 83,
+      "option_id": 20,
+      "nom": "Polystyrène expansé",
+      "description": ""
+    },
+    {
+      "id": 84,
+      "option_id": 20,
+      "nom": "Polyuréthane",
+      "description": ""
+    },
+    {
+      "id": 85,
+      "option_id": 20,
+      "nom": "Fibre de bois",
+      "description": ""
+    },
+    {
+      "id": 86,
+      "option_id": 21,
+      "nom": "60mm (R=1.85)",
+      "description": ""
+    },
+    {
+      "id": 87,
+      "option_id": 21,
+      "nom": "80mm (R=2.50)",
+      "description": ""
+    },
+    {
+      "id": 88,
+      "option_id": 21,
+      "nom": "100mm (R=3.15)",
+      "description": ""
+    },
+    {
+      "id": 89,
+      "option_id": 21,
+      "nom": "120mm (R=3.75)",
+      "description": ""
+    },
+    {
+      "id": 90,
+      "option_id": 21,
+      "nom": "140mm (R=4.35)",
+      "description": ""
+    },
+    {
+      "id": 91,
+      "option_id": 22,
+      "nom": "Laine de verre",
+      "description": ""
+    },
+    {
+      "id": 92,
+      "option_id": 22,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 93,
+      "option_id": 22,
+      "nom": "Ouate de cellulose",
+      "description": ""
+    },
+    {
+      "id": 94,
+      "option_id": 22,
+      "nom": "Fibre de bois",
+      "description": ""
+    },
+    {
+      "id": 95,
+      "option_id": 23,
+      "nom": "R=7 (30cm)",
+      "description": ""
+    },
+    {
+      "id": 96,
+      "option_id": 23,
+      "nom": "R=8 (35cm)",
+      "description": ""
+    },
+    {
+      "id": 97,
+      "option_id": 23,
+      "nom": "R=10 (40cm)",
+      "description": ""
+    },
+    {
+      "id": 98,
+      "option_id": 24,
+      "nom": "Laine de verre",
+      "description": ""
+    },
+    {
+      "id": 99,
+      "option_id": 24,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 100,
+      "option_id": 24,
+      "nom": "Fibre de bois",
+      "description": ""
+    },
+    {
+      "id": 101,
+      "option_id": 25,
+      "nom": "Polystyrène extrudé (XPS)",
+      "description": ""
+    },
+    {
+      "id": 102,
+      "option_id": 25,
+      "nom": "Polyuréthane",
+      "description": ""
+    },
+    {
+      "id": 103,
+      "option_id": 25,
+      "nom": "Laine de roche haute densité",
+      "description": ""
+    },
+    {
+      "id": 104,
+      "option_id": 26,
+      "nom": "40mm",
+      "description": ""
+    },
+    {
+      "id": 105,
+      "option_id": 26,
+      "nom": "60mm",
+      "description": ""
+    },
+    {
+      "id": 106,
+      "option_id": 26,
+      "nom": "80mm",
+      "description": ""
+    },
+    {
+      "id": 107,
+      "option_id": 26,
+      "nom": "100mm",
+      "description": ""
+    },
+    {
+      "id": 108,
+      "option_id": 27,
+      "nom": "Mur",
+      "description": ""
+    },
+    {
+      "id": 109,
+      "option_id": 27,
+      "nom": "Plafond",
+      "description": ""
+    },
+    {
+      "id": 110,
+      "option_id": 27,
+      "nom": "Cloison",
+      "description": ""
+    },
+    {
+      "id": 111,
+      "option_id": 28,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 112,
+      "option_id": 28,
+      "nom": "Mousse acoustique",
+      "description": ""
+    },
+    {
+      "id": 113,
+      "option_id": 28,
+      "nom": "Placo phonique + laine",
+      "description": ""
+    },
+    {
+      "id": 114,
+      "option_id": 28,
+      "nom": "Membrane acoustique",
+      "description": ""
+    },
+    {
+      "id": 115,
+      "option_id": 29,
+      "nom": "Douche italienne",
+      "description": ""
+    },
+    {
+      "id": 116,
+      "option_id": 29,
+      "nom": "Receveur extra-plat",
+      "description": ""
+    },
+    {
+      "id": 117,
+      "option_id": 29,
+      "nom": "Receveur surélevé",
+      "description": ""
+    },
+    {
+      "id": 118,
+      "option_id": 29,
+      "nom": "Cabine de douche complète",
+      "description": ""
+    },
+    {
+      "id": 119,
+      "option_id": 30,
+      "nom": "Sans paroi",
+      "description": ""
+    },
+    {
+      "id": 120,
+      "option_id": 30,
+      "nom": "Paroi fixe",
+      "description": ""
+    },
+    {
+      "id": 121,
+      "option_id": 30,
+      "nom": "Paroi battante",
+      "description": ""
+    },
+    {
+      "id": 122,
+      "option_id": 30,
+      "nom": "Paroi coulissante",
+      "description": ""
+    },
+    {
+      "id": 123,
+      "option_id": 30,
+      "nom": "Rideau de douche",
+      "description": ""
+    },
+    {
+      "id": 124,
+      "option_id": 31,
+      "nom": "WC posé classique",
+      "description": ""
+    },
+    {
+      "id": 125,
+      "option_id": 31,
+      "nom": "WC suspendu",
+      "description": ""
+    },
+    {
+      "id": 126,
+      "option_id": 31,
+      "nom": "WC broyeur",
+      "description": ""
+    },
+    {
+      "id": 127,
+      "option_id": 31,
+      "nom": "WC lavant",
+      "description": ""
+    },
+    {
+      "id": 128,
+      "option_id": 32,
+      "nom": "Vasque à poser",
+      "description": ""
+    },
+    {
+      "id": 129,
+      "option_id": 32,
+      "nom": "Vasque encastrée",
+      "description": ""
+    },
+    {
+      "id": 130,
+      "option_id": 32,
+      "nom": "Lavabo suspendu",
+      "description": ""
+    },
+    {
+      "id": 131,
+      "option_id": 32,
+      "nom": "Lave-mains",
+      "description": ""
+    },
+    {
+      "id": 132,
+      "option_id": 33,
+      "nom": "Baignoire standard",
+      "description": ""
+    },
+    {
+      "id": 133,
+      "option_id": 33,
+      "nom": "Baignoire balnéo",
+      "description": ""
+    },
+    {
+      "id": 134,
+      "option_id": 33,
+      "nom": "Baignoire îlot",
+      "description": ""
+    },
+    {
+      "id": 135,
+      "option_id": 33,
+      "nom": "Baignoire d'angle",
+      "description": ""
+    },
+    {
+      "id": 136,
+      "option_id": 34,
+      "nom": "Électrique (cumulus)",
+      "description": ""
+    },
+    {
+      "id": 137,
+      "option_id": 34,
+      "nom": "Gaz",
+      "description": ""
+    },
+    {
+      "id": 138,
+      "option_id": 34,
+      "nom": "Thermodynamique",
+      "description": ""
+    },
+    {
+      "id": 139,
+      "option_id": 34,
+      "nom": "Solaire",
+      "description": ""
+    },
+    {
+      "id": 140,
+      "option_id": 35,
+      "nom": "100L",
+      "description": ""
+    },
+    {
+      "id": 141,
+      "option_id": 35,
+      "nom": "150L",
+      "description": ""
+    },
+    {
+      "id": 142,
+      "option_id": 35,
+      "nom": "200L",
+      "description": ""
+    },
+    {
+      "id": 143,
+      "option_id": 35,
+      "nom": "300L",
+      "description": ""
+    },
+    {
+      "id": 144,
+      "option_id": 36,
+      "nom": "PER",
+      "description": ""
+    },
+    {
+      "id": 145,
+      "option_id": 36,
+      "nom": "Cuivre",
+      "description": ""
+    },
+    {
+      "id": 146,
+      "option_id": 36,
+      "nom": "Multicouche",
+      "description": ""
+    },
+    {
+      "id": 147,
+      "option_id": 37,
+      "nom": "12mm",
+      "description": ""
+    },
+    {
+      "id": 148,
+      "option_id": 37,
+      "nom": "16mm",
+      "description": ""
+    },
+    {
+      "id": 149,
+      "option_id": 37,
+      "nom": "20mm",
+      "description": ""
+    },
+    {
+      "id": 150,
+      "option_id": 37,
+      "nom": "25mm",
+      "description": ""
+    },
+    {
+      "id": 151,
+      "option_id": 38,
+      "nom": "Prise simple 2P+T",
+      "description": ""
+    },
+    {
+      "id": 152,
+      "option_id": 38,
+      "nom": "Prise double",
+      "description": ""
+    },
+    {
+      "id": 153,
+      "option_id": 38,
+      "nom": "Prise USB",
+      "description": ""
+    },
+    {
+      "id": 154,
+      "option_id": 38,
+      "nom": "Prise étanche (IP44)",
+      "description": ""
+    },
+    {
+      "id": 155,
+      "option_id": 38,
+      "nom": "Prise spécialisée 32A",
+      "description": ""
+    },
+    {
+      "id": 156,
+      "option_id": 39,
+      "nom": "Simple allumage",
+      "description": ""
+    },
+    {
+      "id": 157,
+      "option_id": 39,
+      "nom": "Va-et-vient",
+      "description": ""
+    },
+    {
+      "id": 158,
+      "option_id": 39,
+      "nom": "Double allumage",
+      "description": ""
+    },
+    {
+      "id": 159,
+      "option_id": 39,
+      "nom": "Variateur",
+      "description": ""
+    },
+    {
+      "id": 160,
+      "option_id": 39,
+      "nom": "Bouton poussoir",
+      "description": ""
+    },
+    {
+      "id": 161,
+      "option_id": 40,
+      "nom": "Spot encastré LED",
+      "description": ""
+    },
+    {
+      "id": 162,
+      "option_id": 40,
+      "nom": "Suspension",
+      "description": ""
+    },
+    {
+      "id": 163,
+      "option_id": 40,
+      "nom": "Applique murale",
+      "description": ""
+    },
+    {
+      "id": 164,
+      "option_id": 40,
+      "nom": "Plafonnier",
+      "description": ""
+    },
+    {
+      "id": 165,
+      "option_id": 40,
+      "nom": "Bandeau LED",
+      "description": ""
+    },
+    {
+      "id": 166,
+      "option_id": 40,
+      "nom": "Réglette LED",
+      "description": ""
+    },
+    {
+      "id": 167,
+      "option_id": 41,
+      "nom": "Monophasé standard",
+      "description": ""
+    },
+    {
+      "id": 168,
+      "option_id": 41,
+      "nom": "Monophasé renforcé",
+      "description": ""
+    },
+    {
+      "id": 169,
+      "option_id": 41,
+      "nom": "Triphasé",
+      "description": ""
+    },
+    {
+      "id": 170,
+      "option_id": 42,
+      "nom": "< 10 circuits",
+      "description": ""
+    },
+    {
+      "id": 171,
+      "option_id": 42,
+      "nom": "10 à 20 circuits",
+      "description": ""
+    },
+    {
+      "id": 172,
+      "option_id": 42,
+      "nom": "> 20 circuits",
+      "description": ""
+    },
+    {
+      "id": 173,
+      "option_id": 43,
+      "nom": "1 rangée (13 modules)",
+      "description": ""
+    },
+    {
+      "id": 174,
+      "option_id": 43,
+      "nom": "2 rangées (26 modules)",
+      "description": ""
+    },
+    {
+      "id": 175,
+      "option_id": 43,
+      "nom": "3 rangées (39 modules)",
+      "description": ""
+    },
+    {
+      "id": 176,
+      "option_id": 43,
+      "nom": "4 rangées (52 modules)",
+      "description": ""
+    },
+    {
+      "id": 177,
+      "option_id": 44,
+      "nom": "Interrupteur connecté",
+      "description": ""
+    },
+    {
+      "id": 178,
+      "option_id": 44,
+      "nom": "Thermostat connecté",
+      "description": ""
+    },
+    {
+      "id": 179,
+      "option_id": 44,
+      "nom": "Volets roulants connectés",
+      "description": ""
+    },
+    {
+      "id": 180,
+      "option_id": 44,
+      "nom": "Prise connectée",
+      "description": ""
+    },
+    {
+      "id": 181,
+      "option_id": 44,
+      "nom": "Détecteur de mouvement",
+      "description": ""
+    },
+    {
+      "id": 182,
+      "option_id": 45,
+      "nom": "20x20 cm",
+      "description": ""
+    },
+    {
+      "id": 183,
+      "option_id": 45,
+      "nom": "30x30 cm",
+      "description": ""
+    },
+    {
+      "id": 184,
+      "option_id": 45,
+      "nom": "45x45 cm",
+      "description": ""
+    },
+    {
+      "id": 185,
+      "option_id": 45,
+      "nom": "60x60 cm",
+      "description": ""
+    },
+    {
+      "id": 186,
+      "option_id": 45,
+      "nom": "30x60 cm",
+      "description": ""
+    },
+    {
+      "id": 187,
+      "option_id": 45,
+      "nom": "120x60 cm",
+      "description": ""
+    },
+    {
+      "id": 188,
+      "option_id": 45,
+      "nom": "120x120 cm",
+      "description": ""
+    },
+    {
+      "id": 189,
+      "option_id": 46,
+      "nom": "Pose droite",
+      "description": ""
+    },
+    {
+      "id": 190,
+      "option_id": 46,
+      "nom": "Pose diagonale",
+      "description": ""
+    },
+    {
+      "id": 191,
+      "option_id": 46,
+      "nom": "Pose décalée 1/3",
+      "description": ""
+    },
+    {
+      "id": 192,
+      "option_id": 46,
+      "nom": "Pose en chevron",
+      "description": ""
+    },
+    {
+      "id": 193,
+      "option_id": 46,
+      "nom": "Pose cabochon",
+      "description": ""
+    },
+    {
+      "id": 194,
+      "option_id": 47,
+      "nom": "Colle C1 (intérieur)",
+      "description": ""
+    },
+    {
+      "id": 195,
+      "option_id": 47,
+      "nom": "Colle C2 (renforcée)",
+      "description": ""
+    },
+    {
+      "id": 196,
+      "option_id": 47,
+      "nom": "Colle C2S1 (déformable)",
+      "description": ""
+    },
+    {
+      "id": 197,
+      "option_id": 47,
+      "nom": "Colle C2S2 (grands formats)",
+      "description": ""
+    },
+    {
+      "id": 198,
+      "option_id": 48,
+      "nom": "10x10 cm",
+      "description": ""
+    },
+    {
+      "id": 199,
+      "option_id": 48,
+      "nom": "10x20 cm (métro)",
+      "description": ""
+    },
+    {
+      "id": 200,
+      "option_id": 48,
+      "nom": "20x20 cm",
+      "description": ""
+    },
+    {
+      "id": 201,
+      "option_id": 48,
+      "nom": "30x60 cm",
+      "description": ""
+    },
+    {
+      "id": 202,
+      "option_id": 48,
+      "nom": "25x75 cm",
+      "description": ""
+    },
+    {
+      "id": 203,
+      "option_id": 48,
+      "nom": "Grand format > 60cm",
+      "description": ""
+    },
+    {
+      "id": 204,
+      "option_id": 49,
+      "nom": "Salle de bain",
+      "description": ""
+    },
+    {
+      "id": 205,
+      "option_id": 49,
+      "nom": "Cuisine (crédence)",
+      "description": ""
+    },
+    {
+      "id": 206,
+      "option_id": 49,
+      "nom": "WC",
+      "description": ""
+    },
+    {
+      "id": 207,
+      "option_id": 49,
+      "nom": "Autre",
+      "description": ""
+    },
+    {
+      "id": 208,
+      "option_id": 50,
+      "nom": "Faïence classique",
+      "description": ""
+    },
+    {
+      "id": 209,
+      "option_id": 50,
+      "nom": "Carreaux métro",
+      "description": ""
+    },
+    {
+      "id": 210,
+      "option_id": 50,
+      "nom": "Zellige",
+      "description": ""
+    },
+    {
+      "id": 211,
+      "option_id": 50,
+      "nom": "Mosaïque",
+      "description": ""
+    },
+    {
+      "id": 212,
+      "option_id": 50,
+      "nom": "Carreaux de ciment",
+      "description": ""
+    },
+    {
+      "id": 213,
+      "option_id": 51,
+      "nom": "Autolissant standard (P3)",
+      "description": ""
+    },
+    {
+      "id": 214,
+      "option_id": 51,
+      "nom": "Autolissant renforcé (P4)",
+      "description": ""
+    },
+    {
+      "id": 215,
+      "option_id": 51,
+      "nom": "Fibré haute résistance",
+      "description": ""
+    },
+    {
+      "id": 216,
+      "option_id": 52,
+      "nom": "1-3 mm",
+      "description": ""
+    },
+    {
+      "id": 217,
+      "option_id": 52,
+      "nom": "3-10 mm",
+      "description": ""
+    },
+    {
+      "id": 218,
+      "option_id": 52,
+      "nom": "10-30 mm",
+      "description": ""
+    },
+    {
+      "id": 219,
+      "option_id": 53,
+      "nom": "Mat",
+      "description": ""
+    },
+    {
+      "id": 220,
+      "option_id": 53,
+      "nom": "Satin",
+      "description": ""
+    },
+    {
+      "id": 221,
+      "option_id": 53,
+      "nom": "Velours",
+      "description": ""
+    },
+    {
+      "id": 222,
+      "option_id": 53,
+      "nom": "Brillant",
+      "description": ""
+    },
+    {
+      "id": 223,
+      "option_id": 54,
+      "nom": "Acrylique",
+      "description": ""
+    },
+    {
+      "id": 224,
+      "option_id": 54,
+      "nom": "Glycéro",
+      "description": ""
+    },
+    {
+      "id": 225,
+      "option_id": 54,
+      "nom": "Alkyde",
+      "description": ""
+    },
+    {
+      "id": 226,
+      "option_id": 54,
+      "nom": "Bio-sourcée",
+      "description": ""
+    },
+    {
+      "id": 227,
+      "option_id": 55,
+      "nom": "Acrylique mat",
+      "description": ""
+    },
+    {
+      "id": 228,
+      "option_id": 55,
+      "nom": "Glycéro",
+      "description": ""
+    },
+    {
+      "id": 229,
+      "option_id": 55,
+      "nom": "Anti-humidité",
+      "description": ""
+    },
+    {
+      "id": 230,
+      "option_id": 55,
+      "nom": "Anti-moisissure",
+      "description": ""
+    },
+    {
+      "id": 231,
+      "option_id": 56,
+      "nom": "Acrylique",
+      "description": ""
+    },
+    {
+      "id": 232,
+      "option_id": 56,
+      "nom": "Siloxane",
+      "description": ""
+    },
+    {
+      "id": 233,
+      "option_id": 56,
+      "nom": "Pliolite",
+      "description": ""
+    },
+    {
+      "id": 234,
+      "option_id": 56,
+      "nom": "Hydropliolite",
+      "description": ""
+    },
+    {
+      "id": 235,
+      "option_id": 57,
+      "nom": "Laque brillante",
+      "description": ""
+    },
+    {
+      "id": 236,
+      "option_id": 57,
+      "nom": "Laque satinée",
+      "description": ""
+    },
+    {
+      "id": 237,
+      "option_id": 57,
+      "nom": "Mat",
+      "description": ""
+    },
+    {
+      "id": 238,
+      "option_id": 57,
+      "nom": "Vernis",
+      "description": ""
+    },
+    {
+      "id": 239,
+      "option_id": 58,
+      "nom": "Stuc vénitien",
+      "description": ""
+    },
+    {
+      "id": 240,
+      "option_id": 58,
+      "nom": "Tadelakt",
+      "description": ""
+    },
+    {
+      "id": 241,
+      "option_id": 58,
+      "nom": "Béton ciré",
+      "description": ""
+    },
+    {
+      "id": 242,
+      "option_id": 58,
+      "nom": "Enduit à la chaux",
+      "description": ""
+    },
+    {
+      "id": 243,
+      "option_id": 58,
+      "nom": "Enduit texturé",
+      "description": ""
+    },
+    {
+      "id": 244,
+      "option_id": 59,
+      "nom": "Bon état (lessivage)",
+      "description": ""
+    },
+    {
+      "id": 245,
+      "option_id": 59,
+      "nom": "Fissures légères (rebouchage)",
+      "description": ""
+    },
+    {
+      "id": 246,
+      "option_id": 59,
+      "nom": "Mauvais état (enduit complet)",
+      "description": ""
+    },
+    {
+      "id": 247,
+      "option_id": 59,
+      "nom": "Décollement (décapage)",
+      "description": ""
+    },
+    {
+      "id": 248,
+      "option_id": 60,
+      "nom": "Stratifié",
+      "description": ""
+    },
+    {
+      "id": 249,
+      "option_id": 60,
+      "nom": "Contrecollé chêne",
+      "description": ""
+    },
+    {
+      "id": 250,
+      "option_id": 60,
+      "nom": "Contrecollé noyer",
+      "description": ""
+    },
+    {
+      "id": 251,
+      "option_id": 60,
+      "nom": "PVC clipsable",
+      "description": ""
+    },
+    {
+      "id": 252,
+      "option_id": 61,
+      "nom": "7mm",
+      "description": ""
+    },
+    {
+      "id": 253,
+      "option_id": 61,
+      "nom": "8mm",
+      "description": ""
+    },
+    {
+      "id": 254,
+      "option_id": 61,
+      "nom": "10mm",
+      "description": ""
+    },
+    {
+      "id": 255,
+      "option_id": 61,
+      "nom": "12mm",
+      "description": ""
+    },
+    {
+      "id": 256,
+      "option_id": 61,
+      "nom": "14mm",
+      "description": ""
+    },
+    {
+      "id": 257,
+      "option_id": 62,
+      "nom": "Chêne",
+      "description": ""
+    },
+    {
+      "id": 258,
+      "option_id": 62,
+      "nom": "Hêtre",
+      "description": ""
+    },
+    {
+      "id": 259,
+      "option_id": 62,
+      "nom": "Noyer",
+      "description": ""
+    },
+    {
+      "id": 260,
+      "option_id": 62,
+      "nom": "Bambou",
+      "description": ""
+    },
+    {
+      "id": 261,
+      "option_id": 62,
+      "nom": "Teck",
+      "description": ""
+    },
+    {
+      "id": 262,
+      "option_id": 62,
+      "nom": "Wengé",
+      "description": ""
+    },
+    {
+      "id": 263,
+      "option_id": 63,
+      "nom": "Collé",
+      "description": ""
+    },
+    {
+      "id": 264,
+      "option_id": 63,
+      "nom": "Cloué",
+      "description": ""
+    },
+    {
+      "id": 265,
+      "option_id": 63,
+      "nom": "Pose à l'anglaise",
+      "description": ""
+    },
+    {
+      "id": 266,
+      "option_id": 63,
+      "nom": "Pose en point de Hongrie",
+      "description": ""
+    },
+    {
+      "id": 267,
+      "option_id": 63,
+      "nom": "Pose en chevron",
+      "description": ""
+    },
+    {
+      "id": 268,
+      "option_id": 64,
+      "nom": "Vitrification mat",
+      "description": ""
+    },
+    {
+      "id": 269,
+      "option_id": 64,
+      "nom": "Vitrification satin",
+      "description": ""
+    },
+    {
+      "id": 270,
+      "option_id": 64,
+      "nom": "Vitrification brillant",
+      "description": ""
+    },
+    {
+      "id": 271,
+      "option_id": 64,
+      "nom": "Huilé",
+      "description": ""
+    },
+    {
+      "id": 272,
+      "option_id": 64,
+      "nom": "Ciré",
+      "description": ""
+    },
+    {
+      "id": 273,
+      "option_id": 65,
+      "nom": "Lames clipsables",
+      "description": ""
+    },
+    {
+      "id": 274,
+      "option_id": 65,
+      "nom": "Dalles clipsables",
+      "description": ""
+    },
+    {
+      "id": 275,
+      "option_id": 65,
+      "nom": "Rouleau collé",
+      "description": ""
+    },
+    {
+      "id": 276,
+      "option_id": 65,
+      "nom": "Lames adhésives",
+      "description": ""
+    },
+    {
+      "id": 277,
+      "option_id": 66,
+      "nom": "Bouclée",
+      "description": ""
+    },
+    {
+      "id": 278,
+      "option_id": 66,
+      "nom": "Velours",
+      "description": ""
+    },
+    {
+      "id": 279,
+      "option_id": 66,
+      "nom": "Aiguilletée",
+      "description": ""
+    },
+    {
+      "id": 280,
+      "option_id": 66,
+      "nom": "Shaggy",
+      "description": ""
+    },
+    {
+      "id": 281,
+      "option_id": 67,
+      "nom": "Collée",
+      "description": ""
+    },
+    {
+      "id": 282,
+      "option_id": 67,
+      "nom": "Tendue (thibaude)",
+      "description": ""
+    },
+    {
+      "id": 283,
+      "option_id": 67,
+      "nom": "Libre (pose flottante)",
+      "description": ""
+    },
+    {
+      "id": 284,
+      "option_id": 68,
+      "nom": "Battante standard",
+      "description": ""
+    },
+    {
+      "id": 285,
+      "option_id": 68,
+      "nom": "Coulissante à galandage",
+      "description": ""
+    },
+    {
+      "id": 286,
+      "option_id": 68,
+      "nom": "Coulissante en applique",
+      "description": ""
+    },
+    {
+      "id": 287,
+      "option_id": 68,
+      "nom": "Pliante",
+      "description": ""
+    },
+    {
+      "id": 288,
+      "option_id": 68,
+      "nom": "Vitrée",
+      "description": ""
+    },
+    {
+      "id": 289,
+      "option_id": 69,
+      "nom": "Bois massif",
+      "description": ""
+    },
+    {
+      "id": 290,
+      "option_id": 69,
+      "nom": "MDF peint",
+      "description": ""
+    },
+    {
+      "id": 291,
+      "option_id": 69,
+      "nom": "MDF plaqué",
+      "description": ""
+    },
+    {
+      "id": 292,
+      "option_id": 69,
+      "nom": "Verre",
+      "description": ""
+    },
+    {
+      "id": 293,
+      "option_id": 70,
+      "nom": "Portes battantes",
+      "description": ""
+    },
+    {
+      "id": 294,
+      "option_id": 70,
+      "nom": "Portes coulissantes",
+      "description": ""
+    },
+    {
+      "id": 295,
+      "option_id": 70,
+      "nom": "Sans portes (dressing ouvert)",
+      "description": ""
+    },
+    {
+      "id": 296,
+      "option_id": 71,
+      "nom": "Étagères simples",
+      "description": ""
+    },
+    {
+      "id": 297,
+      "option_id": 71,
+      "nom": "Étagères + penderie",
+      "description": ""
+    },
+    {
+      "id": 298,
+      "option_id": 71,
+      "nom": "Étagères + tiroirs + penderie",
+      "description": ""
+    },
+    {
+      "id": 299,
+      "option_id": 71,
+      "nom": "Sur mesure complet",
+      "description": ""
+    },
+    {
+      "id": 300,
+      "option_id": 72,
+      "nom": "Bois massif",
+      "description": ""
+    },
+    {
+      "id": 301,
+      "option_id": 72,
+      "nom": "Bois stratifié",
+      "description": ""
+    },
+    {
+      "id": 302,
+      "option_id": 72,
+      "nom": "Béton ciré",
+      "description": ""
+    },
+    {
+      "id": 303,
+      "option_id": 72,
+      "nom": "Carrelage",
+      "description": ""
+    },
+    {
+      "id": 304,
+      "option_id": 73,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 305,
+      "option_id": 73,
+      "nom": "Inox + câbles",
+      "description": ""
+    },
+    {
+      "id": 306,
+      "option_id": 73,
+      "nom": "Verre",
+      "description": ""
+    },
+    {
+      "id": 307,
+      "option_id": 73,
+      "nom": "Fer forgé",
+      "description": ""
+    },
+    {
+      "id": 308,
+      "option_id": 74,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 309,
+      "option_id": 74,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 310,
+      "option_id": 74,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 311,
+      "option_id": 74,
+      "nom": "Mixte bois-alu",
+      "description": ""
+    },
+    {
+      "id": 312,
+      "option_id": 75,
+      "nom": "Battante (à la française)",
+      "description": ""
+    },
+    {
+      "id": 313,
+      "option_id": 75,
+      "nom": "Oscillo-battante",
+      "description": ""
+    },
+    {
+      "id": 314,
+      "option_id": 75,
+      "nom": "Coulissante",
+      "description": ""
+    },
+    {
+      "id": 315,
+      "option_id": 75,
+      "nom": "Fixe",
+      "description": ""
+    },
+    {
+      "id": 316,
+      "option_id": 75,
+      "nom": "Basculante",
+      "description": ""
+    },
+    {
+      "id": 317,
+      "option_id": 76,
+      "nom": "Double vitrage standard",
+      "description": ""
+    },
+    {
+      "id": 318,
+      "option_id": 76,
+      "nom": "Double vitrage ITR",
+      "description": ""
+    },
+    {
+      "id": 319,
+      "option_id": 76,
+      "nom": "Triple vitrage",
+      "description": ""
+    },
+    {
+      "id": 320,
+      "option_id": 76,
+      "nom": "Vitrage phonique",
+      "description": ""
+    },
+    {
+      "id": 321,
+      "option_id": 77,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 322,
+      "option_id": 77,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 323,
+      "option_id": 77,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 324,
+      "option_id": 77,
+      "nom": "Acier / blindée",
+      "description": ""
+    },
+    {
+      "id": 325,
+      "option_id": 77,
+      "nom": "Composite",
+      "description": ""
+    },
+    {
+      "id": 326,
+      "option_id": 78,
+      "nom": "3 points",
+      "description": ""
+    },
+    {
+      "id": 327,
+      "option_id": 78,
+      "nom": "5 points",
+      "description": ""
+    },
+    {
+      "id": 328,
+      "option_id": 78,
+      "nom": "Serrure connectée",
+      "description": ""
+    },
+    {
+      "id": 329,
+      "option_id": 79,
+      "nom": "Volets roulants",
+      "description": ""
+    },
+    {
+      "id": 330,
+      "option_id": 79,
+      "nom": "Volets battants",
+      "description": ""
+    },
+    {
+      "id": 331,
+      "option_id": 79,
+      "nom": "Volets coulissants",
+      "description": ""
+    },
+    {
+      "id": 332,
+      "option_id": 79,
+      "nom": "Persiennes",
+      "description": ""
+    },
+    {
+      "id": 333,
+      "option_id": 80,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 334,
+      "option_id": 80,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 335,
+      "option_id": 80,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 336,
+      "option_id": 81,
+      "nom": "Manuel",
+      "description": ""
+    },
+    {
+      "id": 337,
+      "option_id": 81,
+      "nom": "Motorisé filaire",
+      "description": ""
+    },
+    {
+      "id": 338,
+      "option_id": 81,
+      "nom": "Motorisé radio",
+      "description": ""
+    },
+    {
+      "id": 339,
+      "option_id": 81,
+      "nom": "Motorisé solaire",
+      "description": ""
+    },
+    {
+      "id": 340,
+      "option_id": 82,
+      "nom": "Coulissante 2 vantaux",
+      "description": ""
+    },
+    {
+      "id": 341,
+      "option_id": 82,
+      "nom": "Coulissante 3 vantaux",
+      "description": ""
+    },
+    {
+      "id": 342,
+      "option_id": 82,
+      "nom": "À galandage",
+      "description": ""
+    },
+    {
+      "id": 343,
+      "option_id": 82,
+      "nom": "Battante",
+      "description": ""
+    },
+    {
+      "id": 344,
+      "option_id": 83,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 345,
+      "option_id": 83,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 346,
+      "option_id": 83,
+      "nom": "Mixte bois-alu",
+      "description": ""
+    },
+    {
+      "id": 347,
+      "option_id": 84,
+      "nom": "Tuiles terre cuite",
+      "description": ""
+    },
+    {
+      "id": 348,
+      "option_id": 84,
+      "nom": "Tuiles béton",
+      "description": ""
+    },
+    {
+      "id": 349,
+      "option_id": 84,
+      "nom": "Ardoises naturelles",
+      "description": ""
+    },
+    {
+      "id": 350,
+      "option_id": 84,
+      "nom": "Ardoises synthétiques",
+      "description": ""
+    },
+    {
+      "id": 351,
+      "option_id": 84,
+      "nom": "Bac acier",
+      "description": ""
+    },
+    {
+      "id": 352,
+      "option_id": 84,
+      "nom": "Zinc",
+      "description": ""
+    },
+    {
+      "id": 353,
+      "option_id": 85,
+      "nom": "Remplacement tuiles",
+      "description": ""
+    },
+    {
+      "id": 354,
+      "option_id": 85,
+      "nom": "Reprise étanchéité",
+      "description": ""
+    },
+    {
+      "id": 355,
+      "option_id": 85,
+      "nom": "Reprise faîtage",
+      "description": ""
+    },
+    {
+      "id": 356,
+      "option_id": 85,
+      "nom": "Reprise noue",
+      "description": ""
+    },
+    {
+      "id": 357,
+      "option_id": 85,
+      "nom": "Remplacement solin",
+      "description": ""
+    },
+    {
+      "id": 358,
+      "option_id": 86,
+      "nom": "Haute pression",
+      "description": ""
+    },
+    {
+      "id": 359,
+      "option_id": 86,
+      "nom": "Brosse + mousse biocide",
+      "description": ""
+    },
+    {
+      "id": 360,
+      "option_id": 86,
+      "nom": "Traitement hydrofuge seul",
+      "description": ""
+    },
+    {
+      "id": 361,
+      "option_id": 87,
+      "nom": "Zinc",
+      "description": ""
+    },
+    {
+      "id": 362,
+      "option_id": 87,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 363,
+      "option_id": 87,
+      "nom": "Aluminium laqué",
+      "description": ""
+    },
+    {
+      "id": 364,
+      "option_id": 87,
+      "nom": "Cuivre",
+      "description": ""
+    },
+    {
+      "id": 365,
+      "option_id": 88,
+      "nom": "Demi-ronde",
+      "description": ""
+    },
+    {
+      "id": 366,
+      "option_id": 88,
+      "nom": "Carrée",
+      "description": ""
+    },
+    {
+      "id": 367,
+      "option_id": 88,
+      "nom": "Havraise",
+      "description": ""
+    },
+    {
+      "id": 368,
+      "option_id": 89,
+      "nom": "Préventif (injection)",
+      "description": ""
+    },
+    {
+      "id": 369,
+      "option_id": 89,
+      "nom": "Curatif (gel + injection)",
+      "description": ""
+    },
+    {
+      "id": 370,
+      "option_id": 89,
+      "nom": "Curatif + remplacement bois",
+      "description": ""
+    },
+    {
+      "id": 371,
+      "option_id": 90,
+      "nom": "Ravalement complet",
+      "description": ""
+    },
+    {
+      "id": 372,
+      "option_id": 90,
+      "nom": "Ravalement partiel",
+      "description": ""
+    },
+    {
+      "id": 373,
+      "option_id": 90,
+      "nom": "Simple nettoyage + peinture",
+      "description": ""
+    },
+    {
+      "id": 374,
+      "option_id": 91,
+      "nom": "Monocouche taloché",
+      "description": ""
+    },
+    {
+      "id": 375,
+      "option_id": 91,
+      "nom": "Monocouche gratté",
+      "description": ""
+    },
+    {
+      "id": 376,
+      "option_id": 91,
+      "nom": "Traditionnel 3 couches",
+      "description": ""
+    },
+    {
+      "id": 377,
+      "option_id": 91,
+      "nom": "Enduit projeté",
+      "description": ""
+    },
+    {
+      "id": 378,
+      "option_id": 92,
+      "nom": "Haute pression",
+      "description": ""
+    },
+    {
+      "id": 379,
+      "option_id": 92,
+      "nom": "Sablage",
+      "description": ""
+    },
+    {
+      "id": 380,
+      "option_id": 92,
+      "nom": "Gommage",
+      "description": ""
+    },
+    {
+      "id": 381,
+      "option_id": 92,
+      "nom": "Nébulisation",
+      "description": ""
+    },
+    {
+      "id": 382,
+      "option_id": 92,
+      "nom": "Peeling chimique",
+      "description": ""
+    },
+    {
+      "id": 383,
+      "option_id": 93,
+      "nom": "Polystyrène expansé (PSE)",
+      "description": ""
+    },
+    {
+      "id": 384,
+      "option_id": 93,
+      "nom": "Laine de roche",
+      "description": ""
+    },
+    {
+      "id": 385,
+      "option_id": 93,
+      "nom": "Fibre de bois",
+      "description": ""
+    },
+    {
+      "id": 386,
+      "option_id": 93,
+      "nom": "Polyuréthane",
+      "description": ""
+    },
+    {
+      "id": 387,
+      "option_id": 94,
+      "nom": "100mm",
+      "description": ""
+    },
+    {
+      "id": 388,
+      "option_id": 94,
+      "nom": "120mm",
+      "description": ""
+    },
+    {
+      "id": 389,
+      "option_id": 94,
+      "nom": "140mm",
+      "description": ""
+    },
+    {
+      "id": 390,
+      "option_id": 94,
+      "nom": "160mm",
+      "description": ""
+    },
+    {
+      "id": 391,
+      "option_id": 94,
+      "nom": "200mm",
+      "description": ""
+    },
+    {
+      "id": 392,
+      "option_id": 95,
+      "nom": "Enduit taloché",
+      "description": ""
+    },
+    {
+      "id": 393,
+      "option_id": 95,
+      "nom": "Enduit gratté",
+      "description": ""
+    },
+    {
+      "id": 394,
+      "option_id": 95,
+      "nom": "Bardage bois",
+      "description": ""
+    },
+    {
+      "id": 395,
+      "option_id": 95,
+      "nom": "Bardage composite",
+      "description": ""
+    },
+    {
+      "id": 396,
+      "option_id": 96,
+      "nom": "Électrique à inertie",
+      "description": ""
+    },
+    {
+      "id": 397,
+      "option_id": 96,
+      "nom": "Électrique rayonnant",
+      "description": ""
+    },
+    {
+      "id": 398,
+      "option_id": 96,
+      "nom": "Eau chaude (acier)",
+      "description": ""
+    },
+    {
+      "id": 399,
+      "option_id": 96,
+      "nom": "Eau chaude (fonte)",
+      "description": ""
+    },
+    {
+      "id": 400,
+      "option_id": 96,
+      "nom": "Sèche-serviette",
+      "description": ""
+    },
+    {
+      "id": 401,
+      "option_id": 97,
+      "nom": "Hydraulique (eau)",
+      "description": ""
+    },
+    {
+      "id": 402,
+      "option_id": 97,
+      "nom": "Électrique (câble)",
+      "description": ""
+    },
+    {
+      "id": 403,
+      "option_id": 97,
+      "nom": "Électrique (trame)",
+      "description": ""
+    },
+    {
+      "id": 404,
+      "option_id": 98,
+      "nom": "Split mural",
+      "description": ""
+    },
+    {
+      "id": 405,
+      "option_id": 98,
+      "nom": "Multi-split",
+      "description": ""
+    },
+    {
+      "id": 406,
+      "option_id": 98,
+      "nom": "Gainable",
+      "description": ""
+    },
+    {
+      "id": 407,
+      "option_id": 98,
+      "nom": "Console",
+      "description": ""
+    },
+    {
+      "id": 408,
+      "option_id": 98,
+      "nom": "Cassette",
+      "description": ""
+    },
+    {
+      "id": 409,
+      "option_id": 99,
+      "nom": "2.5 kW (< 25 m²)",
+      "description": ""
+    },
+    {
+      "id": 410,
+      "option_id": 99,
+      "nom": "3.5 kW (25-35 m²)",
+      "description": ""
+    },
+    {
+      "id": 411,
+      "option_id": 99,
+      "nom": "5 kW (35-50 m²)",
+      "description": ""
+    },
+    {
+      "id": 412,
+      "option_id": 99,
+      "nom": "7 kW (> 50 m²)",
+      "description": ""
+    },
+    {
+      "id": 413,
+      "option_id": 100,
+      "nom": "Chaudière gaz condensation",
+      "description": ""
+    },
+    {
+      "id": 414,
+      "option_id": 100,
+      "nom": "Pompe à chaleur air/eau",
+      "description": ""
+    },
+    {
+      "id": 415,
+      "option_id": 100,
+      "nom": "Pompe à chaleur air/air",
+      "description": ""
+    },
+    {
+      "id": 416,
+      "option_id": 100,
+      "nom": "Chaudière granulés",
+      "description": ""
+    },
+    {
+      "id": 417,
+      "option_id": 100,
+      "nom": "Poêle à granulés",
+      "description": ""
+    },
+    {
+      "id": 418,
+      "option_id": 101,
+      "nom": "Simple flux autoréglable",
+      "description": ""
+    },
+    {
+      "id": 419,
+      "option_id": 101,
+      "nom": "Simple flux hygroréglable A",
+      "description": ""
+    },
+    {
+      "id": 420,
+      "option_id": 101,
+      "nom": "Simple flux hygroréglable B",
+      "description": ""
+    },
+    {
+      "id": 421,
+      "option_id": 101,
+      "nom": "Double flux",
+      "description": ""
+    },
+    {
+      "id": 422,
+      "option_id": 102,
+      "nom": "3 bouches",
+      "description": ""
+    },
+    {
+      "id": 423,
+      "option_id": 102,
+      "nom": "4 bouches",
+      "description": ""
+    },
+    {
+      "id": 424,
+      "option_id": 102,
+      "nom": "5 bouches",
+      "description": ""
+    },
+    {
+      "id": 425,
+      "option_id": 102,
+      "nom": "6 bouches",
+      "description": ""
+    },
+    {
+      "id": 426,
+      "option_id": 103,
+      "nom": "Extracteur salle de bain",
+      "description": ""
+    },
+    {
+      "id": 427,
+      "option_id": 103,
+      "nom": "Extracteur cuisine",
+      "description": ""
+    },
+    {
+      "id": 428,
+      "option_id": 103,
+      "nom": "Aérateur mural",
+      "description": ""
+    },
+    {
+      "id": 429,
+      "option_id": 103,
+      "nom": "Extracteur mécanique en ligne",
+      "description": ""
+    },
+    {
+      "id": 430,
+      "option_id": 104,
+      "nom": "Bois naturel (pin traité)",
+      "description": ""
+    },
+    {
+      "id": 431,
+      "option_id": 104,
+      "nom": "Bois exotique (ipé, teck)",
+      "description": ""
+    },
+    {
+      "id": 432,
+      "option_id": 104,
+      "nom": "Composite",
+      "description": ""
+    },
+    {
+      "id": 433,
+      "option_id": 104,
+      "nom": "Carrelage extérieur",
+      "description": ""
+    },
+    {
+      "id": 434,
+      "option_id": 104,
+      "nom": "Pierre naturelle",
+      "description": ""
+    },
+    {
+      "id": 435,
+      "option_id": 104,
+      "nom": "Dalle béton",
+      "description": ""
+    },
+    {
+      "id": 436,
+      "option_id": 105,
+      "nom": "Sur lambourdes bois",
+      "description": ""
+    },
+    {
+      "id": 437,
+      "option_id": 105,
+      "nom": "Sur plots réglables",
+      "description": ""
+    },
+    {
+      "id": 438,
+      "option_id": 105,
+      "nom": "Collée sur dalle",
+      "description": ""
+    },
+    {
+      "id": 439,
+      "option_id": 106,
+      "nom": "Grillage souple",
+      "description": ""
+    },
+    {
+      "id": 440,
+      "option_id": 106,
+      "nom": "Panneaux rigides",
+      "description": ""
+    },
+    {
+      "id": 441,
+      "option_id": 106,
+      "nom": "Palissade bois",
+      "description": ""
+    },
+    {
+      "id": 442,
+      "option_id": 106,
+      "nom": "Panneaux alu",
+      "description": ""
+    },
+    {
+      "id": 443,
+      "option_id": 106,
+      "nom": "Gabions",
+      "description": ""
+    },
+    {
+      "id": 444,
+      "option_id": 106,
+      "nom": "Mur en parpaing",
+      "description": ""
+    },
+    {
+      "id": 445,
+      "option_id": 107,
+      "nom": "1.00m",
+      "description": ""
+    },
+    {
+      "id": 446,
+      "option_id": 107,
+      "nom": "1.20m",
+      "description": ""
+    },
+    {
+      "id": 447,
+      "option_id": 107,
+      "nom": "1.50m",
+      "description": ""
+    },
+    {
+      "id": 448,
+      "option_id": 107,
+      "nom": "1.80m",
+      "description": ""
+    },
+    {
+      "id": 449,
+      "option_id": 107,
+      "nom": "2.00m",
+      "description": ""
+    },
+    {
+      "id": 450,
+      "option_id": 108,
+      "nom": "Battant 2 vantaux",
+      "description": ""
+    },
+    {
+      "id": 451,
+      "option_id": 108,
+      "nom": "Coulissant",
+      "description": ""
+    },
+    {
+      "id": 452,
+      "option_id": 108,
+      "nom": "Portillon",
+      "description": ""
+    },
+    {
+      "id": 453,
+      "option_id": 109,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 454,
+      "option_id": 109,
+      "nom": "Fer forgé",
+      "description": ""
+    },
+    {
+      "id": 455,
+      "option_id": 109,
+      "nom": "PVC",
+      "description": ""
+    },
+    {
+      "id": 456,
+      "option_id": 109,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 457,
+      "option_id": 110,
+      "nom": "Manuel",
+      "description": ""
+    },
+    {
+      "id": 458,
+      "option_id": 110,
+      "nom": "Motorisé (vérins)",
+      "description": ""
+    },
+    {
+      "id": 459,
+      "option_id": 110,
+      "nom": "Motorisé (bras articulés)",
+      "description": ""
+    },
+    {
+      "id": 460,
+      "option_id": 110,
+      "nom": "Motorisé (rail au sol)",
+      "description": ""
+    },
+    {
+      "id": 461,
+      "option_id": 111,
+      "nom": "Graviers stabilisés",
+      "description": ""
+    },
+    {
+      "id": 462,
+      "option_id": 111,
+      "nom": "Béton désactivé",
+      "description": ""
+    },
+    {
+      "id": 463,
+      "option_id": 111,
+      "nom": "Béton imprimé",
+      "description": ""
+    },
+    {
+      "id": 464,
+      "option_id": 111,
+      "nom": "Pavés autobloquants",
+      "description": ""
+    },
+    {
+      "id": 465,
+      "option_id": 111,
+      "nom": "Dalles pierre naturelle",
+      "description": ""
+    },
+    {
+      "id": 466,
+      "option_id": 111,
+      "nom": "Enrobé",
+      "description": ""
+    },
+    {
+      "id": 467,
+      "option_id": 112,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 468,
+      "option_id": 112,
+      "nom": "Aluminium classique",
+      "description": ""
+    },
+    {
+      "id": 469,
+      "option_id": 112,
+      "nom": "Bioclimatique (lames orientables)",
+      "description": ""
+    },
+    {
+      "id": 470,
+      "option_id": 112,
+      "nom": "Toile rétractable",
+      "description": ""
+    },
+    {
+      "id": 471,
+      "option_id": 113,
+      "nom": "< 10 m²",
+      "description": ""
+    },
+    {
+      "id": 472,
+      "option_id": 113,
+      "nom": "10-15 m²",
+      "description": ""
+    },
+    {
+      "id": 473,
+      "option_id": 113,
+      "nom": "15-20 m²",
+      "description": ""
+    },
+    {
+      "id": 474,
+      "option_id": 113,
+      "nom": "> 20 m²",
+      "description": ""
+    },
+    {
+      "id": 475,
+      "option_id": 114,
+      "nom": "Entrée de gamme (mélaminé)",
+      "description": ""
+    },
+    {
+      "id": 476,
+      "option_id": 114,
+      "nom": "Milieu de gamme (stratifié)",
+      "description": ""
+    },
+    {
+      "id": 477,
+      "option_id": 114,
+      "nom": "Haut de gamme (laqué / bois massif)",
+      "description": ""
+    },
+    {
+      "id": 478,
+      "option_id": 115,
+      "nom": "Stratifié",
+      "description": ""
+    },
+    {
+      "id": 479,
+      "option_id": 115,
+      "nom": "Granit",
+      "description": ""
+    },
+    {
+      "id": 480,
+      "option_id": 115,
+      "nom": "Quartz (Silestone)",
+      "description": ""
+    },
+    {
+      "id": 481,
+      "option_id": 115,
+      "nom": "Bois massif",
+      "description": ""
+    },
+    {
+      "id": 482,
+      "option_id": 115,
+      "nom": "Inox",
+      "description": ""
+    },
+    {
+      "id": 483,
+      "option_id": 115,
+      "nom": "Céramique",
+      "description": ""
+    },
+    {
+      "id": 484,
+      "option_id": 115,
+      "nom": "Dekton / Neolith",
+      "description": ""
+    },
+    {
+      "id": 485,
+      "option_id": 116,
+      "nom": "Carrelage / faïence",
+      "description": ""
+    },
+    {
+      "id": 486,
+      "option_id": 116,
+      "nom": "Verre trempé",
+      "description": ""
+    },
+    {
+      "id": 487,
+      "option_id": 116,
+      "nom": "Inox brossé",
+      "description": ""
+    },
+    {
+      "id": 488,
+      "option_id": 116,
+      "nom": "Stratifié",
+      "description": ""
+    },
+    {
+      "id": 489,
+      "option_id": 116,
+      "nom": "Pierre naturelle",
+      "description": ""
+    },
+    {
+      "id": 490,
+      "option_id": 117,
+      "nom": "Four encastrable",
+      "description": ""
+    },
+    {
+      "id": 491,
+      "option_id": 117,
+      "nom": "Plaque de cuisson",
+      "description": ""
+    },
+    {
+      "id": 492,
+      "option_id": 117,
+      "nom": "Hotte aspirante",
+      "description": ""
+    },
+    {
+      "id": 493,
+      "option_id": 117,
+      "nom": "Lave-vaisselle",
+      "description": ""
+    },
+    {
+      "id": 494,
+      "option_id": 117,
+      "nom": "Réfrigérateur encastrable",
+      "description": ""
+    },
+    {
+      "id": 495,
+      "option_id": 117,
+      "nom": "Micro-ondes encastrable",
+      "description": ""
+    },
+    {
+      "id": 496,
+      "option_id": 118,
+      "nom": "< 4 m²",
+      "description": ""
+    },
+    {
+      "id": 497,
+      "option_id": 118,
+      "nom": "4-6 m²",
+      "description": ""
+    },
+    {
+      "id": 498,
+      "option_id": 118,
+      "nom": "6-8 m²",
+      "description": ""
+    },
+    {
+      "id": 499,
+      "option_id": 118,
+      "nom": "> 8 m²",
+      "description": ""
+    },
+    {
+      "id": 500,
+      "option_id": 119,
+      "nom": "Économique",
+      "description": ""
+    },
+    {
+      "id": 501,
+      "option_id": 119,
+      "nom": "Standard",
+      "description": ""
+    },
+    {
+      "id": 502,
+      "option_id": 119,
+      "nom": "Premium",
+      "description": ""
+    },
+    {
+      "id": 503,
+      "option_id": 119,
+      "nom": "Luxe",
+      "description": ""
+    },
+    {
+      "id": 504,
+      "option_id": 120,
+      "nom": "Simple vasque (60cm)",
+      "description": ""
+    },
+    {
+      "id": 505,
+      "option_id": 120,
+      "nom": "Simple vasque (80cm)",
+      "description": ""
+    },
+    {
+      "id": 506,
+      "option_id": 120,
+      "nom": "Double vasque (120cm)",
+      "description": ""
+    },
+    {
+      "id": 507,
+      "option_id": 120,
+      "nom": "Suspendu",
+      "description": ""
+    },
+    {
+      "id": 508,
+      "option_id": 120,
+      "nom": "Sur pied",
+      "description": ""
+    },
+    {
+      "id": 509,
+      "option_id": 121,
+      "nom": "Paroi fixe",
+      "description": ""
+    },
+    {
+      "id": 510,
+      "option_id": 121,
+      "nom": "Porte battante",
+      "description": ""
+    },
+    {
+      "id": 511,
+      "option_id": 121,
+      "nom": "Porte coulissante",
+      "description": ""
+    },
+    {
+      "id": 512,
+      "option_id": 121,
+      "nom": "Porte pliante",
+      "description": ""
+    },
+    {
+      "id": 513,
+      "option_id": 121,
+      "nom": "Paroi walk-in",
+      "description": ""
+    },
+    {
+      "id": 514,
+      "option_id": 122,
+      "nom": "Transparent",
+      "description": ""
+    },
+    {
+      "id": 515,
+      "option_id": 122,
+      "nom": "Sérigraphié",
+      "description": ""
+    },
+    {
+      "id": 516,
+      "option_id": 122,
+      "nom": "Dépoli",
+      "description": ""
+    },
+    {
+      "id": 517,
+      "option_id": 122,
+      "nom": "Fumé",
+      "description": ""
+    },
+    {
+      "id": 518,
+      "option_id": 123,
+      "nom": "Pack standard (3 accessoires)",
+      "description": ""
+    },
+    {
+      "id": 519,
+      "option_id": 123,
+      "nom": "Pack complet (6 accessoires)",
+      "description": ""
+    },
+    {
+      "id": 520,
+      "option_id": 123,
+      "nom": "Pack PMR / accessibilité",
+      "description": ""
+    },
+    {
+      "id": 521,
+      "option_id": 123,
+      "nom": "Pack design / premium",
+      "description": ""
+    },
+    {
+      "id": 522,
+      "option_id": 124,
+      "nom": "Anhydrite (sulfate de calcium)",
+      "description": ""
+    },
+    {
+      "id": 523,
+      "option_id": 124,
+      "nom": "Ciment",
+      "description": ""
+    },
+    {
+      "id": 524,
+      "option_id": 125,
+      "nom": "3-4 cm",
+      "description": ""
+    },
+    {
+      "id": 525,
+      "option_id": 125,
+      "nom": "5-6 cm",
+      "description": ""
+    },
+    {
+      "id": 526,
+      "option_id": 125,
+      "nom": "7-8 cm",
+      "description": ""
+    },
+    {
+      "id": 527,
+      "option_id": 126,
+      "nom": "Époxy",
+      "description": ""
+    },
+    {
+      "id": 528,
+      "option_id": 126,
+      "nom": "Polyuréthane",
+      "description": ""
+    },
+    {
+      "id": 529,
+      "option_id": 126,
+      "nom": "Méthacrylate",
+      "description": ""
+    },
+    {
+      "id": 530,
+      "option_id": 127,
+      "nom": "Lisse brillant",
+      "description": ""
+    },
+    {
+      "id": 531,
+      "option_id": 127,
+      "nom": "Lisse mat",
+      "description": ""
+    },
+    {
+      "id": 532,
+      "option_id": 127,
+      "nom": "Quartz coloré (antidérapant)",
+      "description": ""
+    },
+    {
+      "id": 533,
+      "option_id": 127,
+      "nom": "Effet béton",
+      "description": ""
+    },
+    {
+      "id": 534,
+      "option_id": 128,
+      "nom": "Injection de résine",
+      "description": ""
+    },
+    {
+      "id": 535,
+      "option_id": 128,
+      "nom": "Drainage périphérique",
+      "description": ""
+    },
+    {
+      "id": 536,
+      "option_id": 128,
+      "nom": "Cuvelage",
+      "description": ""
+    },
+    {
+      "id": 537,
+      "option_id": 128,
+      "nom": "Membrane d'étanchéité",
+      "description": ""
+    },
+    {
+      "id": 538,
+      "option_id": 129,
+      "nom": "Barrière chimique",
+      "description": ""
+    },
+    {
+      "id": 539,
+      "option_id": 129,
+      "nom": "Pièges (stations appât)",
+      "description": ""
+    },
+    {
+      "id": 540,
+      "option_id": 129,
+      "nom": "Injection bois",
+      "description": ""
+    },
+    {
+      "id": 541,
+      "option_id": 130,
+      "nom": "Fosse septique toutes eaux",
+      "description": ""
+    },
+    {
+      "id": 542,
+      "option_id": 130,
+      "nom": "Micro-station d'épuration",
+      "description": ""
+    },
+    {
+      "id": 543,
+      "option_id": 130,
+      "nom": "Filtre compact",
+      "description": ""
+    },
+    {
+      "id": 544,
+      "option_id": 130,
+      "nom": "Filtre à sable",
+      "description": ""
+    },
+    {
+      "id": 545,
+      "option_id": 131,
+      "nom": "Inox",
+      "description": ""
+    },
+    {
+      "id": 546,
+      "option_id": 131,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 547,
+      "option_id": 131,
+      "nom": "Fer forgé",
+      "description": ""
+    },
+    {
+      "id": 548,
+      "option_id": 131,
+      "nom": "Verre + inox",
+      "description": ""
+    },
+    {
+      "id": 549,
+      "option_id": 131,
+      "nom": "Câbles + inox",
+      "description": ""
+    },
+    {
+      "id": 550,
+      "option_id": 132,
+      "nom": "À barreaux",
+      "description": ""
+    },
+    {
+      "id": 551,
+      "option_id": 132,
+      "nom": "À lisses horizontales",
+      "description": ""
+    },
+    {
+      "id": 552,
+      "option_id": 132,
+      "nom": "Vitré",
+      "description": ""
+    },
+    {
+      "id": 553,
+      "option_id": 132,
+      "nom": "À câbles",
+      "description": ""
+    },
+    {
+      "id": 554,
+      "option_id": 133,
+      "nom": "Bois",
+      "description": ""
+    },
+    {
+      "id": 555,
+      "option_id": 133,
+      "nom": "Inox",
+      "description": ""
+    },
+    {
+      "id": 556,
+      "option_id": 133,
+      "nom": "Fer forgé",
+      "description": ""
+    },
+    {
+      "id": 557,
+      "option_id": 133,
+      "nom": "Corde",
+      "description": ""
+    },
+    {
+      "id": 558,
+      "option_id": 134,
+      "nom": "Fixe (scellée)",
+      "description": ""
+    },
+    {
+      "id": 559,
+      "option_id": 134,
+      "nom": "Ouvrante",
+      "description": ""
+    },
+    {
+      "id": 560,
+      "option_id": 134,
+      "nom": "Amovible",
+      "description": ""
+    },
+    {
+      "id": 561,
+      "option_id": 135,
+      "nom": "Fer forgé",
+      "description": ""
+    },
+    {
+      "id": 562,
+      "option_id": 135,
+      "nom": "Acier peint",
+      "description": ""
+    },
+    {
+      "id": 563,
+      "option_id": 135,
+      "nom": "Aluminium",
+      "description": ""
+    },
+    {
+      "id": 564,
+      "option_id": 136,
+      "nom": "Simple vitrage",
+      "description": ""
+    },
+    {
+      "id": 565,
+      "option_id": 136,
+      "nom": "Double vitrage standard",
+      "description": ""
+    },
+    {
+      "id": 566,
+      "option_id": 136,
+      "nom": "Double vitrage ITR argon",
+      "description": ""
+    },
+    {
+      "id": 567,
+      "option_id": 136,
+      "nom": "Triple vitrage",
+      "description": ""
+    },
+    {
+      "id": 568,
+      "option_id": 136,
+      "nom": "Vitrage feuilleté sécurité",
+      "description": ""
+    },
+    {
+      "id": 569,
+      "option_id": 137,
+      "nom": "Collé",
+      "description": ""
+    },
+    {
+      "id": 570,
+      "option_id": 137,
+      "nom": "Fixation mécanique (pattes)",
+      "description": ""
+    },
+    {
+      "id": 571,
+      "option_id": 138,
+      "nom": "Bords polis",
+      "description": ""
+    },
+    {
+      "id": 572,
+      "option_id": 138,
+      "nom": "Bords biseautés",
+      "description": ""
+    },
+    {
+      "id": 573,
+      "option_id": 138,
+      "nom": "Avec cadre",
+      "description": ""
+    },
+    {
+      "id": 574,
+      "option_id": 139,
+      "nom": "Verrière fixe",
+      "description": ""
+    },
+    {
+      "id": 575,
+      "option_id": 139,
+      "nom": "Verrière avec porte",
+      "description": ""
+    },
+    {
+      "id": 576,
+      "option_id": 139,
+      "nom": "Verrière imposte (au-dessus d'une porte)",
+      "description": ""
+    },
+    {
+      "id": 577,
+      "option_id": 139,
+      "nom": "Verrière cloison complète",
+      "description": ""
+    },
+    {
+      "id": 578,
+      "option_id": 140,
+      "nom": "Acier noir",
+      "description": ""
+    },
+    {
+      "id": 579,
+      "option_id": 140,
+      "nom": "Aluminium noir",
+      "description": ""
+    },
+    {
+      "id": 580,
+      "option_id": 140,
+      "nom": "Aluminium blanc",
+      "description": ""
+    },
+    {
+      "id": 581,
+      "option_id": 140,
+      "nom": "Bois peint",
+      "description": ""
+    },
+    {
+      "id": 582,
+      "option_id": 141,
+      "nom": "Vitrée toute hauteur",
+      "description": ""
+    },
+    {
+      "id": 583,
+      "option_id": 141,
+      "nom": "Semi-vitrée (allège)",
+      "description": ""
+    },
+    {
+      "id": 584,
+      "option_id": 141,
+      "nom": "Coulissante",
+      "description": ""
+    }
+  ],
+  "integrity_checks": {
+    "options_without_existing_prestation": 0,
+    "choix_without_existing_option": 0,
+    "all_options_attached_to_a_prestation": true,
+    "all_choix_attached_to_an_option": true
+  }
+}

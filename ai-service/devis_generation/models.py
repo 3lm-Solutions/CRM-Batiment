@@ -47,7 +47,10 @@ class OccurrencePrestation:
     uid: str = field(default_factory=lambda: str(uuid.uuid4()))
     composants: List[ComposantCalcule] = field(default_factory=list)
     options_choisies: List[str] = field(default_factory=list)
+    choix_option_ids: List[int] = field(default_factory=list)
     options_disponibles: List[str] = field(default_factory=list)
+    # Saisi à la main uniquement si le catalogue n'a aucune composition.
+    cout_unitaire_manuel: Optional[float] = None
 
     # Remplis par pricing.py
     prix_vente_total: Optional[float] = None

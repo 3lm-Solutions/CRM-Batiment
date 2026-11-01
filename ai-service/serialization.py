@@ -50,6 +50,24 @@ def apply_quantite_updates(
             occ.quantite_ouvrage = float(q)
 
 
+def apply_cout_updates(
+    devis: DevisEnConstruction, updates: List[Dict[str, Any]]
+) -> None:
+    by_uid = {o.uid: o for o in devis.occurrences}
+    for item in updates:
+        occ = by_uid.get(item.get("uid"))
+        if occ is None:
+            continue
+        c = item.get("cout_unitaire_manuel")
+        if c is None or c == "":
+            occ.cout_unitaire_manuel = None
+        else:
+            valeur = float(c)
+            if valeur < 0:
+                raise ValueError("Le coût unitaire doit être positif ou nul.")
+            occ.cout_unitaire_manuel = round(valeur, 2)
+
+
 def apply_remise_update(devis: DevisEnConstruction, remise_ht: Any, remise_libelle: Any = None) -> None:
     """Met à jour la remise de session; une remise ne peut pas être négative."""
     montant = 0.0 if remise_ht in (None, "") else float(remise_ht)

@@ -1,0 +1,2209 @@
+{
+  "format_version": "1.0",
+  "purpose": "Benchmark d'extraction de prestations par description, avec évaluation par champ.",
+  "model_output_schema": {
+    "prestations": [
+      {
+        "prestation_id": "integer",
+        "quantite_ouvrage": "number | null",
+        "options": [
+          {
+            "option_id": "integer",
+            "choix_id": "integer"
+          }
+        ]
+      }
+    ]
+  },
+  "splits": {
+    "dev": "optimisation de prompt / GEPA",
+    "validation": "évaluation finale, à ne pas utiliser pendant l'optimisation"
+  },
+  "counts": {
+    "dev": 30,
+    "validation": 20
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "split": "dev",
+      "input": {
+        "description": "cuisine : dépose carrelage + repose 25m2 en 60x60, ragréage à prévoir",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 2,
+            "quantite_ouvrage": 25,
+            "options": [
+              {
+                "option_id": 2,
+                "choix_id": 5
+              }
+            ]
+          },
+          {
+            "prestation_id": 35,
+            "quantite_ouvrage": 25,
+            "options": [
+              {
+                "option_id": 45,
+                "choix_id": 185
+              }
+            ]
+          },
+          {
+            "prestation_id": 38,
+            "quantite_ouvrage": 25,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Surface du ragréage déduite de la surface de pose (25 m²)."
+      }
+    },
+    {
+      "id": "C02",
+      "split": "dev",
+      "input": {
+        "description": "Le client a une vieille maison, le sol de la cuisine sonne creux à plusieurs endroits et il voudrait quelque chose de plus moderne, il pense à du grand carrelage gris mais il hésite encore sur la taille. On repasse mesurer la semaine prochaine.",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "contexte_parasite",
+          "hesitation"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 35,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [
+          2,
+          38
+        ],
+        "notes": "Surface inconnue. Dépose et ragréage possibles mais non demandés : non pénalisés si ajoutés."
+      }
+    },
+    {
+      "id": "C03",
+      "split": "dev",
+      "input": {
+        "description": "prépare un devis pour madame sophie lambert rue des carrières 18 5000 namur façade avant six mètres de large sur quatre mètres cinquante de haut nettoyage haute pression puis enduit mono couche gratté on est à quatre-vingt-dix euros le mètre carré TTC",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "calculable",
+        "tags": [
+          "prix_indique",
+          "pii",
+          "calcul_dimensions",
+          "option_explicite",
+          "erreur_asr"
+        ],
+        "prix_indique": "90 €/m² TTC"
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 65,
+            "quantite_ouvrage": 27,
+            "options": [
+              {
+                "option_id": 92,
+                "choix_id": 378
+              }
+            ]
+          },
+          {
+            "prestation_id": 64,
+            "quantite_ouvrage": 27,
+            "options": [
+              {
+                "option_id": 91,
+                "choix_id": 375
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "6 × 4,5 = 27 m². Erreur ASR volontaire : 'mono couche'. Nom et adresse inventés, à ignorer."
+      }
+    },
+    {
+      "id": "C04",
+      "split": "dev",
+      "input": {
+        "description": "il faut changer les carreaux de la salle de bain, il y en a une soixantaine de 30 sur 30 au sol, j'ai déjà tout cassé et enlevé",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "indirecte",
+        "tags": [
+          "deja_fait",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 35,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 45,
+                "choix_id": 183
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Quantité indirecte : 60 carreaux de 30x30 = 5,4 m² si le projet décide de convertir (décision ouverte). Dépose déjà faite : ne pas inclure."
+      }
+    },
+    {
+      "id": "C05",
+      "split": "validation",
+      "input": {
+        "description": "salon trente-deux mètres carrés en flottant stratifié dix millimètres et la chambre douze mètres carrés en contre collé chêne huit millimètres",
+        "canal": "vocal",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "repetee",
+          "option_explicite",
+          "erreur_asr"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 46,
+            "quantite_ouvrage": 32,
+            "options": [
+              {
+                "option_id": 60,
+                "choix_id": 248
+              },
+              {
+                "option_id": 61,
+                "choix_id": 254
+              }
+            ]
+          },
+          {
+            "prestation_id": 46,
+            "quantite_ouvrage": 12,
+            "options": [
+              {
+                "option_id": 60,
+                "choix_id": 249
+              },
+              {
+                "option_id": 61,
+                "choix_id": 253
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Même prestation deux fois, options différentes. Erreur ASR volontaire : 'contre collé'."
+      }
+    },
+    {
+      "id": "C06",
+      "split": "dev",
+      "input": {
+        "description": "Fenêtres PVC oscillo-battantes double vitrage ITR x6, façade arrière",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 54,
+            "quantite_ouvrage": 6,
+            "options": [
+              {
+                "option_id": 74,
+                "choix_id": 308
+              },
+              {
+                "option_id": 75,
+                "choix_id": 313
+              },
+              {
+                "option_id": 76,
+                "choix_id": 318
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C07",
+      "split": "dev",
+      "input": {
+        "description": "Il y a deux salles d'eau à faire. Dans la première on enlève la baignoire pour mettre une douche à l'italienne, dans la deuxième on refait juste la douche avec un receveur extra plat.",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "repetee",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 3,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 3,
+                "choix_id": 11
+              }
+            ]
+          },
+          {
+            "prestation_id": 22,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 29,
+                "choix_id": 115
+              }
+            ]
+          },
+          {
+            "prestation_id": 22,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 29,
+                "choix_id": 116
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [
+          3
+        ],
+        "notes": "Dépose de l'ancienne douche (2e salle d'eau) possible : non pénalisée."
+      }
+    },
+    {
+      "id": "C08",
+      "split": "validation",
+      "input": {
+        "description": "prépare-moi un devis pour monsieur henri maes avenue des tilleuls 7 6000 charleroi isolation des murs par l'intérieur avec de la laine de roche cent vingt millimètres sur quarante-cinq mètres carrés soixante euros le mètre carré TTC",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "prix_indique",
+          "pii",
+          "option_explicite"
+        ],
+        "prix_indique": "60 €/m² TTC"
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 17,
+            "quantite_ouvrage": 45,
+            "options": [
+              {
+                "option_id": 20,
+                "choix_id": 82
+              },
+              {
+                "option_id": 21,
+                "choix_id": 89
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C09",
+      "split": "validation",
+      "input": {
+        "description": "Mon plafond du salon est tout taché depuis la fuite, la fuite est réparée, il faut juste refaire la peinture je crois",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "deja_fait",
+          "contexte_parasite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 41,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [
+          45
+        ],
+        "notes": "Aucune prestation de plomberie : la fuite est déjà réparée."
+      }
+    },
+    {
+      "id": "C10",
+      "split": "validation",
+      "input": {
+        "description": "chape liquide anhydrite 5-6 cm sur 85 m2, puis ragréage fibré 3-10 mm",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "ambiguite_catalogue",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 86,
+            "quantite_ouvrage": 85,
+            "options": [
+              {
+                "option_id": 124,
+                "choix_id": 522
+              },
+              {
+                "option_id": 125,
+                "choix_id": 525
+              }
+            ]
+          },
+          {
+            "prestation_id": 38,
+            "quantite_ouvrage": 85,
+            "options": [
+              {
+                "option_id": 51,
+                "choix_id": 215
+              },
+              {
+                "option_id": 52,
+                "choix_id": 217
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [
+          {
+            "prestations": [
+              {
+                "prestation_id": 10,
+                "quantite_ouvrage": 85,
+                "options": [
+                  {
+                    "option_id": 11,
+                    "choix_id": 47
+                  },
+                  {
+                    "option_id": 12,
+                    "choix_id": 49
+                  }
+                ]
+              },
+              {
+                "prestation_id": 38,
+                "quantite_ouvrage": 85,
+                "options": [
+                  {
+                    "option_id": 51,
+                    "choix_id": 215
+                  },
+                  {
+                    "option_id": 52,
+                    "choix_id": 217
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Le catalogue propose deux chemins pour une chape anhydrite (prestations 'Chape fluide' et 'Chape béton')."
+      }
+    },
+    {
+      "id": "C11",
+      "split": "dev",
+      "input": {
+        "description": "toiture complète en ardoises naturelles cent dix mètres carrés plus remplacement des gouttières en zinc demi-ronde soixante mètres linéaires",
+        "canal": "vocal",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 58,
+            "quantite_ouvrage": 110,
+            "options": [
+              {
+                "option_id": 84,
+                "choix_id": 349
+              }
+            ]
+          },
+          {
+            "prestation_id": 61,
+            "quantite_ouvrage": 60,
+            "options": [
+              {
+                "option_id": 87,
+                "choix_id": 361
+              },
+              {
+                "option_id": 88,
+                "choix_id": 365
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C12",
+      "split": "dev",
+      "input": {
+        "description": "On refait la salle de bain en entier, c'est une petite pièce d'environ 5 m², gamme standard. Le client voudrait aussi qu'on lui installe une alarme avec des caméras dans la maison.",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "hors_catalogue_partiel",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 82,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 118,
+                "choix_id": 497
+              },
+              {
+                "option_id": 119,
+                "choix_id": 501
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "La surface est une OPTION de ce forfait (1 forfait), pas la quantité. Alarme/caméras : hors catalogue."
+      }
+    },
+    {
+      "id": "C13",
+      "split": "dev",
+      "input": {
+        "description": "Prépare un devis pour monsieur julien renard rue de la gare 55 1400 nivelles, remplacement de la chaudière par une pompe à chaleur air eau, matériel et pose compris.",
+        "canal": "texte",
+        "profil": "E",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "directe",
+        "tags": [
+          "pii",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 70,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 100,
+                "choix_id": 414
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C14",
+      "split": "dev",
+      "input": {
+        "description": "on voudrait refaire le sol du couloir en vinyle à clipser il fait un mètre vingt de large sur six mètres de long",
+        "canal": "vocal",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "calculable",
+        "tags": [
+          "calcul_dimensions"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 49,
+            "quantite_ouvrage": 7.2,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "1,2 × 6 = 7,2 m². Lames ou dalles non précisé : aucune option attendue."
+      }
+    },
+    {
+      "id": "C15",
+      "split": "dev",
+      "input": {
+        "description": "ITE polystyrène 140 mm enduit gratté, 120 m2, échafaudage à prévoir",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "echafaudage",
+          "hors_catalogue_partiel",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 66,
+            "quantite_ouvrage": 120,
+            "options": [
+              {
+                "option_id": 93,
+                "choix_id": 383
+              },
+              {
+                "option_id": 94,
+                "choix_id": 389
+              },
+              {
+                "option_id": 95,
+                "choix_id": 393
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "L'échafaudage n'existe pas dans le catalogue : pas de prestation à créer."
+      }
+    },
+    {
+      "id": "C16",
+      "split": "dev",
+      "input": {
+        "description": "Le client veut des volets roulants électriques à la place de ses vieux volets, il y en a 8 en tout, il a vu un prix à 350 euros pièce TTC",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "prix_indique",
+          "option_explicite"
+        ],
+        "prix_indique": "350 €/pièce TTC"
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 56,
+            "quantite_ouvrage": 8,
+            "options": [
+              {
+                "option_id": 79,
+                "choix_id": 329
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "'Électriques' ne tranche pas entre motorisation filaire et radio : aucune option de motorisation attendue."
+      }
+    },
+    {
+      "id": "C17",
+      "split": "validation",
+      "input": {
+        "description": "devis pour madame claire vandenberg chaussée de mons 210 1070 bruxelles terrasse en composite sur plots réglables quatre mètres sur cinq et clôture en panneaux rigides un mètre quatre-vingts de haut sur douze mètres linéaires",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "calculable",
+        "tags": [
+          "pii",
+          "calcul_dimensions",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 73,
+            "quantite_ouvrage": 20,
+            "options": [
+              {
+                "option_id": 104,
+                "choix_id": 432
+              },
+              {
+                "option_id": 105,
+                "choix_id": 437
+              }
+            ]
+          },
+          {
+            "prestation_id": 74,
+            "quantite_ouvrage": 12,
+            "options": [
+              {
+                "option_id": 106,
+                "choix_id": 440
+              },
+              {
+                "option_id": 107,
+                "choix_id": 448
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Terrasse : 4 × 5 = 20 m²."
+      }
+    },
+    {
+      "id": "C18",
+      "split": "dev",
+      "input": {
+        "description": "Reprise du tableau : mise aux normes en triphasé, entre 10 et 20 circuits",
+        "canal": "texte",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 32,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 41,
+                "choix_id": 169
+              },
+              {
+                "option_id": 42,
+                "choix_id": 171
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C19",
+      "split": "validation",
+      "input": {
+        "description": "J'hésite entre du parquet et du carrelage pour le séjour, le parquet ce serait du chêne collé",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "hesitation",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 47,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 62,
+                "choix_id": 257
+              },
+              {
+                "option_id": 63,
+                "choix_id": 263
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "manuel",
+        "ground_truth_alternatives": [
+          {
+            "prestations": [
+              {
+                "prestation_id": 35,
+                "quantite_ouvrage": null,
+                "options": []
+              }
+            ]
+          }
+        ],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Pas de bonne réponse unique : à juger à la main. Ne pas confondre 'chêne collé' (parquet massif collé) avec 'contrecollé chêne' (parquet flottant)."
+      }
+    },
+    {
+      "id": "C20",
+      "split": "validation",
+      "input": {
+        "description": "Les anciens propriétaires avaient mis de la moquette partout, on l'a déjà enlevée. Il reste à poser du parquet massif en chêne cloué sur 48 m², puis le ponçage et la vitrification mate.",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "directe",
+        "tags": [
+          "deja_fait",
+          "contexte_parasite",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 47,
+            "quantite_ouvrage": 48,
+            "options": [
+              {
+                "option_id": 62,
+                "choix_id": 257
+              },
+              {
+                "option_id": 63,
+                "choix_id": 264
+              }
+            ]
+          },
+          {
+            "prestation_id": 48,
+            "quantite_ouvrage": 48,
+            "options": [
+              {
+                "option_id": 64,
+                "choix_id": 268
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Dépose de la moquette déjà faite : ne pas inclure."
+      }
+    },
+    {
+      "id": "C21",
+      "split": "dev",
+      "input": {
+        "description": "prépare-moi un devis pour la pose d'une cuisine équipée milieu de gamme sept mètres linéaires avec un plan de travail en quartz de trois mètres cinquante",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 78,
+            "quantite_ouvrage": 7,
+            "options": [
+              {
+                "option_id": 114,
+                "choix_id": 476
+              }
+            ]
+          },
+          {
+            "prestation_id": 79,
+            "quantite_ouvrage": 3.5,
+            "options": [
+              {
+                "option_id": 115,
+                "choix_id": 480
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C22",
+      "split": "dev",
+      "input": {
+        "description": "Peinture murs salon 42 m2 satinée acrylique + plafond 20 m2 antimoisissure",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 40,
+            "quantite_ouvrage": 42,
+            "options": [
+              {
+                "option_id": 53,
+                "choix_id": 220
+              },
+              {
+                "option_id": 54,
+                "choix_id": 223
+              }
+            ]
+          },
+          {
+            "prestation_id": 41,
+            "quantite_ouvrage": 20,
+            "options": [
+              {
+                "option_id": 55,
+                "choix_id": 230
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C23",
+      "split": "dev",
+      "input": {
+        "description": "il faut poser des prises dans le garage je dirais une dizaine des prises étanches",
+        "canal": "vocal",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "approximative",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 29,
+            "quantite_ouvrage": 10,
+            "options": [
+              {
+                "option_id": 38,
+                "choix_id": 154
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Quantité approximative exprimée : 10 accepté."
+      }
+    },
+    {
+      "id": "C24",
+      "split": "validation",
+      "input": {
+        "description": "Démolition de deux cloisons en brique creuse, 14 m2 et 9 m2, évacuation comprise",
+        "canal": "texte",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "repetee",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 1,
+            "quantite_ouvrage": 14,
+            "options": [
+              {
+                "option_id": 1,
+                "choix_id": 2
+              }
+            ]
+          },
+          {
+            "prestation_id": 1,
+            "quantite_ouvrage": 9,
+            "options": [
+              {
+                "option_id": 1,
+                "choix_id": 2
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Deux cloisons distinctes = deux occurrences (pas de somme)."
+      }
+    },
+    {
+      "id": "C25",
+      "split": "validation",
+      "input": {
+        "description": "le client voudrait installer des panneaux solaires sur son toit et aussi refaire les gouttières en alu",
+        "canal": "vocal",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "hors_catalogue_partiel",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 61,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 87,
+                "choix_id": 363
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Panneaux solaires : hors catalogue. Longueur de gouttière absente."
+      }
+    },
+    {
+      "id": "C26",
+      "split": "dev",
+      "input": {
+        "description": "On voudrait faire construire une piscine dans le jardin, environ 8 mètres sur 4",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "sans_objet",
+        "tags": [
+          "hors_catalogue_total"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": []
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Aucune prestation du catalogue : la liste doit être vide."
+      }
+    },
+    {
+      "id": "C27",
+      "split": "validation",
+      "input": {
+        "description": "Faïence métro blanche 10x20 sur 14 m2 de salle de bain, dépose de l'ancienne faïence avant",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "ambiguite_catalogue",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 5,
+            "quantite_ouvrage": 14,
+            "options": []
+          },
+          {
+            "prestation_id": 37,
+            "quantite_ouvrage": 14,
+            "options": [
+              {
+                "option_id": 50,
+                "choix_id": 209
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [
+          {
+            "prestations": [
+              {
+                "prestation_id": 5,
+                "quantite_ouvrage": 14,
+                "options": []
+              },
+              {
+                "prestation_id": 36,
+                "quantite_ouvrage": 14,
+                "options": [
+                  {
+                    "option_id": 48,
+                    "choix_id": 199
+                  },
+                  {
+                    "option_id": 49,
+                    "choix_id": 204
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Deux prestations catalogue plausibles pour une faïence métro."
+      }
+    },
+    {
+      "id": "C28",
+      "split": "dev",
+      "input": {
+        "description": "pose de cinq portes intérieures coulissantes à galendage en MDF peint et d'une porte d'entrée en aluminium cinq points",
+        "canal": "vocal",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite",
+          "erreur_asr"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 51,
+            "quantite_ouvrage": 5,
+            "options": [
+              {
+                "option_id": 68,
+                "choix_id": 285
+              },
+              {
+                "option_id": 69,
+                "choix_id": 290
+              }
+            ]
+          },
+          {
+            "prestation_id": 55,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 77,
+                "choix_id": 322
+              },
+              {
+                "option_id": 78,
+                "choix_id": 327
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Erreur ASR volontaire : 'galendage'."
+      }
+    },
+    {
+      "id": "C29",
+      "split": "validation",
+      "input": {
+        "description": "Monsieur Petit nous appelle pour une fuite sous l'évier, il faudrait refaire la tuyauterie",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "contexte_parasite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 27,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Longueur absente."
+      }
+    },
+    {
+      "id": "C30",
+      "split": "validation",
+      "input": {
+        "description": "Devis pour M. Lefèvre, rue du moulin 9 à Mons : peinture extérieure de la façade, 9 m sur 6 m de haut, siloxane, 25 € le m² TTC",
+        "canal": "texte",
+        "profil": "E",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "calculable",
+        "tags": [
+          "prix_indique",
+          "pii",
+          "calcul_dimensions",
+          "option_explicite"
+        ],
+        "prix_indique": "25 €/m² TTC"
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 42,
+            "quantite_ouvrage": 54,
+            "options": [
+              {
+                "option_id": 56,
+                "choix_id": 232
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "9 × 6 = 54 m²."
+      }
+    },
+    {
+      "id": "C31",
+      "split": "dev",
+      "input": {
+        "description": "on a fini de casser la douche et il faut tout refaire à neuf avec une paroi je pense",
+        "canal": "vocal",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "deja_fait",
+          "ambiguite_catalogue"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 22,
+            "quantite_ouvrage": 1,
+            "options": []
+          },
+          {
+            "prestation_id": 84,
+            "quantite_ouvrage": 1,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [
+          {
+            "prestations": [
+              {
+                "prestation_id": 22,
+                "quantite_ouvrage": 1,
+                "options": []
+              }
+            ]
+          }
+        ],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Dépose déjà faite. La paroi peut être une option de la douche complète ou une prestation séparée."
+      }
+    },
+    {
+      "id": "C32",
+      "split": "dev",
+      "input": {
+        "description": "Carrelage sol 120x60 en pose décalée 1/3, colle C2S2, sur 36 m2, ragréage autolissant P3 3-10 mm au préalable",
+        "canal": "texte",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 35,
+            "quantite_ouvrage": 36,
+            "options": [
+              {
+                "option_id": 45,
+                "choix_id": 187
+              },
+              {
+                "option_id": 46,
+                "choix_id": 191
+              },
+              {
+                "option_id": 47,
+                "choix_id": 197
+              }
+            ]
+          },
+          {
+            "prestation_id": 38,
+            "quantite_ouvrage": 36,
+            "options": [
+              {
+                "option_id": 51,
+                "choix_id": 213
+              },
+              {
+                "option_id": 52,
+                "choix_id": 217
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C33",
+      "split": "validation",
+      "input": {
+        "description": "Peinture des murs : le salon c'est 38 m2 en mat, la chambre 1 c'est 22 m2 en velours et la chambre 2 pareil, 22 m2 en velours",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "directe",
+        "tags": [
+          "repetee",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 40,
+            "quantite_ouvrage": 38,
+            "options": [
+              {
+                "option_id": 53,
+                "choix_id": 219
+              }
+            ]
+          },
+          {
+            "prestation_id": 40,
+            "quantite_ouvrage": 22,
+            "options": [
+              {
+                "option_id": 53,
+                "choix_id": 221
+              }
+            ]
+          },
+          {
+            "prestation_id": 40,
+            "quantite_ouvrage": 22,
+            "options": [
+              {
+                "option_id": 53,
+                "choix_id": 221
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Trois occurrences, dont deux identiques mais distinctes."
+      }
+    },
+    {
+      "id": "C34",
+      "split": "dev",
+      "input": {
+        "description": "devis pour monsieur karim benali rue du centre 3 4020 liège installation d'une climatisation splite mural dans le salon",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "pii",
+          "option_explicite",
+          "erreur_asr"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 69,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 98,
+                "choix_id": 404
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Erreur ASR volontaire : 'splite'. Puissance non précisée : aucune option de puissance."
+      }
+    },
+    {
+      "id": "C35",
+      "split": "dev",
+      "input": {
+        "description": "Clôture grillage souple 1m20, tour du terrain 15 x 22, portail coulissant alu motorisé rail au sol",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "calculable",
+        "tags": [
+          "calcul_dimensions",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 74,
+            "quantite_ouvrage": 74,
+            "options": [
+              {
+                "option_id": 106,
+                "choix_id": 439
+              },
+              {
+                "option_id": 107,
+                "choix_id": 446
+              }
+            ]
+          },
+          {
+            "prestation_id": 75,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 108,
+                "choix_id": 451
+              },
+              {
+                "option_id": 109,
+                "choix_id": 453
+              },
+              {
+                "option_id": 110,
+                "choix_id": 460
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Périmètre 2 × (15 + 22) = 74 m ; largeur du portail non déduite."
+      }
+    },
+    {
+      "id": "C36",
+      "split": "validation",
+      "input": {
+        "description": "faut remplacer toutes les vitres de la véranda, il y a 6 grandes vitres d'environ un mètre sur deux",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "calculable",
+        "tags": [
+          "calcul_dimensions"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 94,
+            "quantite_ouvrage": 12,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "6 × (1 × 2) = 12 m². Type de vitrage non précisé."
+      }
+    },
+    {
+      "id": "C37",
+      "split": "dev",
+      "input": {
+        "description": "le client veut un ascenseur à la place de son escalier non en fait un monte-escalier et on garde l'escalier mais on le rénove en bois massif",
+        "canal": "vocal",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "hors_catalogue_partiel",
+          "correction_orale",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 53,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 72,
+                "choix_id": 300
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Monte-escalier / ascenseur : hors catalogue. Auto-correction orale à gérer."
+      }
+    },
+    {
+      "id": "C38",
+      "split": "dev",
+      "input": {
+        "description": "Traitement humidité, injection de résine, mur nord",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "absente",
+        "tags": [
+          "option_explicite",
+          "libelle_repris"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 88,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 128,
+                "choix_id": 534
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Longueur de mur absente."
+      }
+    },
+    {
+      "id": "C39",
+      "split": "dev",
+      "input": {
+        "description": "Plancher chauffant hydraulique 55 m2 sous chape fluide ciment 5-6 cm",
+        "canal": "texte",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite",
+          "libelle_repris"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 68,
+            "quantite_ouvrage": 55,
+            "options": [
+              {
+                "option_id": 97,
+                "choix_id": 401
+              }
+            ]
+          },
+          {
+            "prestation_id": 86,
+            "quantite_ouvrage": 55,
+            "options": [
+              {
+                "option_id": 124,
+                "choix_id": 523
+              },
+              {
+                "option_id": 125,
+                "choix_id": 525
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Cas facile : reprend le libellé catalogue 'Chape fluide'."
+      }
+    },
+    {
+      "id": "C40",
+      "split": "validation",
+      "input": {
+        "description": "je voudrais refaire ma terrasse en bois et planter quelques arbres autour",
+        "canal": "vocal",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "hors_catalogue_partiel"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 73,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Plantations hors catalogue. Essence de bois non précisée : aucune option."
+      }
+    },
+    {
+      "id": "C41",
+      "split": "dev",
+      "input": {
+        "description": "Dépose parquet collé 30 m2 puis chape béton fibrée 5-6 cm même surface",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite",
+          "libelle_repris"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 2,
+            "quantite_ouvrage": 30,
+            "options": [
+              {
+                "option_id": 2,
+                "choix_id": 6
+              }
+            ]
+          },
+          {
+            "prestation_id": 10,
+            "quantite_ouvrage": 30,
+            "options": [
+              {
+                "option_id": 11,
+                "choix_id": 46
+              },
+              {
+                "option_id": 12,
+                "choix_id": 49
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C42",
+      "split": "dev",
+      "input": {
+        "description": "Pour la chambre : 6 prises doubles, 3 interrupteurs va-et-vient et 4 spots LED encastrés au plafond",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 29,
+            "quantite_ouvrage": 6,
+            "options": [
+              {
+                "option_id": 38,
+                "choix_id": 152
+              }
+            ]
+          },
+          {
+            "prestation_id": 30,
+            "quantite_ouvrage": 3,
+            "options": [
+              {
+                "option_id": 39,
+                "choix_id": 157
+              }
+            ]
+          },
+          {
+            "prestation_id": 31,
+            "quantite_ouvrage": 4,
+            "options": [
+              {
+                "option_id": 40,
+                "choix_id": 161
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C43",
+      "split": "validation",
+      "input": {
+        "description": "prépare un devis pour monsieur thomas giraud rue neuve 77 7000 mons remplacement du chauffe-eau par un thermodynamique de deux cents litres",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "pii",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 26,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 34,
+                "choix_id": 138
+              },
+              {
+                "option_id": 35,
+                "choix_id": 142
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C44",
+      "split": "validation",
+      "input": {
+        "description": "Rappel pour le rendez-vous de jeudi chez M. Dubois à 14 h, penser à prendre le mètre laser",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "sans_objet",
+        "tags": [
+          "aucune_demande"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": []
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Aucune demande de travaux : la liste doit être vide."
+      }
+    },
+    {
+      "id": "C45",
+      "split": "dev",
+      "input": {
+        "description": "Dans la salle de bain il faut enlever le meuble vasque, la baignoire et les WC, et mettre une douche à la place",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "mixte",
+        "mode_quantite": "directe",
+        "tags": [
+          "repetee",
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 3,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 3,
+                "choix_id": 16
+              }
+            ]
+          },
+          {
+            "prestation_id": 3,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 3,
+                "choix_id": 11
+              }
+            ]
+          },
+          {
+            "prestation_id": 3,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 3,
+                "choix_id": 13
+              }
+            ]
+          },
+          {
+            "prestation_id": 22,
+            "quantite_ouvrage": 1,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C46",
+      "split": "validation",
+      "input": {
+        "description": "prépare-moi un devis pour l'installation d'un poêle à bois avec le conduit de cheminée dans le salon",
+        "canal": "vocal",
+        "profil": "E",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "sans_objet",
+        "tags": [
+          "hors_catalogue_total"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": []
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": "Presque-correspondance : le catalogue ne propose que le poêle à GRANULÉS (dans 'Remplacement chaudière'). Liste vide attendue."
+      }
+    },
+    {
+      "id": "C47",
+      "split": "dev",
+      "input": {
+        "description": "Garde-corps verre et inox 4 ml, balcon",
+        "canal": "texte",
+        "profil": "A",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 91,
+            "quantite_ouvrage": 4,
+            "options": [
+              {
+                "option_id": 131,
+                "choix_id": 548
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C48",
+      "split": "dev",
+      "input": {
+        "description": "placard sur mesure dans la chambre, 2m40 de long, portes coulissantes avec penderie et étagères",
+        "canal": "texte",
+        "profil": "B",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 52,
+            "quantite_ouvrage": 2.4,
+            "options": [
+              {
+                "option_id": 70,
+                "choix_id": 294
+              },
+              {
+                "option_id": 71,
+                "choix_id": 297
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [],
+        "notes": ""
+      }
+    },
+    {
+      "id": "C49",
+      "split": "validation",
+      "input": {
+        "description": "il y a des termites dans la charpente il faut faire une barrière chimique",
+        "canal": "vocal",
+        "profil": "D",
+        "niveau_vocabulaire": "technique",
+        "mode_quantite": "directe",
+        "tags": [
+          "option_explicite"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 89,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 129,
+                "choix_id": 538
+              }
+            ]
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [],
+        "allowed_extra_prestation_ids": [
+          62
+        ],
+        "notes": "Traitement charpente possible en complément : non pénalisé."
+      }
+    },
+    {
+      "id": "C50",
+      "split": "validation",
+      "input": {
+        "description": "Les combles sont mal isolés, on veut remettre de la laine par dessus",
+        "canal": "texte",
+        "profil": "C",
+        "niveau_vocabulaire": "approximatif",
+        "mode_quantite": "absente",
+        "tags": [
+          "ambiguite_catalogue"
+        ],
+        "prix_indique": ""
+      },
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 18,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      },
+      "evaluation": {
+        "mode": "auto",
+        "ground_truth_alternatives": [
+          {
+            "prestations": [
+              {
+                "prestation_id": 19,
+                "quantite_ouvrage": null,
+                "options": []
+              }
+            ]
+          }
+        ],
+        "allowed_extra_prestation_ids": [],
+        "notes": "'Par dessus' suggère le soufflage (combles perdus) ; combles rampants accepté."
+      }
+    }
+  ]
+}
