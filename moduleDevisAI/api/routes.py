@@ -432,7 +432,6 @@ def list_catalogue_prestations(company_id: int) -> dict[str, Any]:
     except KeyError as error:
         raise HTTPException(503, "DATABASE_URL absent.") from error
 
-@router.post("/api/devis/photo-analyze")
 @router.post("/api/v1/devis/photo-analyze")
 def analyze_photo(request: PhotoAnalyzeRequest) -> dict[str, Any]:
     """Analyze one JPEG/PNG chantier photo without generating a quotation."""
