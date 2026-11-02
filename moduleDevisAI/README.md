@@ -6,7 +6,7 @@ The **AI Quotation Module** (`moduleDevisAI`) is an intelligent, autonomous subs
 - **Three-Dimensional Multimodal Ingestion:**
   - **Freeform Text:** Direct entry or paste of construction scopes and specifications.
   - **Voice Memos:** In-browser audio capture with real-time waveform visualization, transcribed via Whisper (Groq / OpenAI) primed with a specialized construction vocabulary.
-  - **Construction Site Photos:** Drag-and-drop uploader, client-side validation (JPEG/PNG $\le$ 10MB), automatic room identification, metric surface area estimation with confidence scores, and multi-class material detection via vision models (Gemini Flash).
+  - **Construction Site Photos:** Drag-and-drop uploader, client-side validation (JPEG/PNG ≤ 10 MB), automatic room identification, metric surface area estimation with confidence scores, and multi-class material detection via vision models (Gemini Flash).
 - **Hybrid RAG & Grounded Catalogue Matching:**
   - Hybrid retrieval fusing PostgreSQL Full-Text Search (French language morphology) and semantic vector search (`pgvector` with HNSW indexing).
   - Reciprocal Rank Fusion (**RRF**) ranking.
@@ -14,7 +14,7 @@ The **AI Quotation Module** (`moduleDevisAI`) is an intelligent, autonomous subs
 - **Deterministic Financial Engine:**
   - Bill of Materials (BOM / *sous-détail de prix*) decomposition into elementary materials and labor hours.
   - Real-time computation of pre-tax revenue (HT), VAT (TVA), gross totals (TTC), cost of goods sold (COGS), and profit margins in EUR and percentage.
-  - Automated threshold alerts for margin anomalies ($< 15\%$ or $> 40\%$).
+  - Automated threshold alerts for margin anomalies (< 15% or > 40%).
 - **Interactive Review & Fine-Tuning:**
   - Dynamic line item quantity and pricing adjustments.
   - Addition of complementary catalog services directly within the UI.
