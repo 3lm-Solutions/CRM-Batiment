@@ -36,6 +36,8 @@ pnpm-debug.log*
 tmp/
 temp/
 .cache/
+__pycache__/
+**/__pycache__/
 
 # Editor and OS files
 .vscode/

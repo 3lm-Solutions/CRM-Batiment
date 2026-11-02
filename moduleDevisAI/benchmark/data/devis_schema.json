@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "./referenceFile.json",
+  "title": "Devis",
+  "type": "object",
+  "required": ["id", "companyId", "clientId", "reference", "dateCreation", "versionCourante", "statut", "tauxTVA", "lignes"],
+  "properties": {
+    "id": { "type": "integer" },
+    "companyId": { "type": "integer" },
+    "clientId": { "type": "integer" },
+    "chantierId": { "type": ["integer", "null"] },
+    "demandeDevisId": { "type": ["integer", "null"] },
+    "createurId": { "type": ["integer", "null"] },
+    "reference": { "type": "string" },
+    "dateCreation": { "type": "string", "format": "date-time" },
+    "versionCourante": { "type": "integer" },
+    "statut": {
+      "type": "string",
+      "enum": ["BROUILLON","ENVOYE","ACCEPTE","SIGNE","REFUSE","ANNULE","REVISE","RENVOYE"]
+    },
+    "totalHT": { "type": "number" },
+    "totalTVA": { "type": "number" },
+    "totalTTC": { "type": "number" },
+    "coutTotal": { "type": "number" },
+    "profit": { "type": "number" },
+    "margePourcent": { "type": "number" },
+    "tauxTVA": { "type": "number", "default": 20 },
+    "dateEnvoi": { "type": ["string","null"], "format":"date-time" },
+    "dateValidation": { "type": ["string","null"], "format":"date-time" },
+    "modeValidation": {
+      "type": ["string","null"],
+      "enum": ["EMAIL","SIGNATURE","VERBAL","AUTRE", null]
+    },
+    "notes": { "type": ["string","null"] },
+    "signatureClientBase64": { "type": ["string","null"] },
+    "signatureClientDate": { "type": ["string","null"], "format":"date-time" },
+    "signatureConseillerBase64": { "type": ["string","null"] },
+    "signatureConseillerDate": { "type": ["string","null"], "format":"date-time" },
+    "lignes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ligneDevis" }
+    }
+  },
+  "definitions": {
+    "ligneDevis": {
+      "type": "object",
+      "required": ["id","devisId","quantite","prixUnitaireVente","totalHT","ordre"],
+      "properties": {
+        "id": { "type": "integer" },
+        "devisId": { "type": "integer" },
+        "prestationId": { "type": ["integer","null"] },
+        "materiauId": { "type": ["integer","null"] },
+        "serviceMainOeuvreId": { "type": ["integer","null"] },
+        "description": { "type": ["string","null"] },
+        "quantite": { "type": "number", "minimum": 0 },
+        "unite": {
+          "type": "string",
+          "enum": ["M2","ML","PIECE","JOUR","HEURE","LITRE","KG","FORFAIT"]
+        },
+        "dimension": { "type": ["string","null"] },
+        "couleur": { "type": ["string","null"] },
+        "finition": { "type": ["string","null"] },
+        "prixUnitaireVente": { "type": "number" },
+        "prixAchat": { "type": "number" },
+        "mainOeuvre": { "type": "number" },
+        "totalHT": { "type": "number" },
+        "coutTotal": { "type": "number" },
+        "ordre": { "type": "integer" }
+      }
+    }
+  }
+}

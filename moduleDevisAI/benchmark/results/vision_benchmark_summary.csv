@@ -1,0 +1,5 @@
+model,cases_attempted,cases_succeeded,cases_failed,json_valid_rate_pct,surface_accuracy_pct,materials_match_score_avg,p50_latency_seconds,avg_cost_usd
+gemini-3.5-flash,15,15,0,100.0,25.68,0.96,14.8952,0.01016
+gemini-3.6-flash,15,12,3,100.0,21.76,3.13,22.9263,0.004682
+gemini-3.7-flash,15,6,9,100.0,31.49,3.46,40.3124,0.005275
+gemini-3.8-flash,15,8,7,100.0,27.45,2.34,36.283,0.00496
