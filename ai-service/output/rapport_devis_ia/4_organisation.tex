@@ -1,0 +1,9 @@
+\section{Organisation et méthodologie}
+\subsection{Démarche de réalisation}
+Le développement a été mené de manière itérative : mise en place de la base et du pipeline métier, remplacement du frontal, intégration des modalités photo et vocale, puis conception des protocoles d'évaluation. Chaque évolution a été vérifiée avec des cas de chantier représentatifs et des contrôles de cohérence du catalogue.
+
+\subsection{Outils de travail}
+Le projet s'appuie sur Python et FastAPI pour l'API, React pour l'interface, PostgreSQL pour les données métier et OpenCV pour le module de mesure d'image. Les expérimentations d'optimisation et de benchmark des LLM sont exécutées dans Kaggle avec des jeux de données JSON versionnés.
+
+\subsection{Jeux de données d'évaluation}
+Un dataset synthétique de 60 descriptions a été construit à partir du catalogue réel : 30 exemples servent à l'optimisation GEPA et 30 à la validation. Les 12 descriptions originales destinées au test final sont séparées de ce dataset, afin d'éviter de mesurer la performance sur des formulations déjà vues pendant l'optimisation.

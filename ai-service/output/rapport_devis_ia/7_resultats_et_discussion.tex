@@ -1,0 +1,92 @@
+\section{Résultats et discussion}
+\subsection{Évaluateur métier pour l'optimisation des prompts}
+L'optimisation GEPA repose sur un évaluateur personnalisé inspiré de la méthode ExtractBench. Les prestations répétées sont appariées globalement avec l'algorithme hongrois de \texttt{scipy.optimize.linear\_sum\_assignment}; le même principe est appliqué aux options de prestations appariées. L'ordre d'apparition dans le JSON n'influence donc pas le score.
+
+Trois F1 indépendants sont calculés : \texttt{prestation\_id\_f1}, \texttt{quantite\_ouvrage\_f1} et \texttt{options\_choix\_f1}. La conformité JSON est suivie séparément. L'évaluateur conserve également les extraits de preuve du dataset ainsi que les valeurs attendues, manquantes, incorrectes et supplémentaires pour alimenter le diagnostic du modèle de réflexion.
+
+La frontière GEPA est configurée avec \texttt{frontier\_type="cartesian"}. La règle d'admission impose de ne pas régresser sur la conformité JSON ni sur l'identification des prestations. La sélection finale exige une conformité JSON de 100\%, maximise ensuite le F1 des prestations puis privilégie les instructions les plus courtes. Seuls les tokens d'instructions sont comptés, à l'exclusion des descriptions et du catalogue variable.
+
+\subsection{Résultats disponibles de l'optimisation GEPA}
+Les quatre modèles de tâche ont utilisé le même modèle de réflexion : \textit{NVIDIA Nemotron 3 Ultra 550B}. Les deux candidats NVIDIA suivants ont été écartés avant le benchmark final, car leur conformité JSON restait inférieure à 100\% dès l'évaluation initiale : \textit{nvidia/nemotron-3.5-lightning-30b-a3b} et \textit{nvidia/nemotron-3.5-bolt-e4b}. Ils ne sont donc pas comparés dans l'évaluation finale des modèles retenus.
+
+\begin{table}[H]
+\centering
+\caption{Synthèse des observations disponibles dans les résultats GEPA}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.27\textwidth}p{0.16\textwidth}p{0.15\textwidth}p{0.27\textwidth}}
+\toprule
+\textbf{Modèle de tâche} & \textbf{Conformité JSON observée} & \textbf{Décision} & \textbf{Observation} \\
+\midrule
+nvidia/nemotron-3.5-lightning-30b-a3b & maximum observé : 96,67\% & Écarté & Cinq candidats finaux recensés ; aucun n'atteint 100\% de conformité JSON. \\
+gemini-3.1-flash-lite & 100\% pour le candidat initial & Retenu & Candidat initial : F1 prestations 100\%, F1 quantité 86,67\%, F1 options/choix 100\%, 198 tokens d'instructions. \\
+gemini-3.5-flash-lite & 100\% sur les sous-échantillons observés & À confirmer au benchmark final & Aucune nouvelle mutation visible ; l'initialisation obtenait déjà un score maximal sur les sous-échantillons évalués. \\
+nvidia/nemotron-3.5-bolt-e4b & maximum observé : 96,67\% & Écarté & La conformité JSON est restée inférieure à 100\% dans le pool observé. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Emplacement réservé aux résultats consolidés de l'optimisation}
+Le tableau suivant est volontairement laissé à compléter avec les scores complets exportés pour les quatre modèles. Il permet de conserver dans le rapport les résultats exacts de chaque exécution.
+
+{\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{p{0.28\textwidth}p{0.10\textwidth}p{0.12\textwidth}p{0.12\textwidth}p{0.14\textwidth}p{0.10\textwidth}}
+\caption{Résultats détaillés GEPA à insérer}\\
+\toprule
+\textbf{Modèle} & \textbf{JSON} & \shortstack{\textbf{F1}\\\textbf{prest.}} & \shortstack{\textbf{F1}\\\textbf{quant.}} & \shortstack{\textbf{F1}\\\textbf{opt./choix}} & \shortstack{\textbf{Tokens}\\\textbf{instr.}} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Modèle} & \textbf{JSON} & \shortstack{\textbf{F1}\\\textbf{prest.}} & \shortstack{\textbf{F1}\\\textbf{quant.}} & \shortstack{\textbf{F1}\\\textbf{opt./choix}} & \shortstack{\textbf{Tokens}\\\textbf{instr.}} \\
+\midrule
+\endhead
+gemini-3.1-flash-lite & -- & -- & -- & -- & -- \\
+gemini-3.5-flash-lite & -- & -- & -- & -- & -- \\
+nvidia/nemotron-3.5-lightning-30b-a3b & -- & -- & -- & -- & -- \\
+nvidia/nemotron-3.5-bolt-e4b & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{longtable}
+}
+
+\subsection{Protocole du benchmark final}
+Le benchmark final compare les modèles retenus sur les 12 descriptions originales, avec dix appels indépendants par description. Les métriques de qualité ne sont calculées que lorsque l'API a effectivement renvoyé une réponse. La conformité JSON est également évaluée uniquement sur les réponses obtenues.
+
+La performance et la disponibilité sont dissociées : la latence est évaluée par la médiane des appels réussis de chaque description, avec un seuil de 30 secondes, tandis que la disponibilité correspond au pourcentage d'appels API réussis sur les 120 tentatives par modèle. La capacité théorique est calculée à partir des quotas RPM, TPM et RPD réels. Le score global combine qualité métier (40\%), conformité JSON (20\%), latence (10\%), disponibilité (10\%) et capacité théorique (20\%).
+
+\begin{table}[H]
+\centering
+\caption{Emplacement réservé au benchmark final des modèles retenus}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.19\textwidth}p{0.12\textwidth}p{0.10\textwidth}p{0.10\textwidth}p{0.13\textwidth}p{0.12\textwidth}}
+\toprule
+\textbf{Modèle} & \shortstack{\textbf{Score}\\\textbf{métier}} & \textbf{JSON} & \textbf{Latence} & \shortstack{\textbf{Disponi-}\\\textbf{bilité}} & \shortstack{\textbf{Score}\\\textbf{global}} \\
+\midrule
+-- & -- & -- & -- & -- & -- \\
+-- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Résultats de test fonctionnel}
+Cette section est réservée aux captures, cas d'essai et résultats de validation fonctionnelle de l'application : génération textuelle, transcription vocale, mesure photo, édition de devis, aperçu PDF et envoi email.
+
+\begin{table}[H]
+\centering
+\caption{Emplacement réservé aux cas de test applicatifs}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.25\textwidth}p{0.25\textwidth}p{0.22\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Fonctionnalité} & \textbf{Cas testé} & \textbf{Résultat attendu} & \textbf{Résultat obtenu} \\
+\midrule
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussion}
+Le projet met en évidence l'importance de l'évaluation structurée pour les LLM appliqués à un catalogue métier. Une réponse naturelle peut sembler correcte tout en étant inexploitable si elle ne respecte pas le schéma ou si elle référence une option appartenant à une autre prestation. La séparation entre qualité, conformité, latence et disponibilité permet de ne pas confondre une erreur métier avec une indisponibilité temporaire du fournisseur de modèle.

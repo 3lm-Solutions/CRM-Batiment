@@ -1,0 +1,11 @@
+\section{Cahier des charges}
+\subsection{Spécifications fonctionnelles}
+Le système doit permettre de créer un brouillon de devis depuis une description de travaux, consulter et ajuster les prestations détectées, choisir les options proposées par le catalogue et calculer le montant selon les composants associés. L'aperçu destiné au client doit afficher les composants sélectionnés et non une duplication artificielle d'un prix unitaire de prestation lorsqu'il n'existe pas dans la base.
+
+Une prestation sans composition est traitée explicitement : l'interface permet la saisie d'un coût puis le prix HT est calculé selon la quantité et la marge retenue. Cette règle évite de présenter un prix fictif lorsque le catalogue ne fournit pas de composants matériels ou de main-d'oeuvre.
+
+\subsection{Spécifications de données}
+Le catalogue PostgreSQL constitue la source de vérité. Il contient 97 prestations, 141 options et 584 choix. Les relations \textit{prestation $\rightarrow$ option $\rightarrow$ choix} sont contrôlées lors de l'exploitation de la sortie du modèle. L'identifiant seul ne suffit donc pas : une option doit appartenir à la prestation sélectionnée et un choix à cette option.
+
+\subsection{Contraintes non fonctionnelles}
+Les sorties générées doivent être syntaxiquement valides, traçables et robustes face aux erreurs d'API. Les clés d'accès aux fournisseurs de modèles ne sont pas intégrées au code source. Les temps de réponse, les erreurs et les coûts estimés sont journalisés afin d'observer le comportement de chaque modalité.

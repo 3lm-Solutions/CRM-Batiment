@@ -1,0 +1,12 @@
+\section{Réalisation technique et implémentation}
+\subsection{Pipeline texte}
+La description est envoyée avec un prompt d'instructions et le catalogue pertinent. Le backend analyse ensuite la réponse selon trois étapes : validation du JSON, vérification des références dans le catalogue et construction d'un brouillon de devis. Une réponse formellement valide mais contenant un identifiant absent ou une relation incohérente est signalée, plutôt que transformée silencieusement en ligne de devis.
+
+\subsection{Interface de devis}
+Le frontal présente les occurrences de prestations, leurs composants et leurs calculs. Les fourchettes affichées sont rapportées à la quantité d'ouvrage sélectionnée et non artificiellement à une unité fixe. L'aperçu PDF et le document envoyé au client suivent la même présentation afin d'éviter un écart entre la validation à l'écran et le résultat transmis.
+
+\subsection{Gestion des erreurs}
+Les appels externes peuvent échouer, notamment pour cause de quota ou de limite de débit. Ces erreurs sont distinguées des réponses produites par le modèle. Elles sont enregistrées avec le fournisseur, le modèle, la latence et le détail de l'erreur ; aucune métrique métier n'est calculée pour une requête qui n'a pas reçu de réponse API exploitable.
+
+\subsection{Assurance qualité}
+Les tests du pipeline contrôlent la transformation d'une demande en brouillon, le calcul des composants et la cohérence des identifiants. Les tests de benchmark distinguent la qualité d'une réponse obtenue, la conformité JSON, la latence et la disponibilité de l'API.

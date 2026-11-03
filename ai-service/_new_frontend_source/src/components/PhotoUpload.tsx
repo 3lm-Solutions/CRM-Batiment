@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, CheckCircle2, AlertTriangle, ArrowRight, Loader2, Sparkles, Image as ImageIcon, MapPin, Layers } from 'lucide-react';
+import { Upload, CheckCircle2, AlertTriangle, ArrowRight, Loader2, Sparkles, Image as ImageIcon, MapPin, Layers, Ruler } from 'lucide-react';
 import { PhotoAnalysisResult } from '../types/quote';
 import { SAMPLE_PHOTOS, SamplePhoto } from '../data/samples';
 
@@ -19,12 +19,42 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [analysisResult, setAnalysisResult] = useState<PhotoAnalysisResult | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [customSurface, setCustomSurface] = useState<number | null>(null);
+  const [gradioMeasurementUrl, setGradioMeasurementUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const openGradioMeasurement = async (file: File) => {
+    // La fenêtre est ouverte pendant le geste utilisateur afin d'éviter le blocage par le navigateur.
+    const measurementWindow = window.open('', 'devis-ia-photo-metre');
+    if (measurementWindow) {
+      measurementWindow.document.title = 'Chargement de la mesure photographique...';
+      measurementWindow.document.body.innerHTML = '<p style="font-family:system-ui;padding:2rem">Chargement de la photo dans Gradio...</p>';
+    }
+
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const response = await fetch('/api/photo/mesure-gradio/session', { method: 'POST', body: form });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || typeof payload.url !== 'string') {
+        throw new Error(payload.detail || 'Impossible d’ouvrir la mesure photographique Gradio.');
+      }
+      const url = new URL(payload.url, window.location.origin).toString();
+      setGradioMeasurementUrl(url);
+      if (measurementWindow) {
+        measurementWindow.location.replace(url);
+      } else {
+      }
+    } catch (reason) {
+      measurementWindow?.close();
+      console.warn('Ouverture Gradio impossible :', reason);
+    }
+  };
 
   // Validation client-side stricte (image/jpeg, image/png, max 10 Mo)
   const validateAndProcessFile = (file: File) => {
     setErrorMessage(null);
+    setGradioMeasurementUrl(null);
     setAnalysisResult(null);
 
     const allowedTypes = ['image/jpeg', 'image/png'];
@@ -49,6 +79,22 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
 
+    // La mesure avec le rectangle noir ne dépend pas du fournisseur Vision.
+    // Cette fiche minimale permet donc de continuer même si l'API Vision échoue.
+    setAnalysisResult({
+      imageUrl: objectUrl,
+      fileName: file.name,
+      fileSize: file.size,
+      piece: 'Photo de chantier à préciser',
+      surfaceEstimee: 0,
+      surfaceConfidence: 0,
+      materiaux: [],
+      etatDesLieux: 'Mesure photographique disponible ; analyse Vision en cours.',
+      travauxSuggere: [],
+    });
+    setCustomSurface(0);
+
+    void openGradioMeasurement(file);
     // Déclencher l'analyse vision
     runVisionAnalysis(file, objectUrl);
   };
@@ -83,12 +129,12 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           setAnalysisResult(result);
           setCustomSurface(result.surfaceEstimee);
       } catch (apiErr) {
-        setErrorMessage(apiErr instanceof Error ? apiErr.message : "Impossible d'analyser cette image.");
+        console.warn('Analyse Vision indisponible :', apiErr);
       } finally { setIsAnalyzing(false); }
     } catch (err) {
       console.error(err);
       setIsAnalyzing(false);
-      setErrorMessage("Impossible d'analyser cette image.");
+      console.warn('Analyse Vision indisponible :', err);
     }
   };
 
@@ -212,6 +258,26 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
             <p className="mt-0.5">{errorMessage}</p>
           </div>
         </div>
+      )}
+
+      {previewUrl && selectedFile && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50/50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-200 bg-white text-sky-700">
+              <Ruler className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-stone-900">Mesure photographique dans Gradio</h3>
+              <p className="mt-0.5 text-xs text-stone-600">La photo est ouverte dans l'interface de mesure du notebook : rectangle noir, quatre clics et aperçu du contour.</p>
+            </div>
+          </div>
+          {gradioMeasurementUrl && (
+            <a href={gradioMeasurementUrl} target="devis-ia-photo-metre" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-3 py-2 text-xs font-bold text-white hover:bg-sky-800">
+              <Ruler className="h-3.5 w-3.5" /> Ouvrir Gradio
+            </a>
+          )}
+        </section>
       )}
 
       {/* Indicateur de chargement de l'analyse vision */}

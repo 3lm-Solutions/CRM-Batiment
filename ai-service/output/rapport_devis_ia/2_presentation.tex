@@ -1,0 +1,17 @@
+\section{Présentation du projet}
+\subsection{Contexte métier}
+L'entreprise utilise un catalogue de prestations de travaux, de matériaux, de main-d'oeuvre et d'options techniques. Les demandes reçues peuvent être détaillées, partielles ou formulées oralement. Le projet vise à accélérer la création d'un brouillon de devis sans remplacer la validation du professionnel.
+
+\subsection{Objectif général}
+L'objectif est de concevoir une application capable de transformer une description de chantier en lignes de devis exploitables. La solution doit :
+\begin{itemize}
+\item reconnaître une ou plusieurs prestations dans une demande ;
+\item extraire une quantité lorsqu'elle est explicitement donnée ou directement calculable ;
+\item sélectionner uniquement les options et choix présents dans le catalogue ;
+\item calculer les coûts et les prix de vente à partir des composants disponibles ;
+\item présenter un aperçu clair, produire un PDF et préparer l'envoi au client ;
+\item proposer des entrées texte, photo et vocales.
+\end{itemize}
+
+\subsection{Périmètre et limites}
+Le système assiste la préparation du devis. Les montants, les prestations proposées et les quantités restent vérifiables et modifiables par le commercial. Une quantité absente de la demande n'est pas assimilée à zéro ; elle est conservée à \texttt{null} jusqu'à validation ou saisie complémentaire.

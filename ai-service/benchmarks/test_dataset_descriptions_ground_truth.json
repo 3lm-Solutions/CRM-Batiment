@@ -1,0 +1,198 @@
+{
+  "examples": [
+    {
+      "synthetic_id": "TEST_001",
+      "description": "Nouveau devis. Client M. Martin, rue Xavier 32, 4000 Liège, pompe à chaleur RO de 8 kW, fourniture et pose compris, dépose de l'ancien système, mise en service, garantie 10 ans, prix total 11 900 €, TTC, génère le devis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 70,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 100,
+                "choix_id": 414
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_002",
+      "description": "Nouveau devis à me préparer, M. Dupont, rue Xavier 142, 4000 Liège. 10 panneaux de 460 W de puissance totale, 5000 kWh, un onduleur central et une batterie de 5 kW, pose comprise, raccordement compris, mise en service compris, garantie 25 ans sur les panneaux photovoltaïques, prix total 9 990 euros, TVA comprise, génère le devis.",
+      "ground_truth": {
+        "prestations": []
+      }
+    },
+    {
+      "synthetic_id": "TEST_003",
+      "description": "nouveau devis installation d'une pompe à chaleur et repos nouveau client simon renard adresse du chantier rue léonard 42 4000 liège fourniture et pose d'une pompe à chaleur et repos de 12 kilowatts adapté aux besoins du logement fournitures de l'unité extérieure et de l'unité intérieure, ballons, tampons si nécessaire, raccordement hydraulique complet au circuit de chauffage existant, raccordement électrique, fourniture des tuyauteries frigorifiques, des gaines des câbles, des vannes des accessoires et des supports de fixation, mise en place de l'unité extérieure, surplots, anti-vibratiles, mise en service par un technicien agréé, réglage, essai de fonctionnement et explication du système au client, évacuation des déchets et nettoyage complet du chantier, garantie fabricant sur le matériel garantie de l'installation, merci de générer un devis professionnel détaillé avec le descriptif des travaux, les quantités, les prix unitaires, le montant hors TVA, la TVA, le montant total TTC, les conditions de paiement, le délai de l'installation et la durée de validité du devis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 70,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 100,
+                "choix_id": 414
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_004",
+      "description": "nouveau devis isolation des combles clients monsieur jean-jacques adresse du chantier rue leonard 42 4000 liège fourniture et pose d'un isolant en laine de verre d'une épaule soeur de 300 mm avec une résistance thermique conforme aux normes en vigueur surface à à isoler. 100 mètres préparation de la surface avant la pose, fourniture de tous les matériaux accessoires et consommables nécessaires, pose de l'isola sur toute la surface des combles en assurant une isolation continue, vérification des points sensibles afin d'éviter les ponts thermiques. Protection des accès pendant les travaux, nettoyage complet du chantier, évacuation des déchets. Main d'oeuvre qualifiée, garantie fabricant sur les matériaux et garantie sur l'installation. Merci de générer un débit professionnel détaillé avec le descriptif des travaux, les quantités, les prix unitaires. Le montant hors TVA, le taux de TVA applicable, le montant de la TVA, le total TVA compris, les conditions de paiement et le délai d'exécution et la durée de validité du devis.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 18,
+            "quantite_ouvrage": 100,
+            "options": [
+              {
+                "option_id": 22,
+                "choix_id": 91
+              },
+              {
+                "option_id": 23,
+                "choix_id": 95
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_005",
+      "description": "Nouveau devis, client Jean Renard, adresse rue Léonore 14, 4000 Liège. Isolation des combles, survas 100 m², fourniture et pose de laine de verre de 300 mm Préparation, pose, nettoyage et évacuation des déchets compris Général de vie professionnelle détaillée avec le matériel, la main d', pause, nettoyage et évacuation des déchets compris. Générant de vie professionnelle détaillée avec le matériel, la main d'oeuvre, la TVA et le total TVA comprise.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 18,
+            "quantite_ouvrage": 100,
+            "options": [
+              {
+                "option_id": 22,
+                "choix_id": 91
+              },
+              {
+                "option_id": 23,
+                "choix_id": 95
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_006",
+      "description": "Nouveau devis, photovoltaïque, M. Maxime Buffon, adresse rue Renard, 32-4000 Liège, 10 panneaux de 460 W de puissance totale 4,6 kW créé un onduleur hybride de 5 kW une batterie lithium de 5 kWh, fourniture, pose, raccordement, protection électrique, mise en service et réception de l'installation comprise. Génère un devis professionnel détaillé avec le matériel à main d'oeuvre, la TVA et le total TVA compris.",
+      "ground_truth": {
+        "prestations": []
+      }
+    },
+    {
+      "synthetic_id": "TEST_007",
+      "description": "nouveau devis photovoltaïque monsieur maxime renard adresse 51 rue saxon font 4000 liège nouveau devis photovoltaïque 10 panneaux de 460 watts créés par panneau de production, total 4,6 kWh créés, un onduleur de 5 kW, fourniture, pose, raccordement, protection électrique, mise en service et réception de l'installation comprise. Génère un devis professionnel détaillé avec le matériel, la main d'oeuvre, la TVA et le total TVA comprise.",
+      "ground_truth": {
+        "prestations": []
+      }
+    },
+    {
+      "synthetic_id": "TEST_008",
+      "description": "nouveau devis pompe à chaleur client maxime renard adresse rue saxon font 32 4000 liège 12 kilowatts unité intérieure et unité extérieure fournituresiture et pose complète, raccordement hydraulique et électrique, mise en service, essais de réglage compris, génère un devis professionnel détaillé avec le matériel, la main d'oeuvre, la TVA et le total tout compris.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 70,
+            "quantite_ouvrage": 1,
+            "options": [
+              {
+                "option_id": 100,
+                "choix_id": 414
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_009",
+      "description": "Nouveau devis toiture. Client Maxime Lerat. Adresse rue Ecolienne numéro 13 1000 Bruxelles. Fourniture et pose d'une nouvelle toiture en tuile, remplacement dans les linteaux et contre linteaux. Pause d'un écran de sous-toiture Fêtage rive Toiture et pose d'une nouvelle toiture en tuile, remplacement dans l'intôt et contre l'intôt. Pose d'un écran de sous-toiture, fêtage, rive et finition, comprise. Évacuation des déchets et nettoyage du chantier, compris. Génère un devis professionnel détaillé avec le matériel, la main d'œuvre, la TVA et le total TVA, compris.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 58,
+            "quantite_ouvrage": null,
+            "options": [
+              {
+                "option_id": 84,
+                "choix_id": 347
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_010",
+      "description": "Nouveau devis client Maxime Dura Chantier situé à Liège Rue Maxime numéro 32 Isolation thermique par l'extérieur de la façade Surface 120 m² Fourniture et pose d'un système d'isolation thermique par glace terriere avec panneaux isolants en polystyrène expansé gris de 14 cm d'épaisseur résistant thermique conforme à la réglementation en vigueur collage et fixation mécanique des panneaux pose des profils de départ cornières d' et renforts d'ouverture, application du couche de sous-enduit armé avec trillis en fibre de verre, application d'un endit de finition gratté couleur au choix du client, traitement des tableaux de fenêtres et des appuis si nécessaire, protection du chantier, montage et démontage de l'échafaudage, fourniture de tous les matériaux, accessoires et consommables, évacuation des déchets et nettoyage complet du chantier. En fin de travaux, main d'œuvre qualifiée, garantie sur les matériaux sur le fabricant et garantie décennale sur les travaux. merci de générer un devis professionnel détaillé avec les quantités les prix unitaires, le montant et garantie décennale sur les travaux. Merci de générer un devis professionnel détaillé avec les quantités et les prix unitaires, le montant hors TVA, le taux TVA applicable, le montant de la TVA, le total TTC, les conditions de paiement et un délai stématif des travaux.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 66,
+            "quantite_ouvrage": 120,
+            "options": [
+              {
+                "option_id": 93,
+                "choix_id": 383
+              },
+              {
+                "option_id": 94,
+                "choix_id": 389
+              },
+              {
+                "option_id": 95,
+                "choix_id": 393
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_011",
+      "description": "Nouveau devis toiture, client Maxime Renard, adresse rue Ecole n°15, Namur. Surface 120 m² Dépose de l'ancienne couverture Et repose nouvelle fourniture Pose une isolation de toiture de 12 cm Pose dépose de l'enceinte couverture et repose nouvelle fourniture pose d'une isolation de toiture de 12 cm pose d'un écran de sous-toiture des litots et contre litots fourniture et pose de la nouvelle couverture avec toutes les finitions fêtage rive étanchéité nettoyage du chantier et évacuation des déchets, prévoir un échevaudage. Générer un devis professionnel détaillé avec le matériel, l'amendeur, la TVA et le total TVA comprise.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 58,
+            "quantite_ouvrage": 120,
+            "options": []
+          },
+          {
+            "prestation_id": 19,
+            "quantite_ouvrage": 120,
+            "options": []
+          }
+        ]
+      }
+    },
+    {
+      "synthetic_id": "TEST_012",
+      "description": "Nouveau devis toiture. Nom Maxime Gérard. Adresse rue école numéro 13 5000 Namur. Toiture en ardoise. Écran sous toiture, linteau, fêtage, rive et finition, compris nettoyage du chantier, évacuation des déchets, compris. Générer un devis professionnel détaillé avec le matériel, l'amendeur, la TVA et le total TVA compris.",
+      "ground_truth": {
+        "prestations": [
+          {
+            "prestation_id": 58,
+            "quantite_ouvrage": null,
+            "options": []
+          }
+        ]
+      }
+    }
+  ]
+}

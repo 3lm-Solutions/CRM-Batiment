@@ -1,0 +1,36 @@
+\babel@toc {french}{}\relax 
+\contentsline {section}{Table des mati\`eres}{iii}{table.1}%
+\contentsline {section}{Liste des tableaux}{iv}{table.1}%
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
+\contentsline {section}{\numberline {2}Présentation du projet}{1}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Contexte métier}{1}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Objectif général}{1}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Périmètre et limites}{1}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Cahier des charges}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Spécifications fonctionnelles}{2}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Spécifications de données}{2}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Contraintes non fonctionnelles}{2}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Organisation et méthodologie}{2}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Démarche de réalisation}{2}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Outils de travail}{2}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Jeux de données d'évaluation}{2}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Conception de l'architecture}{3}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Architecture globale}{3}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Schéma de sortie du modèle de langage}{3}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Chiffrage}{3}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Mesure depuis une photographie}{4}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Modalité vocale}{4}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Recherche sémantique et embeddings}{4}{subsection.5.6}%
+\contentsline {section}{\numberline {6}Réalisation technique et implémentation}{4}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Pipeline texte}{4}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Interface de devis}{4}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Gestion des erreurs}{5}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Assurance qualité}{5}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Résultats et discussion}{5}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Évaluateur métier pour l'optimisation des prompts}{5}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Résultats disponibles de l'optimisation GEPA}{5}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Emplacement réservé aux résultats consolidés de l'optimisation}{6}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Protocole du benchmark final}{6}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}Résultats de test fonctionnel}{7}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Discussion}{7}{subsection.7.6}%
+\contentsline {section}{\numberline {8}Conclusion générale et perspectives}{7}{section.8}%

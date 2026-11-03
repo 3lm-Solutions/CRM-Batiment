@@ -1,0 +1,28 @@
+\section*{Résumé}
+Ce rapport présente la conception et le développement de \textit{Devis IA}, un système de génération intelligente de devis pour les travaux du bâtiment. La solution transforme des demandes formulées en texte, à l'oral ou à partir d'une photographie en prestations de devis structurées. Elle s'appuie sur un catalogue PostgreSQL d'entreprise, sur des modèles de langage pour l'identification des prestations et de leurs options, ainsi que sur des mécanismes déterministes de calcul de quantités, de coûts et de prix de vente.
+
+Le projet couvre l'interface de saisie, une API FastAPI, une base PostgreSQL et un frontal React. La modalité photo associe l'analyse visuelle à une mesure géométrique fondée sur un rectangle de référence noir de dimensions connues. La modalité vocale s'appuie sur un modèle ASR français libre et hébergeable, sélectionné après consultation de benchmarks publics selon le critère du plus faible taux d'erreur de mots (WER). Pour la modalité texte, une optimisation d'instructions avec GEPA a été menée à l'aide d'un évaluateur métier inspiré d'ExtractBench, qui évalue séparément l'identification des prestations, les quantités, les options et les choix.
+
+\noindent\textbf{Mots-clés :} devis, bâtiment, intelligence artificielle, LLM, GEPA, PostgreSQL, traitement d'image, reconnaissance vocale, multimodalité.
+
+\section*{Abstract}
+This report presents the design and development of \textit{Devis IA}, an intelligent quotation generation system for construction work. The system converts text, voice and photo-based requests into structured quotation services. It relies on a company PostgreSQL catalogue, language models for service and option extraction, and deterministic rules for quantities, costs and selling prices.
+
+\noindent\textbf{Keywords:} quotation, construction, artificial intelligence, LLM, GEPA, PostgreSQL, image processing, speech recognition, multimodality.
+
+\section*{Glossaire}
+\begin{longtable}{p{0.22\textwidth}p{0.7\textwidth}}
+\toprule
+\textbf{Terme} & \textbf{Définition} \\
+\midrule
+API & Interface de programmation permettant la communication entre le frontal et les services métier. \\
+ASR & \textit{Automatic Speech Recognition} : transcription automatique d'un signal vocal en texte. \\
+F1 & Mesure combinant précision et rappel. \\
+GEPA & Méthode d'optimisation d'instructions pilotée par l'évaluation des sorties. \\
+GT & \textit{Ground Truth} : réponse de référence attendue. \\
+LLM & Grand modèle de langage. \\
+RAG & Recherche de passages pertinents dans une base afin d'enrichir un prompt. \\
+WER & \textit{Word Error Rate} : taux d'erreur de mots d'un système de transcription. \\
+\bottomrule
+\end{longtable}
+\newpage

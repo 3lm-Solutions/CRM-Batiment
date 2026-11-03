@@ -1,0 +1,64 @@
+\section{Conception de l'architecture}
+\subsection{Architecture globale}
+L'architecture sépare l'interface utilisateur, l'API et les services de données. Le frontal React recueille la demande et affiche le brouillon. L'API FastAPI orchestre l'appel au modèle, valide le JSON retourné, vérifie les identifiants dans PostgreSQL et transmet les occurrences au moteur de chiffrage. La base conserve le catalogue et les devis.
+
+\begin{table}[H]
+\centering
+\caption{Responsabilités des principaux composants}
+\begin{tabular}{p{0.27\textwidth}p{0.63\textwidth}}
+\toprule
+\textbf{Composant} & \textbf{Responsabilité} \\
+\midrule
+Interface React & Saisie texte, chargement photo, enregistrement vocal, édition et aperçu du devis. \\
+API FastAPI & Orchestration, validation, gestion des erreurs, génération et envoi du devis. \\
+Catalogue PostgreSQL & Prestations, options, choix, composants, coûts et relations de référence. \\
+Service LLM & Extraction des prestations, quantités, options et choix dans un JSON strict. \\
+Moteur de chiffrage & Calcul des quantités de composants, coût total, prix de vente HT et marges. \\
+Module photo & Calibrage par rectangle de référence, mesure d'une zone sélectionnée et analyse visuelle. \\
+Module vocal & Transcription du signal audio avant passage dans le pipeline textuel. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Schéma de sortie du modèle de langage}
+Le modèle ne renvoie pas directement un devis libre. Il doit produire un objet JSON dont la racine contient uniquement la liste des prestations. Chaque prestation contient son identifiant, une quantité ou \texttt{null}, ainsi que les couples option/choix sélectionnés.
+
+\begin{verbatim}
+{
+  "prestations": [
+    {
+      "prestation_id": 1,
+      "quantite_ouvrage": 8,
+      "options": [{"option_id": 1, "choix_id": 2}]
+    }
+  ]
+}
+\end{verbatim}
+
+\subsection{Chiffrage}
+Pour une occurrence ayant une quantité $q$, le moteur calcule pour chaque composant sa quantité à partir de sa consommation par unité d'ouvrage. Le coût total est la somme des coûts des composants. Le prix HT est obtenu à partir du coût et de la marge commerciale, avant application de la TVA. Lorsque la prestation est dépourvue de composition, un coût saisi dans l'interface est nécessaire pour déclencher le même mécanisme de calcul.
+
+\subsection{Mesure depuis une photographie}
+Le commercial saisit les dimensions réelles du rectangle noir de référence, puis place ce rectangle sur l'élément à mesurer dans la photographie. Le module détecte le repère, corrige la perspective et permet à l'utilisateur de sélectionner les limites de l'élément. Les points sélectionnés sont reliés visuellement dans l'interface afin de rendre la zone mesurée explicite. Cette mesure fournit une estimation d'aire ou de longueur qui doit être validée sur chantier.
+
+\subsection{Modalité vocale}
+La piste vocale applique une chaîne ASR avant le pipeline de génération de devis. Des benchmarks publics de modèles gratuits, auto-hébergeables et adaptés au français ont été consultés. Le modèle Hojo a été retenu dans cette phase de sélection car il présentait le WER le plus faible parmi les modèles considérés. Les transcriptions sont ensuite traitées comme les descriptions textuelles.
+
+\subsection{Recherche sémantique et embeddings}
+La solution prévoit une recherche sémantique dans le catalogue afin de limiter le contexte fourni au LLM. Le choix définitif du modèle d'embedding doit être justifié par une comparaison reproductible.
+
+\begin{table}[H]
+\centering
+\caption{Emplacement réservé au benchmark des modèles d'embedding}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.34\textwidth}p{0.22\textwidth}p{0.18\textwidth}p{0.18\textwidth}}
+\toprule
+\textbf{Modèle} & \textbf{Métrique de recherche} & \textbf{Latence} & \textbf{Décision} \\
+\midrule
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\textit{à compléter} & \textit{à compléter} & \textit{à compléter} & \textit{à compléter} \\
+\bottomrule
+\end{tabular}
+\end{table}

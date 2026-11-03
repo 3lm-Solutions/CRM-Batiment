@@ -6,12 +6,14 @@ Serveur FastAPI + interface graphique de test du pipeline devis IA.
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 from typing import Dict, List, Optional
+from uuid import uuid4
 
 import bootstrap  # noqa: F401 — charge .env
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -39,6 +41,8 @@ app = FastAPI(title="Devis IA", version="0.2.0")
 app.mount("/static", StaticFiles(directory=str(FRONT)), name="static")
 
 _sessions: Dict[int, DevisEnConstruction] = {}
+_photo_gradio_sessions: Dict[str, dict] = {}
+_photo_gradio_mount_error: str | None = None
 
 PHOTO_PROMPT = """Analyse cette photo de chantier / pièce. Réponds UNIQUEMENT avec un JSON :
 {
@@ -307,6 +311,160 @@ async def analyser_photo(file: UploadFile = File(...)) -> dict:
     }
 
 
+def _photo_bytes(file_data: bytes, content_type: str | None) -> bytes:
+    if content_type not in ("image/jpeg", "image/png"):
+        raise HTTPException(status_code=400, detail="Formats acceptés : JPEG ou PNG.")
+    if len(file_data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (10 Mo max).")
+    return file_data
+
+
+def _get_photo_gradio_session(token: str) -> dict | None:
+    """Retourne une photo transmise à l'interface Gradio locale."""
+    return _photo_gradio_sessions.get(token)
+
+
+@app.post("/api/photo/mesure-gradio/session")
+async def creer_session_mesure_gradio(file: UploadFile = File(...)) -> dict:
+    """Mémorise temporairement la photo avant son ouverture dans Gradio local."""
+    data = _photo_bytes(await file.read(), file.content_type)
+    if _photo_gradio_mount_error is not None:
+        raise HTTPException(
+            status_code=503,
+            detail="Module Gradio indisponible. Installez les dépendances puis redémarrez le serveur : "
+            f"{_photo_gradio_mount_error}",
+        )
+    token = uuid4().hex
+    _photo_gradio_sessions[token] = {
+        "data": data,
+        "content_type": file.content_type,
+        "reference_width_cm": 22.0,
+        "reference_height_cm": 17.8,
+    }
+    return {"url": f"/photo-metre?session={token}"}
+
+
+def _order_photo_points(points, np):
+    """Même algorithme que le notebook : HG, HD, BD, BG, même en perspective."""
+    points = np.asarray(points, dtype=np.float32).reshape(4, 2)
+    center = points.mean(axis=0)
+    angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
+    ordered = points[np.argsort(angles)]
+    start = np.argmin(ordered.sum(axis=1))
+    ordered = np.roll(ordered, -start, axis=0)
+    if ordered[1, 0] < ordered[3, 0]:
+        ordered = ordered[[0, 3, 2, 1]]
+    return ordered
+
+
+def _detect_black_reference_rectangle(image, reference_width_cm: float, reference_height_cm: float, cv2, np):
+    """Détecte le meilleur quadrilatère noir compatible avec le rapport saisi."""
+    import math
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image_area = image.shape[0] * image.shape[1]
+    expected_ratio = max(reference_width_cm, reference_height_cm) / min(
+        reference_width_cm, reference_height_cm
+    )
+    candidates = []
+
+    for threshold in (30, 40, 50, 60, 70):
+        _, binary = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY_INV)
+        binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if not image_area * 0.0005 <= area <= image_area * 0.25:
+                continue
+            rect = cv2.minAreaRect(contour)
+            width_px, height_px = rect[1]
+            if width_px <= 0 or height_px <= 0:
+                continue
+            ratio = max(width_px, height_px) / min(width_px, height_px)
+            ratio_error = abs(math.log(ratio / expected_ratio))
+            if ratio_error > math.log(2):
+                continue
+            rectangularity = area / (width_px * height_px)
+            if rectangularity < 0.55:
+                continue
+            score = area * rectangularity * math.exp(-2 * ratio_error)
+            candidates.append(
+                (score, _order_photo_points(cv2.boxPoints(rect), np), threshold, rectangularity, ratio)
+            )
+
+    if not candidates:
+        raise HTTPException(
+            status_code=422,
+            detail="Rectangle noir non détecté. Vérifiez son contraste, sa visibilité et les dimensions saisies.",
+        )
+    score, corners, threshold, rectangularity, ratio = max(candidates, key=lambda item: item[0])
+    return corners, {
+        "threshold": threshold,
+        "rectangularity": round(float(rectangularity), 3),
+        "ratio": round(float(ratio), 3),
+    }
+
+
+@app.post("/api/photo/mesurer")
+async def mesurer_photo(
+    file: UploadFile = File(...),
+    reference_width_cm: float = Form(..., gt=0),
+    reference_height_cm: float = Form(..., gt=0),
+    target_points_json: str = Form(...),
+) -> dict:
+    """Calibre la photo avec le rectangle noir puis mesure le quadrilatère pointé."""
+    data = _photo_bytes(await file.read(), file.content_type)
+    try:
+        target_points = json.loads(target_points_json)
+        if not isinstance(target_points, list) or len(target_points) != 4:
+            raise ValueError("Quatre points sont requis.")
+        if any(not isinstance(point, list) or len(point) != 2 for point in target_points):
+            raise ValueError("Chaque point doit contenir x et y.")
+        target_points = [[float(point[0]), float(point[1])] for point in target_points]
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=422, detail="Les quatre coins de l'élément sont invalides.") from exc
+
+    try:
+        import cv2
+        import numpy as np
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Module de mesure indisponible : installez opencv-python-headless puis redémarrez le serveur.",
+        ) from exc
+
+    image = cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if image is None:
+        raise HTTPException(status_code=400, detail="Image impossible à décoder.")
+
+    reference_corners, detection = _detect_black_reference_rectangle(
+        image, reference_width_cm, reference_height_cm, cv2, np
+    )
+    target_corners = _order_photo_points(target_points, np)
+    if not cv2.isContourConvex(target_corners.reshape(-1, 1, 2)):
+        raise HTTPException(status_code=422, detail="Les quatre coins ne forment pas un quadrilatère convexe.")
+
+    real_reference = np.array(
+        [[0, 0], [reference_width_cm, 0], [reference_width_cm, reference_height_cm], [0, reference_height_cm]],
+        dtype=np.float32,
+    )
+    transform = cv2.getPerspectiveTransform(reference_corners.astype(np.float32), real_reference)
+    real_target = cv2.perspectiveTransform(target_corners.reshape(1, 4, 2), transform)[0]
+    top_left, top_right, bottom_right, bottom_left = real_target
+    width_cm = (np.linalg.norm(top_right - top_left) + np.linalg.norm(bottom_right - bottom_left)) / 2
+    height_cm = (np.linalg.norm(bottom_left - top_left) + np.linalg.norm(bottom_right - top_right)) / 2
+
+    if width_cm <= 0 or height_cm <= 0:
+        raise HTTPException(status_code=422, detail="Dimensions calculées invalides.")
+    return {
+        "width_cm": round(float(width_cm), 2),
+        "height_cm": round(float(height_cm), 2),
+        "surface_m2": round(float(width_cm * height_cm / 10_000), 4),
+        "reference_detection": detection,
+    }
+
+
 @app.post("/api/vocal/transcrire")
 async def transcrire(file: UploadFile = File(...)) -> dict:
     data = await file.read()
@@ -328,6 +486,27 @@ async def transcrire(file: UploadFile = File(...)) -> dict:
         "provider": result.provider,
         "model": result.model,
     }
+
+
+try:
+    import asyncio
+    import gradio as gr
+    import gradio.queueing
+    import gradio.routes
+    import gradio.utils
+
+    from photo_gradio import create_photo_measurement_ui
+
+    # Avec Python 3.14 sous Windows, la création inutile d'une boucle asyncio
+    # par Gradio bloque dans ``socketpair`` au montage. Les primitives asyncio
+    # peuvent être créées sans boucle active, ce qui évite ce blocage.
+    gradio.utils.safe_get_lock = lambda: asyncio.Lock()
+    gradio.queueing.safe_get_lock = lambda: asyncio.Lock()
+    gradio.utils.safe_get_stop_event = lambda: asyncio.Event()
+    gradio.routes.safe_get_stop_event = lambda: asyncio.Event()
+    app = gr.mount_gradio_app(app, create_photo_measurement_ui(_get_photo_gradio_session), path="/photo-metre")
+except Exception as exc:  # l'endpoint informe explicitement si Gradio n'est pas installé.
+    _photo_gradio_mount_error = str(exc)
 
 
 if __name__ == "__main__":
