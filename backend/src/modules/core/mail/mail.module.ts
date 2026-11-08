@@ -2,7 +2,12 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../../../config/env.validation';
 import { MailService } from './mail.service';
-import { ConsoleMailTransport, MAIL_TRANSPORT, SmtpMailTransport } from './mail.transport';
+import {
+  ConsoleMailTransport,
+  MAIL_TRANSPORT,
+  ResendMailTransport,
+  SmtpMailTransport,
+} from './mail.transport';
 
 @Global()
 @Module({
@@ -12,11 +17,22 @@ import { ConsoleMailTransport, MAIL_TRANSPORT, SmtpMailTransport } from './mail.
       provide: MAIL_TRANSPORT,
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) => {
-        const host = config.get('MAIL_HOST', { infer: true });
         // Demo sandbox (visitors type any address) and CLI sample data (example.com addresses):
         // nothing ever leaves the server
-        if (!host || config.get('DEMO_MODE', { infer: true }) || process.env.CRM_CLI)
+        if (config.get('DEMO_MODE', { infer: true }) || process.env.CRM_CLI) {
           return new ConsoleMailTransport();
+        }
+
+        const resendApiKey = config.get('RESEND_API_KEY', { infer: true });
+        if (resendApiKey) {
+          const from =
+            config.get('RESEND_FROM', { infer: true }) || 'CRM Bâtiment <onboarding@resend.dev>';
+          return new ResendMailTransport(resendApiKey, from);
+        }
+
+        const host = config.get('MAIL_HOST', { infer: true });
+        if (!host) return new ConsoleMailTransport();
+
         return new SmtpMailTransport(
           {
             host,

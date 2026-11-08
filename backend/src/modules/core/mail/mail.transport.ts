@@ -50,3 +50,43 @@ export class ConsoleMailTransport implements MailTransport {
     return Promise.resolve();
   }
 }
+
+/** Uses Resend HTTP REST API (port 443) when SMTP ports are blocked (e.g. Render free tier). */
+export class ResendMailTransport implements MailTransport {
+  private readonly logger = new Logger('ResendMail');
+
+  constructor(
+    private readonly apiKey: string,
+    private readonly from: string,
+  ) {}
+
+  async send(message: MailMessage): Promise<void> {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: this.from,
+          to: message.to,
+          subject: message.subject,
+          html: message.html,
+          text: message.text,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.text();
+        this.logger.error(`Erreur d'envoi Resend (${response.status}): ${err}`);
+        throw new Error(`Resend API error (${response.status}): ${err}`);
+      }
+
+      this.logger.log(`Email envoyé via Resend à ${message.to} : "${message.subject}"`);
+    } catch (error) {
+      this.logger.error(`Échec envoi Resend : ${String(error)}`);
+      throw error;
+    }
+  }
+}

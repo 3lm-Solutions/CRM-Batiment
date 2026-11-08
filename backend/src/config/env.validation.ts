@@ -52,11 +52,29 @@ export const envSchema = z
       .optional()
       .transform((v) => v || undefined),
     MAIL_FROM: z.string().default('CRM Bâtiment <noreply@crm-batiment.fr>'),
+    RESEND_API_KEY: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() || undefined),
+    RESEND_FROM: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() || undefined),
 
     // Uploaded files (Step 11). Kept OUTSIDE the repository and the database; back it up
     // with the database. Relative paths are resolved from the API's working directory.
     STORAGE_DIR: z.string().default('./storage'),
     UPLOAD_MAX_MB: z.coerce.number().int().min(1).max(50).default(10),
+    SUPABASE_URL: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() || undefined)
+      .pipe(z.string().url().optional()),
+    SUPABASE_SERVICE_ROLE_KEY: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() || undefined),
+    SUPABASE_BUCKET: z.string().default('crm-fichiers'),
 
     // AI assistant (Step 14). Without a key the chatbot still works in guided mode (no AI):
     // it collects the prospect's details step by step and answers from the knowledge base.
