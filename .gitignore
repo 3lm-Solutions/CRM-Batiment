@@ -1,14 +1,44 @@
+# Dependencies
 node_modules/
-dist/
-dist-cli/
-generated/
-*.tsbuildinfo
+Backend/node_modules/
+frontend/node_modules/
+
+# Environment files
 .env
 .env.*
 !.env.example
-/backend/storage/
-.claude/
-.agent/
-.agents/
-.windsurf/
-skills-lock.json
+Backend/.env
+Backend/.env.*
+!Backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build outputs
+dist/
+build/
+Backend/dist/
+frontend/dist/
+
+# Test and coverage output
+coverage/
+Backend/coverage/
+frontend/coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime/temp files
+tmp/
+temp/
+.cache/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

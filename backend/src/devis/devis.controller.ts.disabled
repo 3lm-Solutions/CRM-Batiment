@@ -1,0 +1,161 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../common/guards/roles.guard.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
+import { CurrentUser } from '../common/decorators/current-user.decorator.js';
+import type { CurrentUserPayload } from '../common/interfaces/jwt-payload.interface.js';
+import { DevisService } from './devis.service.js';
+import { CreateDevisDto } from './dto/create-devis.dto.js';
+import { UpdateDevisDto } from './dto/update-devis.dto.js';
+import { QueryDevisDto } from './dto/query-devis.dto.js';
+import { UpdateDevisStatutDto } from './dto/update-devis-statut.dto.js';
+import { CreateLigneDevisDto } from './dto/create-ligne-devis.dto.js';
+
+@ApiTags('Devis')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('devis')
+export class DevisController {
+  constructor(private readonly service: DevisService) {}
+
+  /* ───────── POST / ───────── */
+  @Post()
+  @Roles('ADMIN', 'TECHNICO', 'ASSISTANTE')
+  @ApiOperation({ summary: 'Créer un devis (BROUILLON)' })
+  create(
+    @Body() dto: CreateDevisDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.create(dto, user.userId, user.companyId);
+  }
+
+  /* ───────── GET / ───────── */
+  @Get()
+  @ApiOperation({ summary: 'Lister les devis (pagination, filtres)' })
+  findAll(
+    @Query() query: QueryDevisDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.findAll(query, user.companyId);
+  }
+
+  /* ───────── GET /:id ───────── */
+  @Get(':id')
+  @ApiOperation({ summary: 'Détail d\'un devis (lignes, versions, client)' })
+  @ApiParam({ name: 'id', type: Number })
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.findOne(id, user.companyId);
+  }
+
+  /* ───────── PATCH /:id ───────── */
+  @Patch(':id')
+  @Roles('ADMIN', 'TECHNICO', 'ASSISTANTE')
+  @ApiOperation({ summary: 'Modifier un devis (notes, TVA, mode validation)' })
+  @ApiParam({ name: 'id', type: Number })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDevisDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.update(id, dto, user.companyId);
+  }
+
+  /* ───────── PATCH /:id/statut ───────── */
+  @Patch(':id/statut')
+  @Roles('ADMIN', 'TECHNICO')
+  @ApiOperation({
+    summary:
+      'Changer le statut du devis (BROUILLON→ENVOYE→ACCEPTE→SIGNE / REFUSE→REVISE→RENVOYE)',
+  })
+  @ApiParam({ name: 'id', type: Number })
+  updateStatut(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateDevisStatutDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.updateStatut(id, dto, user.companyId);
+  }
+
+  /* ───────── POST /:id/lignes ───────── */
+  @Post(':id/lignes')
+  @Roles('ADMIN', 'TECHNICO', 'ASSISTANTE')
+  @ApiOperation({ summary: 'Ajouter une ligne au devis' })
+  @ApiParam({ name: 'id', type: Number })
+  addLigne(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreateLigneDevisDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.addLigne(id, dto, user.companyId);
+  }
+
+  /* ───────── POST /:id/lignes/checklist ───────── */
+  @Post(':id/lignes/checklist')
+  @Roles('ADMIN', 'TECHNICO', 'ASSISTANTE')
+  @ApiOperation({
+    summary: 'Ajouter des lignes depuis la checklist technicien',
+    description:
+      'Ajoute plusieurs lignes en lot depuis les prestations cochées. Les coûts sont calculés automatiquement depuis le catalogue.',
+  })
+  @ApiParam({ name: 'id', type: Number })
+  addLignesFromChecklist(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body: {
+      items: {
+        prestationId: number;
+        quantite: number;
+        selectedOptions?: { optionId: number; choixOptionIds: number[] }[];
+      }[];
+    },
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.addLignesFromChecklist(id, body.items, user.companyId);
+  }
+
+  /* ───────── DELETE /:id/lignes/:ligneId ───────── */
+  @Delete(':id/lignes/:ligneId')
+  @Roles('ADMIN', 'TECHNICO', 'ASSISTANTE')
+  @ApiOperation({ summary: 'Supprimer une ligne du devis' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'ligneId', type: Number })
+  removeLigne(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('ligneId', ParseIntPipe) ligneId: number,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.removeLigne(id, ligneId, user.companyId);
+  }
+
+  /* ───────── DELETE /:id ───────── */
+  @Delete(':id')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Supprimer un devis (ADMIN, sauf signé)' })
+  @ApiParam({ name: 'id', type: Number })
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.service.remove(id, user.companyId);
+  }
+}

@@ -1,0 +1,1 @@
+SELECT id, nom, unite, "prixAchatFixe" as prix_achat FROM materiaux ORDER BY id;

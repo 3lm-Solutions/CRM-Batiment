@@ -1,0 +1,25 @@
+#;Nom;Unité;Prix Unitaire (€);Productivité/Jour;Coût Journalier (€)
+1;Pose carrelage sol;M2;25;15;250
+2;Pose carrelage mural;M2;30;12;250
+3;Pose faïence;M2;32;10;250
+4;Ragréage sol;M2;10;30;250
+5;Peinture mur (2 couches);M2;8;25;220
+6;Peinture plafond (2 couches);M2;10;20;220
+7;Enduit mur;M2;12;18;220
+8;Plomberie — pose sanitaire;HEURE;45;8;280
+9;Plomberie — raccordement;HEURE;50;8;280
+10;Électricité — câblage;HEURE;45;8;270
+11;Électricité — pose appareillage;PIECE;15;20;270
+12;Montage cloison placo;M2;20;12;240
+13;Démolition cloison;M2;8;25;200
+14;Chape béton;M2;12;20;250
+15;Pose porte intérieure;PIECE;80;3;250
+16;Pose fenêtre;PIECE;120;2;260
+17;Isolation laine de verre;M2;12;20;230
+18;Isolation combles soufflage;M2;8;40;230
+19;Pose parquet flottant;M2;12;20;230
+20;Pose parquet massif;M2;25;10;250
+21;Pose sol PVC;M2;8;30;220
+22;Ravalement façade;M2;20;10;250
+23;Couverture toiture;M2;35;8;260
+24;Nettoyage toiture;M2;5;40;200

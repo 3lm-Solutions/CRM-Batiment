@@ -1,0 +1,124 @@
+@startuml
+title Diagramme catalogue organise
+
+top to bottom direction
+hide circle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam nodesep 70
+skinparam ranksep 85
+
+skinparam class {
+  BorderColor #374151
+  BackgroundColor white
+  ArrowColor #374151
+}
+
+class Company {
+  +id: Int
+  +nom: String
+  +tvaDefaut: Float
+  +devise: String
+}
+
+class TypeProjet {
+  +id: Int
+  +nom: String
+  +description: String
+  +actif: Boolean
+}
+
+class CategoriePrestation {
+  +id: Int
+  +nom: String
+  +description: String
+  +actif: Boolean
+}
+
+class SousCategorie {
+  +id: Int
+  +nom: String
+  +description: String
+  +actif: Boolean
+}
+
+class Prestation {
+  +id: Int
+  +nom: String
+  +description: String
+  +unite: String
+  +prixVenteMin: Float
+  +prixVenteMax: Float
+  +actif: Boolean
+}
+
+class PrestationComposition {
+  +id: Int
+  +quantiteParUnite: Float
+}
+
+class OptionPrestation {
+  +id: Int
+  +nom: String
+  +obligatoire: Boolean
+  +ordre: Int
+}
+
+class ChoixOption {
+  +id: Int
+  +nom: String
+  +impactPrix: Float
+  +ordre: Int
+  +actif: Boolean
+}
+
+class Materiau {
+  +id: Int
+  +nom: String
+  +unite: String
+  +prixAchatFixe: Float
+  +actif: Boolean
+}
+
+class ServiceMainOeuvre {
+  +id: Int
+  +nom: String
+  +unite: String
+  +prixUnitaire: Float
+  +productiviteJour: Float
+  +coutJournalier: Float
+  +actif: Boolean
+}
+
+Company "1" -- "0..*" TypeProjet
+Company "1" -- "0..*" CategoriePrestation
+Company "1" -- "0..*" Materiau
+Company "1" -- "0..*" ServiceMainOeuvre
+
+CategoriePrestation "1" -- "0..*" SousCategorie
+CategoriePrestation "1" -- "0..*" Prestation
+SousCategorie "0..1" -- "0..*" Prestation
+
+Prestation "1" -- "0..*" PrestationComposition
+Prestation "1" -- "0..*" OptionPrestation
+
+OptionPrestation "1" -- "0..*" ChoixOption
+
+PrestationComposition "0..*" -- "0..1" Materiau
+PrestationComposition "0..*" -- "0..1" ServiceMainOeuvre
+ChoixOption "0..*" -- "0..1" ServiceMainOeuvre
+
+' Layout guides only (no impact on model)
+Company -[hidden]down-> CategoriePrestation
+TypeProjet -[hidden]right-> CategoriePrestation
+CategoriePrestation -[hidden]down-> SousCategorie
+SousCategorie -[hidden]down-> Prestation
+PrestationComposition -[hidden]right-> OptionPrestation
+Materiau -[hidden]right-> ChoixOption
+ChoixOption -[hidden]right-> ServiceMainOeuvre
+Prestation -[hidden]down-> OptionPrestation
+PrestationComposition -[hidden]down-> Materiau
+OptionPrestation -[hidden]down-> ChoixOption
+
+@enduml

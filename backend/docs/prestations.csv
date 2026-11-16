@@ -1,0 +1,120 @@
+id,companyId,categorieId,nom,unite,prixVenteMin,prixVenteMax,description,actif,createdAt,updatedAt,sousCategorieId
+1,1,1,Montage cloison placo,M2,45,72,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],t,2026-03-14 03:31:07.739,2026-03-14 03:31:07.739,1
+2,1,1,Démolition cloison intérieure,M2,18,35,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],t,2026-03-14 03:31:07.744,2026-03-14 03:31:07.744,1
+3,1,1,Réalisation chape béton,M2,35,58,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],t,2026-03-14 03:31:07.747,2026-03-14 03:31:07.747,1
+22,1,49,Démolition cloison,M2,15,35,Démolition de cloison non porteuse + évacuation gravats,t,2026-03-17 01:14:33.976,2026-03-17 01:14:33.976,65
+23,1,49,Dépose revêtement sol,M2,10,25,Dépose de revêtement de sol existant + évacuation,t,2026-03-17 01:14:34.017,2026-03-17 01:14:34.017,66
+24,1,49,Dépose sanitaires,PIECE,50,200,Dépose d'un équipement sanitaire,t,2026-03-17 01:14:34.043,2026-03-17 01:14:34.043,67
+25,1,49,Démolition murale partielle,M2,25,60,Démolition partielle de mur avec protection zones adjacentes,t,2026-03-17 01:14:34.069,2026-03-17 01:14:34.069,68
+26,1,49,Dépose carrelage mural,M2,12,25,Dépose de carrelage ou faïence murale,t,2026-03-17 01:14:34.086,2026-03-17 01:14:34.086,68
+27,1,50,Ouverture mur porteur,FORFAIT,1500,3500,Ouverture dans un mur porteur avec pose IPN,t,2026-03-17 01:14:34.095,2026-03-17 01:14:34.095,69
+28,1,50,Création ouverture fenêtre,FORFAIT,800,1800,Création d'une ouverture pour fenêtre dans mur existant,t,2026-03-17 01:14:34.122,2026-03-17 01:14:34.122,69
+29,1,50,Montage cloison placo,M2,35,60,Montage cloison en plaque de plâtre sur rail,t,2026-03-17 01:14:34.135,2026-03-17 01:14:34.135,70
+30,1,50,Montage cloison briques,M2,40,70,Montage cloison en briques plâtrières,t,2026-03-17 01:14:34.161,2026-03-17 01:14:34.161,70
+31,1,50,Chape béton,M2,20,45,Réalisation d'une chape béton,t,2026-03-17 01:14:34.175,2026-03-17 01:14:34.175,71
+32,1,50,Montage mur agglo,M2,45,80,Construction de mur en agglo / parpaing,t,2026-03-17 01:14:34.202,2026-03-17 01:14:34.202,72
+33,1,51,Faux plafond placo,M2,35,65,Pose de faux plafond en plaques de plâtre sur ossature métallique,t,2026-03-17 01:14:34.218,2026-03-17 01:14:34.218,73
+34,1,51,Faux plafond dalles,M2,25,50,Pose de faux plafond en dalles sur ossature apparente,t,2026-03-17 01:14:34.24,2026-03-17 01:14:34.24,73
+35,1,51,Doublage mur,M2,30,55,Doublage isolant collé ou sur ossature,t,2026-03-17 01:14:34.254,2026-03-17 01:14:34.254,74
+36,1,51,Enduit plâtre mur,M2,18,35,Application enduit plâtre sur mur,t,2026-03-17 01:14:34.284,2026-03-17 01:14:34.284,75
+37,1,51,Bandes à joints,ML,5,12,Réalisation de bandes à joints sur plaques de plâtre,t,2026-03-17 01:14:34.296,2026-03-17 01:14:34.296,75
+38,1,52,Isolation mur intérieur,M2,30,65,Isolation thermique mur intérieur (isolant + placo),t,2026-03-17 01:14:34.302,2026-03-17 01:14:34.302,76
+39,1,52,Isolation combles soufflage,M2,18,40,Isolation des combles perdus par soufflage,t,2026-03-17 01:14:34.327,2026-03-17 01:14:34.327,77
+40,1,52,Isolation combles rampants,M2,35,65,Isolation sous rampants de toiture,t,2026-03-17 01:14:34.344,2026-03-17 01:14:34.344,77
+41,1,52,Isolation sol,M2,25,50,Isolation thermique du sol,t,2026-03-17 01:14:34.355,2026-03-17 01:14:34.355,78
+42,1,52,Isolation phonique,M2,40,80,Isolation acoustique mur ou plafond,t,2026-03-17 01:14:34.378,2026-03-17 01:14:34.378,79
+43,1,53,Installation douche complète,FORFAIT,800,2000,"Installation complète d'une douche (receveur, robinetterie, raccordements)",t,2026-03-17 01:14:34.4,2026-03-17 01:14:34.4,80
+44,1,53,Remplacement WC,PIECE,350,800,Dépose ancien WC + pose nouveau WC,t,2026-03-17 01:14:34.424,2026-03-17 01:14:34.424,81
+45,1,53,Installation lavabo,PIECE,300,600,Pose d'un lavabo avec robinetterie et raccordement,t,2026-03-17 01:14:34.439,2026-03-17 01:14:34.439,82
+46,1,53,Pose baignoire,FORFAIT,600,1500,Pose de baignoire avec tablier et raccordement,t,2026-03-17 01:14:34.456,2026-03-17 01:14:34.456,83
+47,1,53,Remplacement chauffe-eau,FORFAIT,600,1500,Dépose + pose chauffe-eau,t,2026-03-17 01:14:34.471,2026-03-17 01:14:34.471,84
+48,1,53,Remplacement tuyauterie,ML,25,60,Remplacement de tuyauterie eau chaude/froide,t,2026-03-17 01:14:34.498,2026-03-17 01:14:34.498,85
+18,1,5,Pose porte intérieure,PIECE,220,420,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.818,2026-03-19 02:07:23.65,7
+5,1,2,Pose carrelage mural,M2,52,95,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.763,2026-03-19 02:16:13.36,2
+4,1,2,Pose carrelage sol,M2,48,85,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.758,2026-03-19 02:16:14.2,2
+6,1,2,Pose faïence salle de bain,M2,58,102,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.767,2026-03-19 02:16:30.431,2
+9,1,2,Enduit et préparation support,M2,18,30,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.78,2026-03-19 02:16:33.602,3
+8,1,2,Peinture plafonds 2 couches,M2,24,38,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.777,2026-03-19 02:44:23.499,3
+7,1,2,Peinture murs 2 couches,M2,22,36,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.773,2026-03-22 15:28:32.014,3
+21,1,6,Isolation combles soufflage,M2,24,42,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.828,2026-03-22 20:10:01.274,8
+20,1,6,Isolation laine de verre 100mm,M2,32,56,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.826,2026-03-22 20:10:02.478,8
+10,1,3,Pose ensemble WC,PIECE,280,520,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.786,2026-03-22 20:16:10.458,4
+15,1,4,Pose tableau électrique 2 rangées,PIECE,780,1400,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.806,2026-04-02 02:06:11.614,6
+17,1,4,Pose points lumineux LED,PIECE,45,90,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.813,2026-04-02 02:06:13.142,6
+16,1,4,Création circuit prises 16A,PIECE,90,160,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.809,2026-04-02 02:06:14.96,6
+49,1,53,Création point d'eau,FORFAIT,250,600,Création d'un nouveau point d'eau (alimentation + évacuation),t,2026-03-17 01:14:34.521,2026-03-17 01:14:34.521,85
+50,1,4,Pose prise électrique,PIECE,45,90,Pose d'une prise électrique avec saignée et raccordement,t,2026-03-17 01:14:34.529,2026-03-17 01:14:34.529,86
+51,1,4,Pose interrupteur,PIECE,40,75,Pose d'un interrupteur,t,2026-03-17 01:14:34.542,2026-03-17 01:14:34.542,86
+52,1,4,Pose luminaire,PIECE,50,120,Pose d'un luminaire avec raccordement,t,2026-03-17 01:14:34.557,2026-03-17 01:14:34.557,87
+53,1,4,Mise aux normes tableau,FORFAIT,800,2500,Mise aux normes NF C 15-100 du tableau électrique,t,2026-03-17 01:14:34.57,2026-03-17 01:14:34.57,88
+54,1,4,Remplacement tableau,FORFAIT,500,1500,Remplacement du tableau électrique vétuste,t,2026-03-17 01:14:34.587,2026-03-17 01:14:34.587,88
+55,1,4,Installation domotique,PIECE,80,250,Installation d'un équipement domotique,t,2026-03-17 01:14:34.602,2026-03-17 01:14:34.602,89
+56,1,55,Pose carrelage sol,M2,30,65,Pose de carrelage au sol,t,2026-03-17 01:14:34.615,2026-03-17 01:14:34.615,90
+57,1,55,Pose carrelage mural,M2,35,70,Pose de carrelage mural,t,2026-03-17 01:14:34.652,2026-03-17 01:14:34.652,91
+58,1,55,Pose faïence,M2,40,75,Pose de faïence murale décorative,t,2026-03-17 01:14:34.678,2026-03-17 01:14:34.678,92
+59,1,55,Ragréage sol,M2,12,28,Ragréage et préparation du sol avant pose,t,2026-03-17 01:14:34.692,2026-03-17 01:14:34.692,93
+60,1,55,Primaire d'accrochage,M2,3,8,Application primaire d'accrochage avant ragréage ou colle,t,2026-03-17 01:14:34.714,2026-03-17 01:14:34.714,93
+61,1,56,Peinture mur intérieur,M2,14,28,Peinture murale intérieure (2 couches),t,2026-03-17 01:14:34.719,2026-03-17 01:14:34.719,94
+62,1,56,Peinture plafond,M2,16,32,Peinture plafond (2 couches),t,2026-03-17 01:14:34.75,2026-03-17 01:14:34.75,95
+63,1,56,Peinture extérieure façade,M2,22,48,Peinture extérieure sur façade,t,2026-03-17 01:14:34.767,2026-03-17 01:14:34.767,96
+64,1,56,Peinture boiseries,ML,10,25,"Peinture sur boiseries (portes, plinthes, fenêtres)",t,2026-03-17 01:14:34.781,2026-03-17 01:14:34.781,97
+65,1,56,Enduit décoratif,M2,30,70,Application d'enduit décoratif,t,2026-03-17 01:14:34.796,2026-03-17 01:14:34.796,98
+66,1,56,Préparation murs,M2,8,18,"Lessivage, rebouchage, ponçage, sous-couche",t,2026-03-17 01:14:34.81,2026-03-17 01:14:34.81,99
+67,1,57,Pose parquet flottant,M2,22,48,Pose de parquet flottant avec sous-couche,t,2026-03-17 01:14:34.824,2026-03-17 01:14:34.824,100
+68,1,57,Pose parquet massif,M2,45,90,Pose de parquet massif collé ou cloué,t,2026-03-17 01:14:34.848,2026-03-17 01:14:34.848,101
+69,1,57,Ponçage vitrification parquet,M2,20,40,Ponçage et vitrification de parquet existant,t,2026-03-17 01:14:34.88,2026-03-17 01:14:34.88,101
+70,1,57,Pose sol vinyle/PVC,M2,14,32,Pose de revêtement vinyle ou PVC,t,2026-03-17 01:14:34.899,2026-03-17 01:14:34.899,102
+71,1,57,Pose moquette,M2,12,30,Pose de moquette,t,2026-03-17 01:14:34.911,2026-03-17 01:14:34.911,103
+72,1,58,Pose porte intérieure,PIECE,150,350,Pose d'une porte intérieure avec huisserie,t,2026-03-17 01:14:34.93,2026-03-17 01:14:34.93,104
+73,1,58,Pose placard sur mesure,ML,300,700,Fabrication et pose de placard sur mesure,t,2026-03-17 01:14:34.948,2026-03-17 01:14:34.948,105
+74,1,58,Rénovation escalier,FORFAIT,1500,5000,Rénovation complète d'un escalier,t,2026-03-17 01:14:34.962,2026-03-17 01:14:34.962,106
+75,1,59,Pose fenêtre,PIECE,250,600,Dépose + pose fenêtre avec finitions,t,2026-03-17 01:14:34.98,2026-03-17 01:14:34.98,107
+76,1,59,Pose porte d'entrée,PIECE,500,2000,Dépose + pose porte d'entrée,t,2026-03-17 01:14:35.009,2026-03-17 01:14:35.009,108
+77,1,59,Pose volets,PIECE,200,800,Pose de volets,t,2026-03-17 01:14:35.025,2026-03-17 01:14:35.025,109
+78,1,59,Pose baie vitrée,PIECE,600,2500,Dépose + pose baie vitrée,t,2026-03-17 01:14:35.047,2026-03-17 01:14:35.047,110
+79,1,60,Réfection toiture complète,M2,80,160,Dépose + repose couverture complète,t,2026-03-17 01:14:35.062,2026-03-17 01:14:35.062,111
+80,1,60,Réparation toiture,M2,50,110,"Remplacement tuiles/ardoises, reprises ponctuelles",t,2026-03-17 01:14:35.085,2026-03-17 01:14:35.085,112
+81,1,60,Nettoyage toiture,M2,10,28,Nettoyage et traitement de toiture,t,2026-03-17 01:14:35.104,2026-03-17 01:14:35.104,113
+82,1,60,Remplacement gouttières,ML,20,55,Dépose + pose de gouttières et descentes,t,2026-03-17 01:14:35.119,2026-03-17 01:14:35.119,114
+83,1,60,Traitement charpente,M2,15,35,Traitement préventif ou curatif de charpente bois,t,2026-03-17 01:14:35.152,2026-03-17 01:14:35.152,115
+84,1,61,Ravalement façade,M2,40,90,Ravalement complet de façade (nettoyage + enduit + peinture),t,2026-03-17 01:14:35.174,2026-03-17 01:14:35.174,116
+85,1,61,Enduit façade,M2,30,65,Application d'enduit sur façade,t,2026-03-17 01:14:35.193,2026-03-17 01:14:35.193,117
+86,1,61,Nettoyage façade,M2,10,30,Nettoyage de façade,t,2026-03-17 01:14:35.216,2026-03-17 01:14:35.216,118
+87,1,61,Isolation thermique extérieure (ITE),M2,100,200,Isolation thermique par l'extérieur avec enduit de finition,t,2026-03-17 01:14:35.24,2026-03-17 01:14:35.24,119
+88,1,62,Pose radiateur,PIECE,150,500,Pose d'un radiateur,t,2026-03-17 01:14:35.299,2026-03-17 01:14:35.299,120
+89,1,62,Pose plancher chauffant,M2,50,120,Installation de plancher chauffant,t,2026-03-17 01:14:35.318,2026-03-17 01:14:35.318,121
+90,1,62,Installation climatisation,PIECE,800,3000,Installation d'un système de climatisation,t,2026-03-17 01:14:35.328,2026-03-17 01:14:35.328,122
+91,1,62,Remplacement chaudière,FORFAIT,3000,12000,Dépose + pose chaudière ou PAC,t,2026-03-17 01:14:35.351,2026-03-17 01:14:35.351,123
+92,1,63,Installation VMC,FORFAIT,500,3000,Installation complète d'un système VMC,t,2026-03-17 01:14:35.371,2026-03-17 01:14:35.371,124
+93,1,63,Pose extracteur,PIECE,80,250,Pose d'un extracteur d'air,t,2026-03-17 01:14:35.394,2026-03-17 01:14:35.394,125
+94,1,64,Pose terrasse,M2,50,150,Création de terrasse extérieure,t,2026-03-17 01:14:35.408,2026-03-17 01:14:35.408,126
+95,1,64,Pose clôture,ML,30,120,Pose de clôture avec poteaux,t,2026-03-17 01:14:35.429,2026-03-17 01:14:35.429,127
+96,1,64,Pose portail,FORFAIT,500,3000,Pose de portail avec poteaux,t,2026-03-17 01:14:35.46,2026-03-17 01:14:35.46,128
+97,1,64,Création allée,M2,30,100,Création d'allée piétonne ou carrossable,t,2026-03-17 01:14:35.495,2026-03-17 01:14:35.495,129
+98,1,64,Pose pergola,FORFAIT,2000,8000,Pose de pergola,t,2026-03-17 01:14:35.512,2026-03-17 01:14:35.512,130
+99,1,65,Pose cuisine équipée,ML,200,600,Pose de meubles de cuisine équipée (par mètre linéaire),t,2026-03-17 01:14:35.528,2026-03-17 01:14:35.528,131
+100,1,65,Pose plan de travail,ML,60,300,Pose de plan de travail cuisine,t,2026-03-17 01:14:35.534,2026-03-17 01:14:35.534,132
+101,1,65,Pose crédence cuisine,ML,40,150,Pose de crédence de cuisine,t,2026-03-17 01:14:35.549,2026-03-17 01:14:35.549,133
+102,1,65,Installation électroménager,PIECE,50,200,Installation et raccordement d'un appareil électroménager,t,2026-03-17 01:14:35.56,2026-03-17 01:14:35.56,134
+103,1,66,Rénovation SDB complète,FORFAIT,4000,15000,Rénovation complète de salle de bain (dépose + plomberie + carrelage + équipements),t,2026-03-17 01:14:35.573,2026-03-17 01:14:35.573,135
+104,1,66,Pose meuble vasque,PIECE,200,800,Pose d'un meuble vasque avec robinetterie,t,2026-03-17 01:14:35.59,2026-03-17 01:14:35.59,136
+105,1,66,Pose paroi de douche,PIECE,200,700,Pose d'une paroi de douche,t,2026-03-17 01:14:35.6,2026-03-17 01:14:35.6,137
+106,1,66,Pose accessoires SDB,FORFAIT,100,400,"Pose d'accessoires de salle de bain (porte-serviette, miroir, etc.)",t,2026-03-17 01:14:35.619,2026-03-17 01:14:35.619,138
+107,1,67,Chape fluide,M2,25,55,Réalisation de chape fluide autonivelante,t,2026-03-17 01:14:35.629,2026-03-17 01:14:35.629,139
+108,1,67,Sol résine,M2,50,120,Application de sol en résine,t,2026-03-17 01:14:35.641,2026-03-17 01:14:35.641,140
+109,1,68,Traitement humidité,ML,80,200,Traitement des remontées capillaires et infiltrations,t,2026-03-17 01:14:35.662,2026-03-17 01:14:35.662,141
+110,1,68,Traitement termites,FORFAIT,1500,5000,Traitement anti-termites et insectes xylophages,t,2026-03-17 01:14:35.675,2026-03-17 01:14:35.675,142
+111,1,68,Assainissement non collectif,FORFAIT,5000,15000,Installation ou remplacement d'un système d'assainissement individuel,t,2026-03-17 01:14:35.691,2026-03-17 01:14:35.691,143
+112,1,69,Pose garde-corps,ML,100,350,Pose de garde-corps,t,2026-03-17 01:14:35.713,2026-03-17 01:14:35.713,144
+113,1,69,Pose rampe escalier,ML,60,200,Pose de rampe et main courante d'escalier,t,2026-03-17 01:14:35.751,2026-03-17 01:14:35.751,145
+114,1,69,Pose grille de défense,PIECE,150,500,Pose de grille de défense sur fenêtre,t,2026-03-17 01:14:35.773,2026-03-17 01:14:35.773,146
+115,1,70,Remplacement vitrage,M2,80,200,Remplacement de vitrage sur menuiserie existante,t,2026-03-17 01:14:35.805,2026-03-17 01:14:35.805,147
+116,1,70,Pose miroir,M2,60,150,Fourniture et pose de miroir sur mesure,t,2026-03-17 01:14:35.832,2026-03-17 01:14:35.832,148
+117,1,70,Pose verrière intérieure,ML,300,800,Pose de verrière d'intérieur style atelier,t,2026-03-17 01:14:35.861,2026-03-17 01:14:35.861,149
+118,1,70,Pose cloison vitrée bureau,M2,150,400,Pose de cloison vitrée de bureau ou séparation,t,2026-03-17 01:14:35.898,2026-03-17 01:14:35.898,149
+19,1,5,Pose fenêtre PVC,PIECE,350,690,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.821,2026-03-19 02:07:21.045,7
+11,1,3,Pose receveur et paroi de douche,PIECE,420,760,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.789,2026-03-22 20:16:10.458,4
+12,1,3,Pose meuble vasque,PIECE,250,540,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.791,2026-03-22 20:16:10.458,4
+13,1,3,Réseau PER multicouche,ML,28,52,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.797,2026-03-22 20:16:10.458,5
+14,1,3,Raccordement évacuation PVC,ML,24,46,Tarif indicatif marché France 2026. [SEED_DEMO_FR_2026],f,2026-03-14 03:31:07.799,2026-03-22 20:16:10.458,5
+119,1,64,jardin,M2,1878,98,,f,2026-04-02 02:02:55.728,2026-04-02 02:04:01.958,

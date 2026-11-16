@@ -1,0 +1,832 @@
+﻿[
+    {
+        "prestation":  "Chape bÃ©ton",
+        "unitePrestation":  "M2",
+        "categorie":  "MaÃ§onnerie",
+        "sousCategorie":  "Chapes",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sac ciment 35kg",
+                                 "quantiteParUnite":  0.6
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Chape bÃ©ton",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "CrÃ©ation circuit prises 16A",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Distribution",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "CÃ¢ble R2V 3G2.5",
+                                 "quantiteParUnite":  2.8
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Prise Ã©lectrique encastrÃ©e",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Electricite - pose appareillage",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "DÃ©molition cloison",
+        "unitePrestation":  "M2",
+        "categorie":  "DÃ©molition",
+        "sousCategorie":  "Cloisons",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "DÃ©molition cloison",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "DÃ©molition cloison intÃ©rieure",
+        "unitePrestation":  "M2",
+        "categorie":  "Gros Å’uvre",
+        "sousCategorie":  "MaÃ§onnerie",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Montage cloison placo",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Enduit dÃ©coratif",
+        "unitePrestation":  "M2",
+        "categorie":  "Peinture",
+        "sousCategorie":  "Enduits dÃ©coratifs",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Enduit de lissage (25kg)",
+                                 "quantiteParUnite":  0.16
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Enduit mur",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Enduit et prÃ©paration support",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Peinture",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Peinture mur (2 couches)",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Enduit faÃ§ade",
+        "unitePrestation":  "M2",
+        "categorie":  "FaÃ§ade",
+        "sousCategorie":  "Enduit",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Enduit de lissage (25kg)",
+                                 "quantiteParUnite":  0.2
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Ravalement faÃ§ade",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Installation douche complÃ¨te",
+        "unitePrestation":  "FORFAIT",
+        "categorie":  "Plomberie",
+        "sousCategorie":  "Douche",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Receveur douche 80x120",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Mitigeur douche thermostatique",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Tube PER 16mm (couronne 100m)",
+                                 "quantiteParUnite":  6
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie â€” pose sanitaire",
+                                 "quantiteParUnite":  5
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Installation lavabo",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Plomberie",
+        "sousCategorie":  "Lavabo",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Lavabo vasque 60cm",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie â€” raccordement",
+                                 "quantiteParUnite":  2
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Isolation combles soufflage",
+        "unitePrestation":  "M2",
+        "categorie":  "Isolation Ã©nergÃ©tique",
+        "sousCategorie":  "Isolation intÃ©rieure",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Isolation laine de verre",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Isolation laine de verre 100mm",
+        "unitePrestation":  "M2",
+        "categorie":  "Isolation Ã©nergÃ©tique",
+        "sousCategorie":  "Isolation intÃ©rieure",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Isolation laine de verre",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Isolation mur intÃ©rieur",
+        "unitePrestation":  "M2",
+        "categorie":  "Isolation",
+        "sousCategorie":  "Murs",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Laine de verre GR32 100mm (R=3.15)",
+                                 "quantiteParUnite":  1.05
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Plaque de plÃ¢tre BA13 (2.5x1.2m)",
+                                 "quantiteParUnite":  0.34
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Isolation laine de verre",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Mise aux normes tableau",
+        "unitePrestation":  "FORFAIT",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Tableau Ã©lectrique",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Tableau Ã©lectrique 2 rangÃ©es",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Disjoncteur 20A",
+                                 "quantiteParUnite":  6
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "CÃ¢ble R2V 3G2.5 (100m)",
+                                 "quantiteParUnite":  30
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Ã‰lectricitÃ© â€” cÃ¢blage",
+                                 "quantiteParUnite":  8
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Montage cloison placo",
+        "unitePrestation":  "M2",
+        "categorie":  "Gros Å’uvre",
+        "sousCategorie":  "MaÃ§onnerie",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Plaque de plÃ¢tre BA13 (2.5x1.2m)",
+                                 "quantiteParUnite":  0.67
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Rail mÃ©tallique R48 (3m)",
+                                 "quantiteParUnite":  0.33
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Montant M48 (3m)",
+                                 "quantiteParUnite":  0.33
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Montage cloison placo",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Nettoyage toiture",
+        "unitePrestation":  "M2",
+        "categorie":  "Toiture",
+        "sousCategorie":  "Nettoyage",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Nettoyage toiture",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Ouverture mur porteur",
+        "unitePrestation":  "FORFAIT",
+        "categorie":  "MaÃ§onnerie",
+        "sousCategorie":  "Ouvertures",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "IPN 200 (6m)",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sac ciment 35kg",
+                                 "quantiteParUnite":  3
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "DÃ©molition cloison",
+                                 "quantiteParUnite":  4
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Peinture mur intÃ©rieur",
+        "unitePrestation":  "M2",
+        "categorie":  "Peinture",
+        "sousCategorie":  "Murs intÃ©rieurs",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Peinture acrylique mat 10L",
+                                 "quantiteParUnite":  0.025
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sous-couche universelle 10L",
+                                 "quantiteParUnite":  0.01
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Peinture mur (2 couches)",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Peinture murs 2 couches",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Peinture",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Peinture acrylique mat 10L",
+                                 "quantiteParUnite":  0.18
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sous-couche universelle 10L",
+                                 "quantiteParUnite":  0.08
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Peinture mur (2 couches)",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Peinture plafond",
+        "unitePrestation":  "M2",
+        "categorie":  "Peinture",
+        "sousCategorie":  "Plafonds",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Peinture acrylique mat 10L",
+                                 "quantiteParUnite":  0.025
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sous-couche universelle 10L",
+                                 "quantiteParUnite":  0.01
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Peinture plafond (2 couches)",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Peinture plafonds 2 couches",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Peinture",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Peinture mur (2 couches)",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose carrelage mural",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Carrelage",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "FaÃ¯ence murale 30x60",
+                                 "quantiteParUnite":  1.1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Colle carrelage C2 (25kg)",
+                                 "quantiteParUnite":  0.2
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Joint carrelage (5kg)",
+                                 "quantiteParUnite":  0.08
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose carrelage mural",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose carrelage sol",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Carrelage",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Carrelage grÃ¨s cÃ©rame 60x60",
+                                 "quantiteParUnite":  1.05
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Colle carrelage C2 (25kg)",
+                                 "quantiteParUnite":  0.22
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose carrelage sol",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose ensemble WC",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Plomberie \u0026 Sanitaire",
+        "sousCategorie":  "Sanitaire",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie - pose sanitaire",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose faÃ¯ence",
+        "unitePrestation":  "M2",
+        "categorie":  "Carrelage",
+        "sousCategorie":  "FaÃ¯ence",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "FaÃ¯ence murale 30x60",
+                                 "quantiteParUnite":  1.1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Colle carrelage C2 (25kg)",
+                                 "quantiteParUnite":  0.2
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Joint carrelage (5kg)",
+                                 "quantiteParUnite":  0.08
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose faÃ¯ence",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose faÃ¯ence salle de bain",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtements \u0026 Peinture",
+        "sousCategorie":  "Carrelage",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose carrelage sol",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose fenÃªtre PVC",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Menuiserie",
+        "sousCategorie":  "Fermetures",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "FenÃªtre PVC 2 vantaux 120x135",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose fenÃªtre",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose interrupteur",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Prises et interrupteurs",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Interrupteur va-et-vient",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "CÃ¢ble R2V 3G2.5 (100m)",
+                                 "quantiteParUnite":  4
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Ã‰lectricitÃ© â€” pose appareillage",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose meuble vasque",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Plomberie \u0026 Sanitaire",
+        "sousCategorie":  "Sanitaire",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie - pose sanitaire",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose parquet flottant",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtement de sol",
+        "sousCategorie":  "Parquet flottant",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Parquet flottant chÃªne 7mm",
+                                 "quantiteParUnite":  1.08
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sous-couche parquet 3mm",
+                                 "quantiteParUnite":  1.02
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose parquet flottant",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose parquet massif",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtement de sol",
+        "sousCategorie":  "Parquet massif",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Parquet massif chÃªne 14mm",
+                                 "quantiteParUnite":  1.1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose parquet massif",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose points lumineux LED",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Distribution",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Electricite - pose appareillage",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose porte intÃ©rieure",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Menuiserie",
+        "sousCategorie":  "Fermetures",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Bloc porte intÃ©rieur 83cm",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose porte intÃ©rieure",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose prise Ã©lectrique",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Prises et interrupteurs",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Prise Ã©lectrique encastrÃ©e",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "CÃ¢ble R2V 3G2.5 (100m)",
+                                 "quantiteParUnite":  5
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Ã‰lectricitÃ© â€” pose appareillage",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose receveur et paroi de douche",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Plomberie \u0026 Sanitaire",
+        "sousCategorie":  "Sanitaire",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie - pose sanitaire",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose sol vinyle/PVC",
+        "unitePrestation":  "M2",
+        "categorie":  "RevÃªtement de sol",
+        "sousCategorie":  "Vinyle / PVC",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Sol PVC lame clipsable",
+                                 "quantiteParUnite":  1.05
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Pose sol PVC",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Pose tableau Ã©lectrique 2 rangÃ©es",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Ã‰lectricitÃ©",
+        "sousCategorie":  "Distribution",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Electricite - pose appareillage",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Raccordement Ã©vacuation PVC",
+        "unitePrestation":  "ML",
+        "categorie":  "Plomberie \u0026 Sanitaire",
+        "sousCategorie":  "RÃ©seau plomberie",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie - raccordement",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "RagrÃ©age sol",
+        "unitePrestation":  "M2",
+        "categorie":  "Carrelage",
+        "sousCategorie":  "PrÃ©paration",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Enduit de lissage (25kg)",
+                                 "quantiteParUnite":  0.12
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "RagrÃ©age sol",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Ravalement faÃ§ade",
+        "unitePrestation":  "M2",
+        "categorie":  "FaÃ§ade",
+        "sousCategorie":  "Ravalement",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Enduit de lissage (25kg)",
+                                 "quantiteParUnite":  0.2
+                             },
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Peinture acrylique mat 10L",
+                                 "quantiteParUnite":  0.03
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Ravalement faÃ§ade",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "RÃ©alisation chape bÃ©ton",
+        "unitePrestation":  "M2",
+        "categorie":  "Gros Å’uvre",
+        "sousCategorie":  "MaÃ§onnerie",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Montage cloison placo",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "RÃ©fection toiture complÃ¨te",
+        "unitePrestation":  "M2",
+        "categorie":  "Toiture",
+        "sousCategorie":  "Couverture",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Couverture toiture",
+                                 "quantiteParUnite":  1.5
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Remplacement chauffe-eau",
+        "unitePrestation":  "FORFAIT",
+        "categorie":  "Plomberie",
+        "sousCategorie":  "Chauffe-eau",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Chauffe-eau Ã©lectrique 200L",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie â€” raccordement",
+                                 "quantiteParUnite":  4
+                             }
+                         ]
+    },
+    {
+        "prestation":  "Remplacement WC",
+        "unitePrestation":  "PIECE",
+        "categorie":  "Plomberie",
+        "sousCategorie":  "WC",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "WC complet avec rÃ©servoir",
+                                 "quantiteParUnite":  1
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie â€” pose sanitaire",
+                                 "quantiteParUnite":  3
+                             }
+                         ]
+    },
+    {
+        "prestation":  "RÃ©paration toiture",
+        "unitePrestation":  "M2",
+        "categorie":  "Toiture",
+        "sousCategorie":  "RÃ©paration",
+        "compositions":  [
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Couverture toiture",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    },
+    {
+        "prestation":  "RÃ©seau PER multicouche",
+        "unitePrestation":  "ML",
+        "categorie":  "Plomberie \u0026 Sanitaire",
+        "sousCategorie":  "RÃ©seau plomberie",
+        "compositions":  [
+                             {
+                                 "type":  "materiau",
+                                 "nom":  "Tube PER 16mm",
+                                 "quantiteParUnite":  1.15
+                             },
+                             {
+                                 "type":  "main_oeuvre",
+                                 "nom":  "Plomberie - raccordement",
+                                 "quantiteParUnite":  1
+                             }
+                         ]
+    }
+]

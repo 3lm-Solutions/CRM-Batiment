@@ -1,0 +1,142 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\f0\fs24
+\b RAPPORT PFE - BATIFLOW (PLAN AGILE)\b0\par
+\par
+\b Introduction Generale\b0\par
+La transformation digitale dans le secteur du batiment est devenue une priorite pour ameliorer la qualite de service, reduire les delais de traitement et fiabiliser les donnees. Le projet BATIFLOW repond a ce besoin par la conception d une application CRM metier qui centralise les informations clients, les demandes de devis, les devis et le suivi operationnel.\par
+\par
+\b 1. Contexte General\b0\par
+\b 1.1. Cadre General\b0\par
+\b 1.1.1. Presentation du Projet\b0\par
+BATIFLOW est une application web CRM dediee au secteur du batiment. L objectif est de structurer le cycle commercial et operationnel: client, demande, devis, chantier.\par
+\par
+\b 1.1.2. L organisme d accueil\b0\par
+L organisme d accueil est une entreprise du batiment qui gere la prospection, le chiffrage, les devis et le suivi chantier. Avant le projet, les informations etaient dispersees entre fichiers et outils non integres.\par
+\par
+\b 1.2. Etude de l existant\b0\par
+\b 1.2.1. Solution Existante\b0\par
+La gestion reposait sur des fichiers bureautiques, des echanges telephoniques et des messages, sans systeme unifie.\par
+\par
+\b 1.2.2. Critique de l Existant\b0\par
+1. Donnees dupliquees et manque de tracabilite.\par
+2. Delai eleve entre demande client et envoi de devis.\par
+3. Suivi des statuts difficile.\par
+4. Collaboration inter-equipes peu fluide.\par
+\par
+\b 1.2.3. Solution Proposee\b0\par
+La solution proposee est une plateforme CRM centralisee avec gestion des roles, workflow devis, catalogue technique, fournisseurs, commandes et suivi chantier.\par
+\par
+\b 1.3. Choix de la Methodologie\b0\par
+\b 1.3.1. Methodologie Agile\b0\par
+L approche Agile permet des livraisons incrementales, une adaptation rapide aux besoins metier et une reduction des risques.\par
+\par
+\b 1.3.2. Methode Scrum\b0\par
+Le cadre Scrum a ete adopte avec backlog produit, planification de sprint, review et retrospective.\par
+\par
+\b 1.3.3. Langage de Modelisation\b0\par
+La modelisation UML a ete utilisee (cas d utilisation, classes, sequence, activite) pour formaliser la conception.\par
+\par
+\b 2. Lancement et Conception du Projet\b0\par
+\b 2.1. Identification des Besoins\b0\par
+\b 2.1.1. Identification des Acteurs\b0\par
+Acteurs: Administrateur, Assistante, Technico-commercial, Chef de chantier, Sous-traitant.\par
+\par
+\b 2.1.2. Exigences Fonctionnelles\b0\par
+1. Gestion des clients (ajout, modification, suppression, recherche).\par
+2. Gestion des demandes de devis.\par
+3. Generation et suivi des devis.\par
+4. Changement de statut selon workflow.\par
+5. Gestion du catalogue (prestations, materiaux, main d oeuvre).\par
+6. Gestion fournisseurs, commandes et receptions.\par
+7. Suivi des chantiers et des taches.\par
+\par
+\b 2.1.3. Exigences Non Fonctionnelles\b0\par
+1. Securite des acces par role.\par
+2. Performance et disponibilite de l application.\par
+3. Fiabilite et coherence des donnees.\par
+4. Ergonomie et simplicite d usage.\par
+\par
+\b 2.1.4. Diagramme de Cas d Utilisation Global\b0\par
+Le diagramme global represente les interactions entre les acteurs et les modules principaux de l application.\par
+\par
+\b 2.2. Analyse Conceptuelle\b0\par
+\b 2.2.1. Architecture du systeme\b0\par
+Architecture en couches: Frontend (React), Backend API (NestJS), Base de donnees relationnelle (Prisma ORM).\par
+\par
+\b 2.2.2. Diagramme de Classes Global\b0\par
+Classes principales: User, Client, DemandeDevis, Devis, LigneDevis, Prestation, Materiau, ServiceMainOeuvre, CommandeFournisseur, Chantier.\par
+\par
+\b 2.3. Structure du Projet\b0\par
+\b 2.3.1. Identification de l Equipe Scrum\b0\par
+Product Owner, Scrum Master et equipe de developpement.\par
+\par
+\b 2.3.2. Backlog Produit\b0\par
+Le backlog a ete priorise par valeur metier: clients, demandes, devis, catalogue, fournisseurs, chantier, stabilisation.\par
+\par
+\b 2.4. Recherche Technique\b0\par
+\b 2.4.1. Technologies\b0\par
+Technologies web modernes pour garantir maintenabilite et evolution.\par
+\par
+\b 2.4.2. Langages et frameworks\b0\par
+Frontend: React + TypeScript\par
+Backend: NestJS + TypeScript\par
+ORM: Prisma\par
+Base de donnees: relationnelle\par
+\par
+\b 3. Sprint 1 : Base CRM et securite\b0\par
+\b 3.1. Specification Fonctionnelle\b0\par
+Mise en place de l authentification, gestion des roles, module clients et demandes de devis.\par
+\par
+\b 3.2. Analyse des Cas d Utilisation\b0\par
+Connexion utilisateur, CRUD client, creation et consultation des demandes.\par
+\par
+\b 3.3. Conception des Cas d Utilisation\b0\par
+Conception des ecrans de liste/formulaire et regles d acces par role.\par
+\par
+\b 3.4. Realisation et Tests\b0\par
+Implementation des modules de base et tests fonctionnels des parcours critiques.\par
+\par
+\b 4. Sprint 2 : Module Devis et workflow\b0\par
+\b 4.1. Specification Fonctionnelle\b0\par
+Generation des devis, mise a jour des statuts, actions admin et technico.\par
+\par
+\b 4.2. Analyse des Cas d Utilisation\b0\par
+Creer devis depuis demande, modifier devis, envoyer et suivre decision client.\par
+\par
+\b 4.3. Conception des Cas d Utilisation\b0\par
+Definition des transitions de statuts autorisees et regles de gestion associees.\par
+\par
+\b 4.4. Realisation et Tests\b0\par
+Implementation des ecrans devis, actions de statut, verification des scenarios de transition.\par
+\par
+\b 5. Sprint 3 : Modules techniques, chantier et stabilisation\b0\par
+\b 5.1. Specification Fonctionnelle\b0\par
+Finalisation du catalogue, fournisseurs, commandes, receptions et chantier.\par
+\par
+\b 5.2. Analyse des Cas d Utilisation\b0\par
+Gestion des compositions techniques, suivi operationnel et suppression coherente des donnees.\par
+\par
+\b 5.3. Conception des Cas d Utilisation\b0\par
+Conception orientee coherence transactionnelle et fiabilite de la base de donnees.\par
+\par
+\b 5.4. Realisation et Tests\b0\par
+Finalisation fonctionnelle, ameliorations UX, tests de regression et controle integrite donnees.\par
+\par
+\b Conclusion et Perspectives\b0\par
+Le projet BATIFLOW a permis de digitaliser efficacement le cycle client -> devis -> chantier. L application ameliore la productivite, la tracabilite et la qualite du suivi metier.\par
+\par
+Perspectives:\par
+1. Assistant IA pour qualification des demandes.\par
+2. Generation intelligente de brouillon de devis.\par
+3. Relances automatiques personnalisees.\par
+4. Reporting avance de performance commerciale.\par
+\par
+\b Bibliographie\b0\par
+1. Documentation officielle React.\par
+2. Documentation officielle NestJS.\par
+3. Documentation Prisma ORM.\par
+4. Scrum Guide.\par
+5. References UML et genie logiciel.\par
+\par
+}

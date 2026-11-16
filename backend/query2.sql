@@ -1,0 +1,1 @@
+SELECT pc.id, p.nom as prestation, COALESCE(m.nom,$$-$$) as materiau, COALESCE(smo.nom,$$-$$) as service_mo, pc."quantiteParUnite" as qte FROM prestations_compositions pc LEFT JOIN prestations p ON pc."prestationId" = p.id LEFT JOIN materiaux m ON pc."materiauId" = m.id LEFT JOIN services_main_oeuvre smo ON pc."serviceMainOeuvreId" = smo.id ORDER BY p.nom, pc.id;
