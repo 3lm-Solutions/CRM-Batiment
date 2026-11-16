@@ -1,0 +1,95 @@
+@startuml
+title Sprint 1 : Administration et parametrage
+
+left to right direction
+skinparam shadowing false
+skinparam backgroundColor #F3F4F6
+skinparam defaultFontName Arial
+skinparam ArrowColor #4B5563
+skinparam packageStyle rectangle
+skinparam nodesep 60
+skinparam ranksep 55
+
+skinparam actor {
+  BorderColor #6B7280
+  BackgroundColor #DBEAFE
+  FontColor #111827
+}
+
+skinparam usecase {
+  BorderColor #6B7280
+  BackgroundColor #F9FAFB
+  FontColor #111827
+}
+
+actor "Administrateurs" as Admin
+actor "utilisateur\n(Technico,\nChef chantier,\nFournisseur)" as User
+
+rectangle "Sprint 1 : Administration et parametrage" {
+  (Gerer les utilisateurs) as UC_Users
+  (Ajouter) as UC_Add
+  (Modifier) as UC_Edit
+  (Supprimer) as UC_Delete
+  (Desactiver) as UC_Disable
+  (Activer) as UC_Enable
+
+  (Gerer les roles et permissions) as UC_Roles
+  (Configurer les parametres de chiffrage) as UC_Pricing
+  (Gerer les prestations, materiaux\net main d'oeuvre) as UC_Catalogue
+  (Gerer les types de projet) as UC_ProjectType
+
+  (Changer le mot de passe) as UC_Password
+  (Acceder aux menus selon le role) as UC_Menus
+  (Se deconnecter) as UC_Logout
+
+  (S'authentifier) as UC_Login
+}
+
+Admin --> UC_Users
+Admin --> UC_Roles
+Admin --> UC_Pricing
+Admin --> UC_Catalogue
+Admin --> UC_ProjectType
+
+User --> UC_Password
+User --> UC_Menus
+User --> UC_Logout
+
+UC_Add ..> UC_Users : <<extend>>
+UC_Edit ..> UC_Users : <<extend>>
+UC_Delete ..> UC_Users : <<extend>>
+UC_Disable ..> UC_Users : <<extend>>
+UC_Enable ..> UC_Users : <<extend>>
+
+UC_Users ..> UC_Login : <<include>>
+UC_Roles ..> UC_Login : <<include>>
+UC_Pricing ..> UC_Login : <<include>>
+UC_Catalogue ..> UC_Login : <<include>>
+UC_ProjectType ..> UC_Login : <<include>>
+UC_Password ..> UC_Login : <<include>>
+UC_Menus ..> UC_Login : <<include>>
+UC_Logout ..> UC_Login : <<include>>
+
+' Layout helpers only (visual organization)
+Admin -[hidden]down-> User
+
+' Main column
+UC_Users -[hidden]down-> UC_Roles
+UC_Roles -[hidden]down-> UC_Pricing
+UC_Pricing -[hidden]down-> UC_Catalogue
+UC_Catalogue -[hidden]down-> UC_ProjectType
+UC_ProjectType -[hidden]down-> UC_Password
+UC_Password -[hidden]down-> UC_Menus
+UC_Menus -[hidden]down-> UC_Logout
+
+' User management actions (right column)
+UC_Users -[hidden]right-> UC_Add
+UC_Add -[hidden]down-> UC_Edit
+UC_Edit -[hidden]down-> UC_Delete
+UC_Delete -[hidden]down-> UC_Disable
+UC_Disable -[hidden]down-> UC_Enable
+
+' Authentication hub (center-right)
+UC_Pricing -[hidden]right-> UC_Login
+
+@enduml

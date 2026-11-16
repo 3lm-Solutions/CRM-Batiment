@@ -1,0 +1,174 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+interface LigneDevisData {
+  prestationId?: number;
+  description: string;
+  quantite: number;
+  unite: string;
+  prixUnitaireVente: number;
+  prixAchat: number;
+  mainOeuvre: number;
+}
+
+interface DevisTotal {
+  lignes: LigneDevisData[];
+  totalHT: number;
+  totalTVA: number;
+  totalTTC: number;
+  coutTotal: number;
+  profit: number;
+  margePourcent: number;
+}
+
+@Injectable()
+export class PriceCalculatorService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Calcule le prix total d'une prestation avec options et infos
+   */
+  async calculatePrestationPrice(
+    prestationId: number,
+    selections: {
+      optionsChoisies: Array<{ optionId: number; choixOptionId: number }>;
+      infosValues: Record<string, string>;
+      quantite?: number;
+    },
+    companyId: number,
+  ): Promise<LigneDevisData> {
+    const prestation = await this.prisma.prestation.findUnique({
+      where: { id: prestationId },
+      include: {
+        compositions: {
+          include: {
+            materiau: true,
+            serviceMainOeuvre: true,
+          },
+        },
+        options: {
+          include: {
+            choix: true,
+          },
+        },
+      },
+    });
+
+    if (!prestation) throw new Error(`Prestation ${prestationId} non trouvée`);
+
+    const quantite = selections.quantite ?? 1;
+    let coutMateriaux = 0;
+    let coutMainOeuvre = 0;
+
+    // ===== CALCUL COMPOSITIONS (matériaux + services MO) =====
+    for (const composition of prestation.compositions) {
+      if (composition.materiau) {
+        coutMateriaux += composition.materiau.prixAchatFixe * composition.quantiteParUnite * quantite;
+      }
+      if (composition.serviceMainOeuvre) {
+        coutMainOeuvre +=
+          composition.serviceMainOeuvre.prixUnitaire *
+          composition.quantiteParUnite *
+          quantite;
+      }
+    }
+
+    // ===== CALCUL OPTIONS CHOISIES =====
+    let surCoutOptions = 0;
+    for (const selection of selections.optionsChoisies) {
+      const option = prestation.options.find((o) => o.id === selection.optionId);
+      if (option) {
+        const choix = option.choix.find((c) => c.id === selection.choixOptionId);
+        if (choix) {
+          // Vérifier si ce choix a des compositions spéciales
+          const choixCompositions = await this.prisma.choixOptionComposition.findMany({
+            where: { choixOptionId: choix.id },
+            include: {
+              materiau: true,
+              serviceMainOeuvre: true,
+            },
+          });
+
+          for (const comp of choixCompositions) {
+            if (comp.materiau) {
+              surCoutOptions +=
+                comp.materiau.prixAchatFixe * comp.quantiteParUnite * quantite;
+            }
+            if (comp.serviceMainOeuvre) {
+              surCoutOptions +=
+                comp.serviceMainOeuvre.prixUnitaire *
+                comp.quantiteParUnite *
+                quantite;
+            }
+          }
+
+          // Ajouter l'impact prix du choix
+          surCoutOptions += choix.impactPrix * quantite;
+        }
+      }
+    }
+
+    // ===== COÛT TOTAL (achat) =====
+    const coutTotal = coutMateriaux + coutMainOeuvre + surCoutOptions;
+
+    // ===== PRIX DE VENTE (avec marge) =====
+    // Stratégie : utiliser la marge moyenne entre prixVenteMin et Max
+    // Ou appliquer un % de marge sur le coût
+    const margeCoef = 1.35; // 35% de marge par défaut
+    const prixVenteCalcule = coutTotal * margeCoef;
+
+    // Encadrer entre min et max
+    const prixVenteMin = prestation.prixVenteMin;
+    const prixVenteMax = prestation.prixVenteMax;
+    const prixVente = Math.min(Math.max(prixVenteCalcule, prixVenteMin), prixVenteMax);
+
+    const totalHT = prixVente;
+    const profit = totalHT - coutTotal;
+    const margePourcent = profit > 0 ? (profit / totalHT) * 100 : 0;
+
+    return {
+      prestationId,
+      description: prestation.nom,
+      quantite,
+      unite: prestation.unite,
+      prixUnitaireVente: prixVente / quantite,
+      prixAchat: coutTotal,
+      mainOeuvre: coutMainOeuvre,
+    };
+  }
+
+  /**
+   * Calcule le total d'un devis à partir de lignes
+   */
+  calculateTotalDevis(
+    lignes: Array<{
+      quantite: number;
+      prixUnitaireVente: number;
+      prixAchat: number;
+      mainOeuvre: number;
+    }>,
+    tauxTVA: number = 20,
+  ): Omit<DevisTotal, 'lignes'> {
+    let totalHT = 0;
+    let coutTotal = 0;
+
+    for (const ligne of lignes) {
+      totalHT += ligne.quantite * ligne.prixUnitaireVente;
+      coutTotal += ligne.prixAchat + ligne.mainOeuvre;
+    }
+
+    const totalTVA = (totalHT * tauxTVA) / 100;
+    const totalTTC = totalHT + totalTVA;
+    const profit = totalHT - coutTotal;
+    const margePourcent = profit > 0 ? (profit / totalHT) * 100 : 0;
+
+    return {
+      totalHT: Math.round(totalHT * 100) / 100,
+      totalTVA: Math.round(totalTVA * 100) / 100,
+      totalTTC: Math.round(totalTTC * 100) / 100,
+      coutTotal: Math.round(coutTotal * 100) / 100,
+      profit: Math.round(profit * 100) / 100,
+      margePourcent: Math.round(margePourcent * 100) / 100,
+    };
+  }
+}

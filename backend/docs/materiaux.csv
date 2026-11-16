@@ -1,0 +1,35 @@
+#;Catégorie;Nom;Couleur;Finition;Unité;Prix Achat (€)
+1;Carrelage;Carrelage grès cérame 60x60;Gris anthracite;Mat;M2;18.50
+2;Carrelage;Carrelage grès cérame 30x30;Beige;Mat;M2;14.00
+3;Carrelage;Faïence murale 30x60;Blanc;Brillant;M2;16.00
+4;Carrelage;Colle carrelage C2 (25kg);;;KG;12.50
+5;Carrelage;Joint carrelage (5kg);Gris;;KG;8.00
+6;Peinture;Peinture acrylique mat 10L;Blanc;Mat;LITRE;45.00
+7;Peinture;Peinture acrylique satin 10L;Blanc;Satin;LITRE;55.00
+8;Peinture;Sous-couche universelle 10L;Blanc;;LITRE;35.00
+9;Peinture;Enduit de lissage (25kg);Blanc;;KG;18.00
+10;Plomberie;Receveur douche 80x120;Blanc;;PIECE;180.00
+11;Plomberie;Mitigeur douche thermostatique;Chrome;Brillant;PIECE;120.00
+12;Plomberie;WC complet avec réservoir;Blanc;;PIECE;150.00
+13;Plomberie;Lavabo vasque 60cm;Blanc;;PIECE;85.00
+14;Plomberie;Chauffe-eau électrique 200L;;;PIECE;350.00
+15;Plomberie;Tube PER 16mm (couronne 100m);;;ML;1.20
+16;Électricité;Câble R2V 3G2.5 (100m);;;ML;1.50
+17;Électricité;Prise électrique encastrée;Blanc;;PIECE;5.50
+18;Électricité;Interrupteur va-et-vient;Blanc;;PIECE;6.00
+19;Électricité;Spot LED encastré 7W;;;PIECE;12.00
+20;Électricité;Tableau électrique 2 rangées;;;PIECE;85.00
+21;Électricité;Disjoncteur 20A;;;PIECE;15.00
+22;Maçonnerie;Plaque de plâtre BA13 (2.5x1.2m);;;PIECE;6.50
+23;Maçonnerie;Rail métallique R48 (3m);;;ML;2.00
+24;Maçonnerie;Montant M48 (3m);;;ML;2.20
+25;Maçonnerie;Sac ciment 35kg;;;KG;8.50
+26;Maçonnerie;IPN 200 (6m);;;ML;45.00
+27;Menuiserie;Bloc porte intérieur 83cm;Blanc;Lisse;PIECE;75.00
+28;Menuiserie;Fenêtre PVC 2 vantaux 120x135;Blanc;;PIECE;180.00
+29;Isolation;Laine de verre GR32 100mm;;;M2;8.00
+30;Isolation;Laine de roche soufflée (sac 12.5kg);;;KG;15.00
+31;Revêtement de sol;Parquet flottant chêne 7mm;Chêne naturel;Verni;M2;12.00
+32;Revêtement de sol;Parquet massif chêne 14mm;Chêne naturel;Brut;M2;35.00
+33;Revêtement de sol;Sol PVC lame clipsable;Gris béton;;M2;8.00
+34;Revêtement de sol;Sous-couche parquet 3mm;;;M2;2.50

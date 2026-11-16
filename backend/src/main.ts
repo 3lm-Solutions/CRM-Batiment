@@ -1,47 +1,57 @@
-import { Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { configureApp } from './app.setup';
-import { type Env } from './config/env.validation';
+import { AppModule } from './app.module.js';
 
-async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    rawBody: true, // needed later to verify WhatsApp (Meta) webhook signatures
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Préfixe global pour toutes les routes : /api
+  app.setGlobalPrefix('api');
+
+  // Validation globale des DTOs
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Supprime les champs non déclarés dans le DTO
+      forbidNonWhitelisted: true, // Rejette les requêtes avec des champs inconnus
+      transform: true, // Transforme les types automatiquement
+    }),
+  );
+
+  // CORS (autorise le frontend React en dev)
+  app.enableCors({
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3001',
+      'http://localhost:3002',
+    ],
+    credentials: true,
   });
+  // Swagger (documentation API interactive)
+  const config = new DocumentBuilder()
+    .setTitle('CRM Bâtiment — API')
+    .setDescription(
+      'API REST du CRM pour société de bâtiment.\n\n' +
+        "**Authentification** : Système fermé — seul l'Admin crée les comptes.\n" +
+        'Utilisez le token JWT dans le header `Authorization: Bearer <token>`.',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .addTag(
+      'Authentification',
+      'Login, changement de mot de passe, création de compte',
+    )
+    .addTag('Utilisateurs', 'CRUD utilisateurs (Admin uniquement)')
+    .build();
 
-  configureApp(app);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
-  const config = app.get<ConfigService, ConfigService<Env, true>>(ConfigService);
-  const port = config.get('APP_PORT', { infer: true });
-  const isProd = config.get('NODE_ENV', { infer: true }) === 'production';
-
-  // Swagger only outside production (no public map of the API)
-  if (!isProd) {
-    const swaggerConfig = new DocumentBuilder()
-      .setTitle('CRM Bâtiment — API')
-      .setDescription(
-        'API REST du CRM pour société de bâtiment.\n\n' +
-          "**Authentification** : système fermé — seul l'Admin crée les comptes.\n" +
-          'Utilisez le token JWT : `Authorization: Bearer <token>`.',
-      )
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
-    SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
-  }
-
+  const port = process.env['APP_PORT'] ?? 3000;
   await app.listen(port);
 
-  const logger = new Logger('Bootstrap');
-  logger.log(`🚀 API démarrée : http://localhost:${port}/api/v1`);
-  if (!isProd) logger.log(`📚 Swagger    : http://localhost:${port}/api/docs`);
+  console.log(`\n🚀 CRM Bâtiment API démarrée sur http://localhost:${port}`);
+  console.log(`📚 Swagger docs : http://localhost:${port}/api/docs\n`);
 }
-
-bootstrap().catch((error: unknown) => {
-  // Without this, a startup error becomes an "unhandled promise rejection"
-  console.error('❌ Échec du démarrage de l’API :', error);
-  process.exit(1);
-});
+bootstrap();

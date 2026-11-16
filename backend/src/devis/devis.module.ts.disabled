@@ -1,0 +1,15 @@
+import { Module } from '@nestjs/common';
+import { DevisService } from './devis.service.js';
+import { DevisController } from './devis.controller.js';
+// TODO: Fix imports in diagnostic services
+// import { DiagnosticSessionService } from './diagnostic-session.service.js';
+// import { DevisAutoGeneratorService } from './devis-auto-generator.service.js';
+// import { PriceCalculatorService } from './price-calculator.service.js';
+import { DiagnosticController } from './diagnostic.controller.js';
+
+@Module({
+  controllers: [DevisController, DiagnosticController],
+  providers: [DevisService /* , DiagnosticSessionService, DevisAutoGeneratorService, PriceCalculatorService */],
+  exports: [DevisService /* , DiagnosticSessionService, DevisAutoGeneratorService, PriceCalculatorService */],
+})
+export class DevisModule {}
