@@ -1,0 +1,1 @@
+ALTER TABLE "chantiers" ADD COLUMN "plan2d" JSONB;

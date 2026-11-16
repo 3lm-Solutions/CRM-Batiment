@@ -1,0 +1,210 @@
+@startuml
+title Diagramme de classes simplifie - CRM Batiment
+
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 60
+
+package "CRM" {
+  class Company {
+    +id: Int
+    +nom: String
+    +tvaDefaut: Float
+    --
+    +configurerEntreprise()
+  }
+
+  class User {
+    +id: Int
+    +nom: String
+    +prenom: String
+    +email: String
+    +role: String
+    --
+    +login()
+    +gererCompte()
+  }
+
+  class Client {
+    +id: Int
+    +nom: String
+    +prenom: String
+    +telephone: String
+    +email: String
+    --
+    +create()
+    +update()
+  }
+
+  class TypeProjet {
+    +id: Int
+    +nom: String
+    +description: String
+  }
+
+  class DemandeDevis {
+    +id: Int
+    +date: DateTime
+    +description: String
+    +statut: String
+    --
+    +create()
+    +changerStatut()
+  }
+}
+
+package "Catalogue" {
+  class CategoriePrestation {
+    +id: Int
+    +nom: String
+    +description: String
+  }
+
+  class Prestation {
+    +id: Int
+    +nom: String
+    +unite: String
+    +prixVenteMin: Float
+    +prixVenteMax: Float
+    --
+    +chiffrer()
+  }
+
+  class Materiau {
+    +id: Int
+    +nom: String
+    +prixAchatFixe: Float
+  }
+
+  class ServiceMainOeuvre {
+    +id: Int
+    +nom: String
+    +prixUnitaire: Float
+  }
+}
+
+package "Vente" {
+  class Devis {
+    +id: Int
+    +reference: String
+    +dateCreation: DateTime
+    +statut: String
+    +totalHT: Float
+    +totalTTC: Float
+    --
+    +create()
+    +envoyer()
+    +valider()
+  }
+
+  class LigneDevis {
+    +id: Int
+    +description: String
+    +quantite: Float
+    +prixUnitaireVente: Float
+    +totalHT: Float
+  }
+
+  class Facture {
+    +id: Int
+    +reference: String
+    +date: DateTime
+    +statut: String
+    +montantTTC: Float
+    --
+    +createFromDevis()
+    +envoyer()
+  }
+}
+
+package "Execution" {
+  class Fournisseur {
+    +id: Int
+    +nom: String
+    +email: String
+    +telephone: String
+  }
+
+  class CommandeFournisseur {
+    +id: Int
+    +reference: String
+    +date: DateTime
+    +statutLivraison: String
+    --
+    +envoyer()
+    +recevoir()
+  }
+
+  class Chantier {
+    +id: Int
+    +reference: String
+    +adresse: String
+    +statut: String
+    --
+    +creer()
+    +planifier()
+  }
+
+  class Tache {
+    +id: Int
+    +libelle: String
+    +statut: String
+    +avancement: Float
+    --
+    +createTask()
+    +updateTask()
+  }
+}
+
+Company "1" -- "0..*" User
+Company "1" -- "0..*" Client
+Company "1" -- "0..*" TypeProjet
+Company "1" -- "0..*" Devis
+Company "1" -- "0..*" Chantier
+
+Client "0..*" --> "0..1" TypeProjet
+Client "1" -- "0..*" DemandeDevis
+Client "1" -- "0..*" Devis
+Client "1" -- "0..*" Chantier
+
+User "0..1" -- "0..*" DemandeDevis : createur
+User "0..1" -- "0..*" Chantier : chef
+
+DemandeDevis "0..1" -- "0..*" Devis
+
+CategoriePrestation "1" -- "0..*" Prestation
+Prestation "1" -- "0..*" LigneDevis
+Materiau "0..*" -- "0..*" Prestation
+ServiceMainOeuvre "0..*" -- "0..*" Prestation
+
+Devis "1" *-- "1..*" LigneDevis
+Devis "1" -- "0..*" Facture
+Devis "0..1" -- "0..1" Chantier
+Devis "1" -- "0..*" CommandeFournisseur
+
+Fournisseur "1" -- "0..*" Materiau
+Fournisseur "1" -- "0..*" CommandeFournisseur
+
+Chantier "1" -- "0..*" Tache
+
+Company -[hidden]-> CategoriePrestation
+CategoriePrestation -[hidden]-> Devis
+Devis -[hidden]-> Fournisseur
+
+User -[hidden]-> Client
+Client -[hidden]-> DemandeDevis
+Devis -[hidden]-> Facture
+CommandeFournisseur -[hidden]-> Chantier
+
+legend left
+  Diagramme reduit aux classes metier les plus importantes
+  Flux principal :
+  Client => DemandeDevis => Devis => Chantier => Facture
+endlegend
+
+@enduml

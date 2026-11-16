@@ -1,0 +1,660 @@
+﻿[
+    {
+        "id":  1,
+        "prestationId":  7,
+        "materiauId":  4,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.18
+    },
+    {
+        "id":  2,
+        "prestationId":  7,
+        "materiauId":  5,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.08
+    },
+    {
+        "id":  3,
+        "prestationId":  7,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  3,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  4,
+        "prestationId":  4,
+        "materiauId":  1,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.05
+    },
+    {
+        "id":  5,
+        "prestationId":  4,
+        "materiauId":  3,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.22
+    },
+    {
+        "id":  6,
+        "prestationId":  4,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  1,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  7,
+        "prestationId":  13,
+        "materiauId":  8,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.15
+    },
+    {
+        "id":  8,
+        "prestationId":  13,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  5,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  9,
+        "prestationId":  16,
+        "materiauId":  9,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  2.8
+    },
+    {
+        "id":  10,
+        "prestationId":  16,
+        "materiauId":  10,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  11,
+        "prestationId":  16,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  7,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  13,
+        "prestationId":  2,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  8,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  14,
+        "prestationId":  3,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  8,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  16,
+        "prestationId":  6,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  1,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  17,
+        "prestationId":  8,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  3,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  18,
+        "prestationId":  9,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  3,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  19,
+        "prestationId":  10,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  4,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  20,
+        "prestationId":  11,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  4,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  21,
+        "prestationId":  12,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  4,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  22,
+        "prestationId":  14,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  5,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  23,
+        "prestationId":  15,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  7,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  24,
+        "prestationId":  17,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  7,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  27,
+        "prestationId":  20,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  9,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  28,
+        "prestationId":  21,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  9,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  29,
+        "prestationId":  5,
+        "materiauId":  2,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.1
+    },
+    {
+        "id":  30,
+        "prestationId":  5,
+        "materiauId":  3,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.2
+    },
+    {
+        "id":  31,
+        "prestationId":  5,
+        "materiauId":  20,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.08
+    },
+    {
+        "id":  32,
+        "prestationId":  5,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  2,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  33,
+        "prestationId":  58,
+        "materiauId":  2,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.1
+    },
+    {
+        "id":  34,
+        "prestationId":  58,
+        "materiauId":  3,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.2
+    },
+    {
+        "id":  35,
+        "prestationId":  58,
+        "materiauId":  20,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.08
+    },
+    {
+        "id":  36,
+        "prestationId":  58,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  13,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  37,
+        "prestationId":  59,
+        "materiauId":  22,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.12
+    },
+    {
+        "id":  38,
+        "prestationId":  59,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  14,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  39,
+        "prestationId":  61,
+        "materiauId":  4,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.025
+    },
+    {
+        "id":  40,
+        "prestationId":  61,
+        "materiauId":  5,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.01
+    },
+    {
+        "id":  41,
+        "prestationId":  61,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  3,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  42,
+        "prestationId":  62,
+        "materiauId":  4,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.025
+    },
+    {
+        "id":  43,
+        "prestationId":  62,
+        "materiauId":  5,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.01
+    },
+    {
+        "id":  44,
+        "prestationId":  62,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  15,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  45,
+        "prestationId":  65,
+        "materiauId":  22,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.16
+    },
+    {
+        "id":  46,
+        "prestationId":  65,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  16,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  47,
+        "prestationId":  43,
+        "materiauId":  6,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  48,
+        "prestationId":  43,
+        "materiauId":  7,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  49,
+        "prestationId":  43,
+        "materiauId":  26,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  6
+    },
+    {
+        "id":  50,
+        "prestationId":  43,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  17,
+        "quantiteParUnite":  5
+    },
+    {
+        "id":  51,
+        "prestationId":  44,
+        "materiauId":  23,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  52,
+        "prestationId":  44,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  17,
+        "quantiteParUnite":  3
+    },
+    {
+        "id":  53,
+        "prestationId":  45,
+        "materiauId":  24,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  54,
+        "prestationId":  45,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  18,
+        "quantiteParUnite":  2
+    },
+    {
+        "id":  55,
+        "prestationId":  47,
+        "materiauId":  25,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  56,
+        "prestationId":  47,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  18,
+        "quantiteParUnite":  4
+    },
+    {
+        "id":  57,
+        "prestationId":  50,
+        "materiauId":  10,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  58,
+        "prestationId":  50,
+        "materiauId":  27,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  5
+    },
+    {
+        "id":  59,
+        "prestationId":  50,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  20,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  60,
+        "prestationId":  51,
+        "materiauId":  11,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  61,
+        "prestationId":  51,
+        "materiauId":  27,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  4
+    },
+    {
+        "id":  62,
+        "prestationId":  51,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  20,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  63,
+        "prestationId":  53,
+        "materiauId":  12,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  64,
+        "prestationId":  53,
+        "materiauId":  29,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  6
+    },
+    {
+        "id":  65,
+        "prestationId":  53,
+        "materiauId":  27,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  30
+    },
+    {
+        "id":  66,
+        "prestationId":  53,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  19,
+        "quantiteParUnite":  8
+    },
+    {
+        "id":  67,
+        "prestationId":  1,
+        "materiauId":  30,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.67
+    },
+    {
+        "id":  68,
+        "prestationId":  1,
+        "materiauId":  31,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.33
+    },
+    {
+        "id":  69,
+        "prestationId":  1,
+        "materiauId":  32,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.33
+    },
+    {
+        "id":  70,
+        "prestationId":  1,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  8,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  71,
+        "prestationId":  22,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  21,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  72,
+        "prestationId":  31,
+        "materiauId":  33,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.6
+    },
+    {
+        "id":  73,
+        "prestationId":  31,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  22,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  74,
+        "prestationId":  27,
+        "materiauId":  38,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  75,
+        "prestationId":  27,
+        "materiauId":  33,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  3
+    },
+    {
+        "id":  76,
+        "prestationId":  27,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  21,
+        "quantiteParUnite":  4
+    },
+    {
+        "id":  77,
+        "prestationId":  18,
+        "materiauId":  16,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  78,
+        "prestationId":  18,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  23,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  79,
+        "prestationId":  19,
+        "materiauId":  17,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  80,
+        "prestationId":  19,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  24,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  81,
+        "prestationId":  38,
+        "materiauId":  39,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.05
+    },
+    {
+        "id":  82,
+        "prestationId":  38,
+        "materiauId":  30,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.34
+    },
+    {
+        "id":  83,
+        "prestationId":  38,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  9,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  84,
+        "prestationId":  67,
+        "materiauId":  18,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.08
+    },
+    {
+        "id":  85,
+        "prestationId":  67,
+        "materiauId":  43,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.02
+    },
+    {
+        "id":  86,
+        "prestationId":  67,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  10,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  87,
+        "prestationId":  68,
+        "materiauId":  41,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.1
+    },
+    {
+        "id":  88,
+        "prestationId":  68,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  26,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  89,
+        "prestationId":  70,
+        "materiauId":  42,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  1.05
+    },
+    {
+        "id":  90,
+        "prestationId":  70,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  27,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  91,
+        "prestationId":  84,
+        "materiauId":  22,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.2
+    },
+    {
+        "id":  92,
+        "prestationId":  84,
+        "materiauId":  4,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.03
+    },
+    {
+        "id":  93,
+        "prestationId":  84,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  28,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  94,
+        "prestationId":  85,
+        "materiauId":  22,
+        "serviceMainOeuvreId":  null,
+        "quantiteParUnite":  0.2
+    },
+    {
+        "id":  95,
+        "prestationId":  85,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  28,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  96,
+        "prestationId":  80,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  29,
+        "quantiteParUnite":  1
+    },
+    {
+        "id":  97,
+        "prestationId":  79,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  29,
+        "quantiteParUnite":  1.5
+    },
+    {
+        "id":  98,
+        "prestationId":  81,
+        "materiauId":  null,
+        "serviceMainOeuvreId":  30,
+        "quantiteParUnite":  1
+    }
+]

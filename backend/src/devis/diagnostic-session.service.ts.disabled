@@ -1,0 +1,215 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class DiagnosticSessionService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Crée une nouvelle session diagnostique
+   */
+  async createSession(
+    companyId: number,
+    clientId: number,
+    categorieId?: number,
+    sousCategorieId?: number,
+  ) {
+    return this.prisma.questionDiagnosticSession.create({
+      data: {
+        companyId,
+        clientId,
+        categorieId,
+        sousCategorieId,
+        statut: 'EN_COURS',
+      },
+    });
+  }
+
+  /**
+   * Récupère les questions à poser pour une catégorie/sous-catégorie
+   */
+  async getQuestionsForCategory(
+    companyId: number,
+    categorieId?: number,
+    sousCategorieId?: number,
+  ) {
+    const where: any = { companyId, actif: true };
+    if (categorieId) where.categorieId = categorieId;
+    if (sousCategorieId) where.sousCategorieId = sousCategorieId;
+
+    return this.prisma.questionDiagnostic.findMany({
+      where,
+      orderBy: { ordre: 'asc' },
+      include: {
+        reponses: true,
+      },
+    });
+  }
+
+  /**
+   * Enregistre une réponse à une question diagnostique
+   */
+  async answerQuestion(
+    sessionId: number,
+    questionId: number,
+    contenu: string,
+  ) {
+    return this.prisma.reponseDiagnostic.create({
+      data: {
+        sessionDiagId: sessionId,
+        questionId,
+        contenu,
+      },
+    });
+  }
+
+  /**
+   * Récupère les infos requises à remplir pour une catégorie
+   */
+  async getInfosForCategory(
+    companyId: number,
+    categorieId?: number,
+    sousCategorieId?: number,
+  ) {
+    // Récupérer les prestations de la catégorie
+    const prestations = await this.prisma.prestation.findMany({
+      where: {
+        companyId,
+        ...(categorieId && { categorieId }),
+        ...(sousCategorieId && { sousCategorieId }),
+      },
+      include: {
+        infosRequises: {
+          orderBy: { ordre: 'asc' },
+        },
+      },
+    });
+
+    // Fusionner toutes les infos requises
+    const allInfos = new Map();
+    prestations.forEach((p: any) => {
+      p.infosRequises.forEach((info: any) => {
+        if (!allInfos.has(info.id)) {
+          allInfos.set(info.id, { ...info, prestationNom: p.nom });
+        }
+      });
+    });
+
+    return Array.from(allInfos.values());
+  }
+
+  /**
+   * Enregistre une valeur pour une info requise
+   */
+  async fillInfoRequise(sessionId: number, infoRequiseId: number, valeur: string, unite?: string) {
+    return this.prisma.valeurInfoRequise.upsert({
+      where: {
+        sessionDiagId_infoRequiseId: { sessionDiagId: sessionId, infoRequiseId },
+      },
+      create: {
+        sessionDiagId: sessionId,
+        infoRequiseId,
+        valeur,
+        unite,
+      },
+      update: {
+        valeur,
+        unite,
+      },
+    });
+  }
+
+  /**
+   * Récupère les options disponibles pour une catégorie
+   */
+  async getOptionsForCategory(
+    companyId: number,
+    categorieId?: number,
+    sousCategorieId?: number,
+  ) {
+    // Récupérer les prestations
+    const prestations = await this.prisma.prestation.findMany({
+      where: {
+        companyId,
+        ...(categorieId && { categorieId }),
+        ...(sousCategorieId && { sousCategorieId }),
+      },
+      include: {
+        options: {
+          orderBy: { ordre: 'asc' },
+          include: {
+            choix: {
+              orderBy: { ordre: 'asc' },
+              where: { actif: true },
+            },
+          },
+        },
+      },
+    });
+
+    return prestations.map((p: any) => ({
+      prestationId: p.id,
+      prestationNom: p.nom,
+      options: p.options,
+    }));
+  }
+
+  /**
+   * Sélectionne une option/choix
+   */
+  async selectOption(
+    sessionId: number,
+    optionPrestationId: number,
+    choixOptionId: number,
+  ) {
+    return this.prisma.selectionOptionDevis.upsert({
+      where: {
+        sessionDiagId_optionPrestationId: { sessionDiagId: sessionId, optionPrestationId },
+      },
+      create: {
+        sessionDiagId: sessionId,
+        optionPrestationId,
+        choixOptionId,
+      },
+      update: {
+        choixOptionId,
+      },
+    });
+  }
+
+  /**
+   * Récupère la session complète avec toutes les données
+   */
+  async getSessionComplete(sessionId: number) {
+    return this.prisma.questionDiagnosticSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        client: true,
+        categorie: true,
+        sousCategorie: true,
+        reponses: {
+          include: { question: true },
+        },
+        valeursInfos: {
+          include: { infoRequise: true },
+        },
+        selectionsOptions: {
+          include: {
+            optionPrestation: true,
+            choixOption: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Complète la session (prête pour génération de devis)
+   */
+  async completeSession(sessionId: number) {
+    return this.prisma.questionDiagnosticSession.update({
+      where: { id: sessionId },
+      data: { statut: 'COMPLETEE' },
+    });
+  }
+}

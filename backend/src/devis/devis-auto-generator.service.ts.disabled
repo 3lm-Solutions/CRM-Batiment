@@ -1,0 +1,225 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { PriceCalculatorService } from './price-calculator.service';
+
+interface GenerateDevisFromSessionDTO {
+  sessionDiagId: number;
+  clientId: number;
+  companyId: number;
+  notes?: string;
+}
+
+@Injectable()
+export class DevisAutoGeneratorService {
+  constructor(
+    private prisma: PrismaService,
+    private priceCalculator: PriceCalculatorService,
+  ) {}
+
+  /**
+   * Génère automatiquement un devis à partir d'une session diagnostique
+   * Étapes:
+   * 1. Récupérer la session diagnostique complète
+   * 2. Pour chaque prestation identifiée, calculer le prix avec options
+   * 3. Générer les lignes de devis
+   * 4. Créer le devis avec tous les totaux
+   * 5. Lier à la session
+   */
+  async generateDevisFromSession(
+    dto: GenerateDevisFromSessionDTO,
+  ): Promise<{ devisId: number; reference: string; totalTTC: number }> {
+    const { sessionDiagId, clientId, companyId, notes } = dto;
+
+    // 1. Récupérer la session complète
+    const session = await this.prisma.questionDiagnosticSession.findUnique({
+      where: { id: sessionDiagId },
+      include: {
+        reponses: {
+          include: {
+            question: true,
+          },
+        },
+        selectionsOptions: {
+          include: {
+            optionPrestation: true,
+            choixOption: true,
+          },
+        },
+        valeursInfos: {
+          include: {
+            infoRequise: true,
+          },
+        },
+      },
+    });
+
+    if (!session) throw new Error(`Session diagnostique ${sessionDiagId} non trouvée`);
+
+    // 2. Déterminer la prestation principale
+    // (Peut être basée sur une catégorie ou une détection intelligente)
+    const prestationId = session.categorieId; // À adapter selon logique métier
+    if (!prestationId) throw new Error('Aucune prestation identifiée dans la session');
+
+    // 3. Récupérer la prestation
+    const prestation = await this.prisma.prestation.findUnique({
+      where: { id: prestationId },
+    });
+
+    if (!prestation) throw new Error(`Prestation ${prestationId} non trouvée`);
+
+    // 4. Préparer les sélections pour le calcul de prix
+    const selections = {
+      optionsChoisies: session.selectionsOptions.map((s: any) => ({
+        optionId: s.optionPrestationId,
+        choixOptionId: s.choixOptionId,
+      })),
+      infosValues: Object.fromEntries(
+        session.valeursInfos.map((v: any) => [v.infoRequise.nom, v.valeur]),
+      ),
+      quantite: this.extractQuantiteFromSession(session),
+    };
+
+    // 5. Calculer le prix
+    const ligne = await this.priceCalculator.calculatePrestationPrice(
+      prestationId,
+      selections,
+      companyId,
+    );
+
+    // 6. Calculer les totaux
+    const totals = this.priceCalculator.calculateTotalDevis(
+      [
+        {
+          quantite: ligne.quantite,
+          prixUnitaireVente: ligne.prixUnitaireVente,
+          prixAchat: ligne.prixAchat,
+          mainOeuvre: ligne.mainOeuvre,
+        },
+      ],
+      20,
+    );
+
+    // 7. Générer la référence du devis
+    const reference = await this.generateDevisReference(companyId);
+
+    // 8. Créer le devis
+    const devis = await this.prisma.devis.create({
+      data: {
+        companyId,
+        clientId,
+        sessionDiagId,
+        reference,
+        statut: 'BROUILLON',
+        totalHT: totals.totalHT,
+        totalTVA: totals.totalTVA,
+        totalTTC: totals.totalTTC,
+        coutTotal: totals.coutTotal,
+        profit: totals.profit,
+        margePourcent: totals.margePourcent,
+        tauxTVA: 20,
+        notes,
+        lignes: {
+          create: [
+            {
+              prestationId,
+              description: ligne.description,
+              quantite: ligne.quantite,
+              unite: ligne.unite,
+              prixUnitaireVente: ligne.prixUnitaireVente,
+              prixAchat: ligne.prixAchat,
+              mainOeuvre: ligne.mainOeuvre,
+              totalHT: totals.totalHT,
+              coutTotal: totals.coutTotal,
+            },
+          ],
+        },
+      },
+      include: {
+        lignes: true,
+      },
+    });
+
+    // 9. Marquer la session comme DEVIS_GENERE
+    await this.prisma.questionDiagnosticSession.update({
+      where: { id: sessionDiagId },
+      data: { statut: 'DEVIS_GENERE' },
+    });
+
+    return {
+      devisId: devis.id,
+      reference: devis.reference,
+      totalTTC: devis.totalTTC,
+    };
+  }
+
+  /**
+   * Extrait la quantité depuis la session
+   * Peut chercher dans les infos requises (ex: "Surface" = quantité)
+   */
+  private extractQuantiteFromSession(session: any): number {
+    // Logique simple : chercher une valeur surface/m² dans les infos
+    const surfaceInfo = session.valeursInfos.find((v: any) =>
+      v.infoRequise.nom.toLowerCase().includes('surface'),
+    );
+
+    if (surfaceInfo) {
+      const value = parseFloat(surfaceInfo.valeur);
+      return isNaN(value) ? 1 : value;
+    }
+
+    return 1; // Par défaut 1 unité
+  }
+
+  /**
+   * Génère une référence unique pour un devis
+   */
+  private async generateDevisReference(companyId: number): Promise<string> {
+    const count = await this.prisma.devis.count({
+      where: { companyId },
+    });
+
+    const year = new Date().getFullYear();
+    const num = String(count + 1).padStart(4, '0');
+    return `DEV-${year}-${num}`;
+  }
+
+  /**
+   * Récupère un devis généralisé avec toutes les infos
+   */
+  async getDevisComplet(devisId: number) {
+    return this.prisma.devis.findUnique({
+      where: { id: devisId },
+      include: {
+        client: true,
+        lignes: {
+          include: {
+            prestation: {
+              include: {
+                options: {
+                  include: {
+                    choix: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        sessionDiag: {
+          include: {
+            selectionsOptions: {
+              include: {
+                optionPrestation: true,
+                choixOption: true,
+              },
+            },
+            valeursInfos: {
+              include: {
+                infoRequise: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+}

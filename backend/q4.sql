@@ -1,0 +1,1 @@
+SELECT id, nom, unite, "prixVenteMin" as prix_min, "prixVenteMax" as prix_max, "categorieId" FROM prestations ORDER BY "categorieId", id;
