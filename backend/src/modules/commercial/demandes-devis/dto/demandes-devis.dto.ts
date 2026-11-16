@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -10,7 +11,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { PaginationQueryDto, ToStringArray, Trim } from '../../../../common';
+import { PaginationQueryDto, ToBoolean, ToStringArray, Trim } from '../../../../common';
 import { DemandeStatut, LeadSource } from '../../../../generated/prisma/client';
 
 export class CreateDemandeDevisDto {
@@ -77,4 +78,20 @@ export class QueryDemandesDevisDto extends PaginationQueryDto {
   @IsInt()
   @Min(1)
   clientId?: number;
+
+  /** 16/11 (mobile): only the requests I created */
+  @ApiPropertyOptional({ description: 'Seulement mes prospects (demandes que j’ai créées)' })
+  @IsOptional()
+  @ToBoolean()
+  @IsBoolean()
+  mesProspects?: boolean;
+}
+
+/** 16/11 (mobile): photo or voice note attached to a request (multipart, field « fichier »). */
+export class AjouterFichierDemandeDto {
+  @ApiPropertyOptional({ description: 'Durée de l’enregistrement (secondes), envoyée par l’app' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  dureeSecondes?: number;
 }

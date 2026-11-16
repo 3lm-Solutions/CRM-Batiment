@@ -135,6 +135,17 @@ export class StorageService implements OnModuleInit {
         return 'image/webp';
       case 'pdf':
         return 'application/pdf';
+      // 16/11: prospect voice notes (mobile)
+      case 'webm':
+        return 'audio/webm';
+      case 'ogg':
+        return 'audio/ogg';
+      case 'm4a':
+        return 'audio/mp4';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
       default:
         return 'application/octet-stream';
     }

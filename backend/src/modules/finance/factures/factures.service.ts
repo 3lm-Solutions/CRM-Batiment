@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   type AuthUser,
@@ -8,11 +8,13 @@ import {
   ReferenceService,
   toSkipTake,
 } from '../../../common';
+import { toDates } from '../../../common/dates/to-dates';
 import { FactureStatut, FactureType, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { MailService } from '../../core/mail/mail.service';
 import { factureMail } from '../../core/mail/templates/finance.templates';
+import { construirePdf, pdfDate, pdfMontant } from '../../core/pdf/pdf-document';
 import {
   AnnulerFactureDto,
   CreateSituationDto,
@@ -326,7 +328,7 @@ export class FacturesService {
 
   async update(user: AuthUser, id: number, dto: UpdateFactureDto) {
     await this.getDraft(user, id);
-    await this.prisma.facture.update({ where: { id }, data: dto });
+    await this.prisma.facture.update({ where: { id }, data: toDates(dto, ['dateEcheance']) });
     return this.findOne(user, id);
   }
 
@@ -410,6 +412,7 @@ export class FacturesService {
         montantTTC: facture.montantTTC.toNumber(),
         dateEcheance: facture.dateEcheance,
       }),
+      await this.pieceJointe(facture), // 16/11: the invoice PDF is attached
     );
     // Shown on the invoice (« Envoyée le … à … »): was never recorded before 20/10 (bug B1)
     if (sent) {
@@ -419,6 +422,118 @@ export class FacturesService {
       });
     }
     return sent;
+  }
+
+  // ── PDF (16/11, mobile lot B1) ──────────────────────────────────────────
+
+  /** GET /factures/:id/pdf — a draft is marked « BROUILLON » (no legal number yet). */
+  async telechargerPdf(user: AuthUser, id: number): Promise<StreamableFile> {
+    const facture = await this.completerBrouillon(await this.findOne(user, id));
+    const pdf = await this.genererPdf(facture);
+    const nom = facture.reference ?? `brouillon-${facture.id}`;
+    return new StreamableFile(pdf, {
+      type: 'application/pdf',
+      length: pdf.length,
+      disposition: `inline; filename="${encodeURIComponent(nom)}.pdf"`,
+    });
+  }
+
+  /**
+   * A draft has no legal snapshot yet (company and client are copied when it is issued):
+   * its PDF shows the current company and client, the issued invoice keeps its snapshot.
+   */
+  private async completerBrouillon(f: Awaited<ReturnType<FacturesService['findOne']>>) {
+    if (f.reference) return f;
+    const devis = await this.prisma.devis.findUniqueOrThrow({
+      where: { id: f.devisId },
+      select: { client: true, company: true },
+    });
+    const { client, company } = devis;
+    const pro = client.typeClient === 'PROFESSIONNEL';
+    return {
+      ...f,
+      nomClient: f.nomClient ?? client.nom,
+      prenomClient: f.prenomClient ?? client.prenom,
+      adresseClient: f.adresseClient ?? client.adresseClient ?? client.adresseChantier,
+      clientSiret: f.clientSiret ?? (pro ? client.siret : null),
+      clientTvaIntracom: f.clientTvaIntracom ?? (pro ? client.tvaIntracom : null),
+      companyNom: f.companyNom ?? company.nom,
+      companyEmail: f.companyEmail ?? company.email,
+      companyTelephone: f.companyTelephone ?? company.telephone,
+      companyAdresse: f.companyAdresse ?? company.adresse,
+      companySiret: f.companySiret ?? company.siret,
+    };
+  }
+
+  private async pieceJointe(facture: Awaited<ReturnType<FacturesService['findOne']>>) {
+    try {
+      return [
+        {
+          filename: `${facture.reference ?? `facture-${facture.id}`}.pdf`,
+          content: await this.genererPdf(facture),
+          contentType: 'application/pdf',
+        },
+      ];
+    } catch {
+      return undefined; // the email still leaves without the attachment
+    }
+  }
+
+  private genererPdf(f: Awaited<ReturnType<FacturesService['findOne']>>): Promise<Buffer> {
+    const quantite = (q: { toNumber(): number }) =>
+      q.toNumber().toLocaleString('fr-FR', { maximumFractionDigits: 3 }).replace(/\s/g, ' ');
+    return construirePdf({
+      titre: TYPE_LABEL[f.typeFacture],
+      reference: f.reference ?? 'BROUILLON',
+      infos: [
+        { label: 'Date', valeur: pdfDate(f.dateEmission ?? f.date) },
+        ...(f.dateEcheance ? [{ label: 'Échéance', valeur: pdfDate(f.dateEcheance) }] : []),
+        ...(f.referenceDevis ? [{ label: 'Devis', valeur: f.referenceDevis }] : []),
+        ...(f.numeroSituation
+          ? [{ label: 'Situation n°', valeur: String(f.numeroSituation) }]
+          : []),
+      ],
+      emetteur: {
+        nom: f.companyNom ?? '',
+        lignes: [
+          f.companyAdresse,
+          f.companyTelephone,
+          f.companyEmail,
+          f.companySiret ? `SIRET ${f.companySiret}` : null,
+        ],
+      },
+      destinataire: {
+        nom: [f.prenomClient, f.nomClient].filter(Boolean).join(' ') || 'Client',
+        lignes: [
+          f.adresseClient,
+          f.clientSiret ? `SIRET ${f.clientSiret}` : null,
+          f.clientTvaIntracom ? `TVA ${f.clientTvaIntracom}` : null,
+        ],
+      },
+      lignes: f.lignes.map((l) => ({
+        description: l.description,
+        quantite: quantite(l.quantite),
+        unite: l.unite.toLowerCase(),
+        prixUnitaire: pdfMontant(l.prixUnitaireHT),
+        total: pdfMontant(l.montantHT),
+      })),
+      totaux: [
+        { label: 'Total HT', valeur: pdfMontant(f.montantHT) },
+        {
+          label: `TVA ${f.tauxTVA.toNumber().toLocaleString('fr-FR')} %`,
+          valeur: pdfMontant(f.montantTVA),
+        },
+        { label: 'Total TTC', valeur: pdfMontant(f.montantTTC), gras: true },
+      ],
+      mentions: [
+        f.conditionsPaiement,
+        f.companyIban
+          ? `Règlement par virement : IBAN ${f.companyIban}${f.companyBic ? ` - BIC ${f.companyBic}` : ''}`
+          : null,
+        f.communicationPaiement ? `Communication : ${f.communicationPaiement}` : null,
+        f.notesLegales,
+      ].filter((m): m is string => !!m),
+    });
   }
 
   async marquerPayee(user: AuthUser, id: number, dto: PayerFactureDto) {

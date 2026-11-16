@@ -1,0 +1,1498 @@
+BÂTIFLOW — TOUT CE QUE L'APPLICATION PEUT FAIRE
+==============================================
+
+
+Pour chaque action :
+- la première ligne est l'adresse utilisée par les développeurs ;
+- la phrase dessous dit ce que fait l'action ;
+- « Qui » : les personnes qui ont le droit de le faire ;
+- « Où » : sur le site web, sur le mobile, ou les deux.
+
+Les personnes :
+- Admin : le responsable de l'entreprise, il a accès à tout
+- Commercial : clients, demandes, visites et devis
+- Assistante : clients, devis, factures et chantiers
+- Chef de chantier : ses chantiers et ses tâches, sans les prix
+- Sous-traitant : ses chantiers, ses tâches, ses heures
+- Fournisseur : ses commandes
+- Client : son devis et son espace en ligne, sans compte
+
+
+1. SE CONNECTER ET MON COMPTE
+-----------------------------
+
+POST /auth/login
+   Se connecter avec son email et son mot de passe.
+   Qui : Tout le monde, sans compte   |   Où : Web et mobile
+
+POST /auth/refresh
+   Rester connecté sur le téléphone sans retaper le mot de passe.
+   Qui : Tout le monde (sur son téléphone)   |   Où : Mobile
+
+POST /auth/logout
+   Se déconnecter du téléphone.
+   Qui : Tout le monde (sur son téléphone)   |   Où : Mobile
+
+POST /auth/change-password
+   Changer son mot de passe.
+   Qui : Tout le monde (connecté)   |   Où : Web et mobile
+
+POST /auth/forgot-password
+   Mot de passe oublié : recevoir un code par email.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /auth/verify-reset-code
+   Vérifier le code reçu par email.
+   Qui : Tout le monde, sans compte   |   Où : Prêt, pas encore dans un écran
+
+POST /auth/reset-password
+   Choisir un nouveau mot de passe avec le code reçu.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /auth/me
+   Voir mon profil.
+   Qui : Tout le monde (connecté)   |   Où : Web et mobile
+
+PATCH /auth/me
+   Modifier mon profil.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+GET /auth/me/signature
+   Voir ma signature.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+PUT /auth/me/signature
+   Enregistrer ma signature (elle sera mise sur les devis).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+DELETE /auth/me/signature
+   Supprimer ma signature.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /mobile/appareils
+   Enregistrer le téléphone pour recevoir les notifications.
+   Qui : Tout le monde (connecté)   |   Où : Mobile
+
+GET /mobile/appareils
+   Voir mes téléphones enregistrés.
+   Qui : Tout le monde (connecté)   |   Où : Mobile
+
+DELETE /mobile/appareils/:jeton
+   Ne plus recevoir de notifications sur ce téléphone.
+   Qui : Tout le monde (connecté)   |   Où : Mobile
+
+
+2. COMPTES ET ENTREPRISE
+------------------------
+
+GET /company
+   Voir les coordonnées de l'entreprise.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+PATCH /company
+   Modifier les coordonnées de l'entreprise.
+   Qui : Admin   |   Où : Web
+
+GET /company/settings
+   Voir les réglages : TVA, acompte, marge, mode d'installation.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+PATCH /company/settings
+   Modifier les réglages : prix, TVA, acompte, et mode d'installation (Pose / Régie / Les deux).
+   Qui : Admin   |   Où : Web
+
+GET /users
+   Voir la liste des comptes.
+   Qui : Admin   |   Où : Web
+
+GET /users/options
+   Liste des personnes à choisir dans un menu (ex. choisir un chef de chantier).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /users/:id
+   Voir un compte.
+   Qui : Admin   |   Où : Web et mobile
+
+POST /users
+   Créer un compte pour un collaborateur.
+   Qui : Admin   |   Où : Web
+
+PATCH /users/:id
+   Modifier un compte.
+   Qui : Admin   |   Où : Web
+
+POST /users/:id/deactivate
+   Désactiver un compte (la personne ne peut plus se connecter).
+   Qui : Admin   |   Où : Web
+
+POST /users/:id/activate
+   Réactiver un compte.
+   Qui : Admin   |   Où : Web
+
+POST /users/:id/reset-password
+   Donner un nouveau mot de passe provisoire à quelqu'un.
+   Qui : Admin   |   Où : Web
+
+DELETE /users/:id
+   Supprimer un compte.
+   Qui : Admin   |   Où : Web
+
+
+3. ESPACE CLIENT EN LIGNE
+-------------------------
+
+POST /clients/:clientId/espace/lien
+   Envoyer au client le lien de son espace en ligne.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/liens
+   Voir les liens d'espace déjà envoyés.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/apercu
+   Voir l'espace du client comme lui le voit.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/apercu/devis/:id
+   Voir un devis comme le client le voit.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/apercu/factures/:id
+   Voir une facture comme le client la voit.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/apercu/photos/:fichierId
+   Voir une photo SAV du client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /clients/:clientId/espace/apercu/avancement/:photoId
+   Voir une photo du chantier comme le client la voit.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+DELETE /clients/:clientId/espace/liens
+   Couper l'accès du client à son espace.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /public/espace-client/:token
+   Le client ouvre son espace en ligne (sans compte).
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /public/espace-client/:token/devis/:id
+   Le client voit un devis.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /public/espace-client/:token/factures/:id
+   Le client voit une facture.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/espace-client/:token/sav
+   Le client signale un souci après les travaux (avec photos).
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /public/espace-client/:token/avancement/:photoId
+   Le client voit une photo de son chantier.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/espace-client/:token/retours
+   Le client laisse un commentaire pendant les travaux.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /public/espace-client/:token/photos/:fichierId
+   Le client voit une photo de sa demande SAV.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/espace-client/:token/sav/:id/messages
+   Le client répond à l'équipe.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+
+4. CLIENTS
+----------
+
+GET /clients
+   Voir la liste des clients.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+GET /clients/doublons
+   Vérifier si un client existe déjà (même téléphone ou même email).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /clients/:id
+   Voir la fiche d'un client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+POST /clients
+   Créer un client (le mobile peut demander de vérifier d'abord s'il existe déjà).
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+PATCH /clients/:id
+   Modifier un client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+POST /clients/:id/archive
+   Ranger un client dans les archives.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /clients/:id/unarchive
+   Sortir un client des archives.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+DELETE /clients/:id
+   Supprimer un client.
+   Qui : Admin   |   Où : Web
+
+GET /types-projet
+   Voir les types de projet.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /types-projet/:id
+   Voir un type de projet.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /types-projet
+   Créer un type de projet.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+PATCH /types-projet/:id
+   Modifier un type de projet.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+DELETE /types-projet/:id
+   Supprimer un type de projet.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+
+5. DEMANDES DE DEVIS ET PROSPECTS TERRAIN
+-----------------------------------------
+
+GET /demandes-devis
+   Voir la liste des demandes de devis (on peut filtrer, ou ne voir que les siennes).
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /demandes-devis/:id
+   Voir une demande de devis avec ses devis, photos et notes vocales.
+   Qui : Admin, Commercial, Assistante   |   Où : Prêt, pas encore dans un écran
+
+POST /demandes-devis
+   Enregistrer une nouvelle demande de devis d'un client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+PATCH /demandes-devis/:id
+   Modifier une demande de devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /demandes-devis/:id/prendre-en-charge
+   Je m'occupe de cette demande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /demandes-devis/:id/qualifier
+   La demande est prête à être chiffrée.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /demandes-devis/:id/perdre
+   Le client ne donne pas suite.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /demandes-devis/:id/reouvrir
+   Reprendre une demande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /demandes-devis/:id/convertir-en-devis
+   Créer le devis à partir de la demande.
+   Qui : Admin, Commercial   |   Où : Web
+
+DELETE /demandes-devis/:id
+   Supprimer une demande de devis.
+   Qui : Admin, Commercial   |   Où : Web
+
+POST /demandes-devis/:id/fichiers
+   Ajouter une photo, un PDF ou un message vocal à une demande.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+DELETE /demandes-devis/:id/fichiers/:pieceId
+   Retirer une photo ou un message vocal d'une demande.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /prospects-terrain
+   Envoyer un prospect rencontré sur un chantier (les commerciaux sont prévenus).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /prospects-terrain
+   Voir mes prospects envoyés et où ils en sont.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /prospects-terrain/:id
+   Voir un de mes prospects envoyés.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /prospects-terrain/:id/fichiers
+   Ajouter une photo ou un message vocal à mon prospect.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+DELETE /prospects-terrain/:id/fichiers/:pieceId
+   Retirer une photo ou un message vocal de mon prospect.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+
+6. VISITES PROGRAMMÉES
+----------------------
+
+GET /visites
+   Voir les visites programmées (le commercial voit les siennes).
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+GET /visites/:id
+   Voir une visite.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /visites
+   Programmer une visite chez un client (rappel la veille au soir).
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+PATCH /visites/:id
+   Déplacer ou modifier une visite.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /visites/:id/faite
+   Indiquer que la visite est faite (avec un compte rendu).
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /visites/:id/annuler
+   Annuler une visite.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+
+7. DEVIS
+--------
+
+POST /devis/:devisId/lignes
+   Ajouter une ligne au devis (une prestation du catalogue ou une ligne écrite à la main).
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+PUT /devis/:devisId/lignes/ordre
+   Changer l'ordre des lignes du devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+PATCH /devis/:devisId/lignes/:ligneId
+   Modifier une ligne du devis (quantité, prix, texte).
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+DELETE /devis/:devisId/lignes/:ligneId
+   Supprimer une ligne du devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+GET /devis
+   Voir la liste des devis. Le chef de chantier voit seulement ceux de ses chantiers, sans les prix.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /devis/verifier-qr
+   Scanner le QR code d'un devis imprimé pour savoir s'il est vrai et à jour.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+GET /devis/:id
+   Voir un devis en détail. Le bureau voit les coûts et la marge ; le chef voit seulement les travaux.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /devis/:id/pdf
+   Télécharger le devis en PDF.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+GET /devis/:id/versions
+   Voir les anciennes versions d'un devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis
+   Créer un nouveau devis pour un client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+PATCH /devis/:id
+   Modifier la TVA ou les notes d'un devis pas encore envoyé.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+POST /devis/:id/dupliquer
+   Copier un devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+DELETE /devis/:id
+   Supprimer un devis jamais envoyé ou annulé.
+   Qui : Admin   |   Où : Web
+
+POST /devis/:id/envoyer
+   Envoyer le devis au client par email (avec le PDF et un lien pour répondre).
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/renvoyer-lien
+   Renvoyer le lien du devis au client.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/reviser
+   Faire une nouvelle version du devis quand le client veut des changements.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/annuler
+   Annuler le devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/demander-signature
+   Envoyer au client le lien pour signer en ligne.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/signer-conseiller
+   Le conseiller signe le devis. Si le client a dit oui par téléphone, le devis est signé tout de suite.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/brouillon-chef
+   Le chef de chantier commence un devis (pour le client d'un de ses chantiers ou un prospect qu'il a envoyé), sans voir les prix.
+   Qui : Chef de chantier   |   Où : Mobile
+
+POST /devis/:id/remettre
+   Le devis a été donné au client en main propre : il passe à « Envoyé » sans email.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /devis/:id/lien-whatsapp
+   Préparer un message WhatsApp avec le lien du devis, à envoyer depuis le téléphone.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /devis/:id/signature-papier
+   Envoyer la photo du devis signé sur papier, avec la preuve (empreinte, date, auteur, lieu). L'admin doit ensuite la vérifier.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /devis/:id/signature-papier/valider
+   L'admin accepte la photo de la signature : le devis est signé (le chantier et la facture d'acompte sont créés).
+   Qui : Admin   |   Où : Mobile
+
+POST /devis/:id/signature-papier/rejeter
+   L'admin refuse la photo de la signature et explique pourquoi.
+   Qui : Admin   |   Où : Mobile
+
+POST /devis/:id/refuser
+   Noter que le client a dit non, avec la raison.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /devis/:id/signer-sur-place
+   Le client signe directement sur le téléphone du conseiller : le devis est signé tout de suite.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+GET /public/devis/:token
+   Le client ouvre son devis depuis le lien reçu (sans compte).
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/devis/:token/accepter
+   Le client accepte le devis.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/devis/:token/refuser
+   Le client refuse le devis.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/devis/:token/code
+   Le client reçoit par email un code pour signer.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/devis/:token/code/verifier
+   Le client tape le code reçu.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/devis/:token/signer
+   Le client signe le devis en ligne.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /prix-marche
+   Voir les prix du marché des prestations et des matériaux.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /prix-marche/devis/:devisId
+   Comparer les prix d'un devis avec les prix du marché.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /prix-marche/bareme
+   Voir les informations sur la liste de prix importée.
+   Qui : Admin   |   Où : Web
+
+GET /prix-marche/bareme/modele
+   Télécharger le modèle de liste de prix à remplir.
+   Qui : Admin   |   Où : Web
+
+POST /prix-marche/bareme/import
+   Importer une liste de prix (remplace l'ancienne).
+   Qui : Admin   |   Où : Web
+
+DELETE /prix-marche/bareme
+   Effacer la liste de prix importée.
+   Qui : Admin   |   Où : Web
+
+
+8. ASSISTANT POUR FAIRE LES DEVIS
+---------------------------------
+
+POST /devis/:devisId/ia/proposer
+   L'assistant propose des lignes de devis à partir d'un texte (le chef ne voit pas les prix).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /devis/:devisId/ia/proposer-photo
+   L'assistant propose des lignes de devis à partir de photos (le chef ne voit pas les prix).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /devis/:devisId/ia/transcrire
+   Transformer un message vocal en texte.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /devis/:devisId/ia/appliquer
+   Ajouter au devis les lignes proposées par l'assistant (si c'est le chef, le bureau est prévenu).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+
+9. CATALOGUE
+------------
+
+GET /catalogue/categories
+   Voir les catégories du catalogue.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /catalogue/categories
+   Créer une catégorie.
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/categories/:id
+   Modifier une catégorie.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/categories/:id
+   Supprimer une catégorie.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+POST /catalogue/categories/:id/sous-categories
+   Créer une sous-catégorie.
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/sous-categories/:id
+   Modifier une sous-catégorie.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/sous-categories/:id
+   Supprimer une sous-catégorie.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+GET /catalogue/materiaux
+   Voir les matériaux.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /catalogue/materiaux/:id
+   Voir un matériau.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /catalogue/materiaux
+   Créer un matériau.
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/materiaux/:id
+   Modifier un matériau.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/materiaux/:id
+   Supprimer un matériau.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+POST /catalogue/prestations/:id/options
+   Ajouter une option à une prestation (ex. type de chape).
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/options/:id
+   Modifier une option.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/options/:id
+   Supprimer une option.
+   Qui : Admin   |   Où : Web
+
+POST /catalogue/options/:id/choix
+   Ajouter un choix à une option (ex. chape fibrée).
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/choix/:id
+   Modifier un choix.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/choix/:id
+   Supprimer un choix.
+   Qui : Admin   |   Où : Web
+
+PUT /catalogue/choix/:id/compositions
+   Choisir les matériaux et la main-d'œuvre d'un choix.
+   Qui : Admin   |   Où : Web
+
+GET /catalogue/tree
+   Voir tout le catalogue en une fois.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+GET /catalogue/validation
+   Vérifier qu'il ne manque rien dans le catalogue.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+GET /catalogue/prestations
+   Voir les prestations. Le chef de chantier ne voit pas les prix.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /catalogue/prestations/:id
+   Voir une prestation en détail.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /catalogue/prestations/:id/chiffrage
+   Calculer le prix d'une prestation.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+POST /catalogue/prestations
+   Créer une prestation.
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/prestations/:id
+   Modifier une prestation.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/prestations/:id
+   Supprimer une prestation.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+PUT /catalogue/prestations/:id/compositions
+   Choisir les matériaux et la main-d'œuvre d'une prestation.
+   Qui : Admin   |   Où : Web
+
+GET /catalogue/services-mo
+   Voir les types de main-d'œuvre.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /catalogue/services-mo/:id
+   Voir un type de main-d'œuvre.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /catalogue/services-mo
+   Créer un type de main-d'œuvre.
+   Qui : Admin   |   Où : Web
+
+PATCH /catalogue/services-mo/:id
+   Modifier un type de main-d'œuvre.
+   Qui : Admin   |   Où : Web
+
+DELETE /catalogue/services-mo/:id
+   Supprimer un type de main-d'œuvre.
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+
+10. FOURNISSEURS, COMMANDES ET STOCK
+------------------------------------
+
+GET /commandes-fournisseur
+   Voir les commandes aux fournisseurs. Le chef de chantier voit celles de ses chantiers, sans les prix.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /commandes-fournisseur
+   Créer une commande pour un fournisseur.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /commandes-fournisseur/:id
+   Voir une commande.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+PATCH /commandes-fournisseur/:id
+   Modifier une commande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+PUT /commandes-fournisseur/:id/lignes
+   Changer les quantités avant d'envoyer la commande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /commandes-fournisseur/:id/envoyer
+   Envoyer la commande au fournisseur par email.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /commandes-fournisseur/:id/expediee
+   Noter que la commande est partie de chez le fournisseur.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /commandes-fournisseur/:id/receptions
+   Noter la livraison reçue (le stock est mis à jour).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /commandes-fournisseur/:id/cloturer
+   Fermer la commande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /commandes-fournisseur/:id/annuler
+   Annuler la commande.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /stock
+   Voir le stock des matériaux.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /stock/mouvements
+   Voir les entrées et sorties du stock.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /stock/mouvements
+   Ajouter une entrée ou une sortie de stock.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /fournisseurs
+   Voir la liste des fournisseurs.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /fournisseurs/:id
+   Voir la fiche d'un fournisseur.
+   Qui : Admin, Commercial, Assistante   |   Où : Prêt, pas encore dans un écran
+
+POST /fournisseurs
+   Créer un fournisseur.
+   Qui : Admin   |   Où : Web
+
+PATCH /fournisseurs/:id
+   Modifier un fournisseur.
+   Qui : Admin   |   Où : Web
+
+PUT /fournisseurs/:id/materiaux
+   Choisir les matériaux vendus par ce fournisseur.
+   Qui : Admin   |   Où : Web
+
+PUT /fournisseurs/:id/compte
+   Donner un accès à l'application au fournisseur.
+   Qui : Admin   |   Où : Web
+
+DELETE /fournisseurs/:id
+   Supprimer un fournisseur.
+   Qui : Admin   |   Où : Web
+
+
+11. FACTURES
+------------
+
+GET /factures
+   Voir la liste des factures.
+   Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
+
+GET /factures/:id
+   Voir une facture.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /factures/:id/pdf
+   Télécharger la facture en PDF.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+POST /devis/:devisId/factures/situation
+   Faire une facture pour une partie des travaux.
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /devis/:devisId/factures/finale
+   Faire la dernière facture du chantier.
+   Qui : Admin, Assistante   |   Où : Web
+
+PATCH /factures/:id
+   Modifier une facture pas encore émise.
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /factures/:id/lignes
+   Ajouter une ligne à une facture pas encore émise.
+   Qui : Admin, Assistante   |   Où : Web
+
+PATCH /factures/:id/lignes/:ligneId
+   Modifier une ligne d'une facture pas encore émise.
+   Qui : Admin, Assistante   |   Où : Web
+
+DELETE /factures/:id/lignes/:ligneId
+   Supprimer une ligne d'une facture pas encore émise.
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /factures/:id/emettre
+   Émettre la facture (elle reçoit son numéro et ne change plus).
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /factures/:id/envoyer
+   Envoyer la facture au client par email.
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /factures/:id/payer
+   Noter que la facture est payée.
+   Qui : Admin, Assistante   |   Où : Web
+
+POST /factures/:id/annuler
+   Annuler une facture.
+   Qui : Admin, Assistante   |   Où : Web
+
+DELETE /factures/:id
+   Supprimer une facture pas encore émise.
+   Qui : Admin, Assistante   |   Où : Web
+
+GET /public/factures/:token
+   Le client voit sa facture depuis le lien ou le QR code.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+
+12. RAPPELS AUX CLIENTS
+-----------------------
+
+GET /relances
+   Voir les rappels envoyés pour un devis ou une facture.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /devis/:id/relancer
+   Envoyer maintenant un rappel au client pour un devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /factures/:id/relancer
+   Envoyer maintenant un rappel au client pour une facture non payée.
+   Qui : Admin, Assistante   |   Où : Web
+
+GET /relances/reglages
+   Voir les réglages des rappels automatiques.
+   Qui : Admin   |   Où : Web
+
+PATCH /relances/reglages
+   Modifier les réglages des rappels automatiques.
+   Qui : Admin   |   Où : Web
+
+POST /relances/executer
+   Envoyer maintenant les rappels automatiques.
+   Qui : Admin   |   Où : Web
+
+
+13. CHANTIERS ET TÂCHES
+-----------------------
+
+GET /chantiers
+   Voir la liste des chantiers (filtres : statut, période, équipe). Le chef de chantier voit seulement les siens.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /chantiers/:id
+   Voir un chantier en détail.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+POST /chantiers
+   Créer un chantier sans devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+PATCH /chantiers/:id
+   Modifier un chantier (dont le mode d'installation, par le bureau).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:id/demarrer
+   Démarrer le chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:id/suspendre
+   Mettre le chantier en pause.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:id/reprendre
+   Reprendre le chantier après une pause.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:id/terminer
+   Indiquer que les travaux sont finis.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:id/cloturer
+   Fermer définitivement le chantier.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /chantiers/:id/annuler
+   Annuler le chantier.
+   Qui : Admin, Assistante   |   Où : Web
+
+PUT /chantiers/:id/acces-sous-traitants
+   Choisir les sous-traitants qui peuvent voir ce chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+PUT /chantiers/:id/plan-2d
+   Enregistrer le plan 2D du chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+DELETE /chantiers/:id/plan-2d
+   Supprimer le plan 2D du chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /chantiers/:id/documents
+   Ajouter un document au chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+DELETE /chantiers/:id/documents/:documentId
+   Retirer un document du chantier.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+DELETE /chantiers/:id
+   Supprimer un chantier.
+   Qui : Admin   |   Où : Web
+
+POST /chantiers/:chantierId/taches/:tacheId/checklist
+   Ajouter une case à cocher à une tâche.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+PATCH /chantiers/:chantierId/taches/:tacheId/checklist/:itemId
+   Cocher ou décocher une case d'une tâche.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+DELETE /chantiers/:chantierId/taches/:tacheId/checklist/:itemId
+   Supprimer une case d'une tâche.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /planning
+   Voir le planning des tâches et des absences des sous-traitants.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /chantiers/:chantierId/taches
+   Voir les tâches d'un chantier.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /chantiers/:chantierId/taches
+   Créer une tâche et choisir qui la fait (les personnes choisies sont prévenues).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+PATCH /chantiers/:chantierId/taches/:tacheId
+   Modifier une tâche : avancement, dates, personnes (les nouvelles personnes sont prévenues).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+DELETE /chantiers/:chantierId/taches/:tacheId
+   Supprimer une tâche.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /chantiers/:chantierId/taches/:tacheId/commentaires
+   Lire les commentaires d'une tâche.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /chantiers/:chantierId/taches/:tacheId/commentaires
+   Écrire un commentaire sur une tâche (l'équipe de la tâche est prévenue).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /chantiers/:chantierId/photos
+   Voir les photos avant / après du chantier.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/photos
+   Le chef ou le bureau prend des photos avant / après d'une tâche.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Mobile
+
+DELETE /chantiers/:chantierId/photos/:id
+   Supprimer ma photo, juste après l'avoir envoyée (15 minutes).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /chantiers/:chantierId/photos/valider
+   Accepter des photos : le client pourra les voir.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/photos/masquer
+   Cacher des photos au client.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+GET /chantiers/:chantierId/retours
+   Voir les messages du client sur son chantier.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/retours/:id/repondre
+   Répondre au client.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/retours/:id/traiter
+   Marquer un message du client comme traité.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/retours/:id/rouvrir
+   Rouvrir un message du client.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+GET /chantiers/:chantierId/rapports
+   Voir les comptes rendus des sous-traitants sur un chantier.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /chantiers/:chantierId/rapports
+   Le chef ou le bureau écrit un compte rendu du chantier (avec photos).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Mobile
+
+DELETE /chantiers/:chantierId/rapports/:id
+   Supprimer mon compte rendu, juste après l'avoir envoyé (15 minutes).
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /rapports/:id/valider
+   Accepter un compte rendu.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /rapports/:id/rejeter
+   Renvoyer un compte rendu au sous-traitant avec un commentaire.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+
+14. SOUS-TRAITANTS
+------------------
+
+GET /pointages
+   Voir les heures déclarées par les sous-traitants.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /pointages/resume/:sousTraitantId
+   Voir le total des heures d'un sous-traitant.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /pointages/valider
+   Accepter des heures déclarées.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /pointages/:id/refuser
+   Refuser des heures déclarées.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /contrats-sous-traitance
+   Voir les contrats des sous-traitants.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Prêt, pas encore dans un écran
+
+POST /contrats-sous-traitance
+   Créer un contrat de sous-traitance.
+   Qui : Admin   |   Où : Web
+
+PATCH /contrats-sous-traitance/:id
+   Modifier un contrat de sous-traitance.
+   Qui : Admin   |   Où : Web
+
+POST /contrats-sous-traitance/:id/activer
+   Mettre le contrat en vigueur (il faut une assurance à jour).
+   Qui : Admin   |   Où : Web
+
+POST /contrats-sous-traitance/:id/terminer
+   Marquer le contrat comme terminé.
+   Qui : Admin   |   Où : Web
+
+POST /contrats-sous-traitance/:id/resilier
+   Résilier le contrat.
+   Qui : Admin   |   Où : Web
+
+DELETE /contrats-sous-traitance/:id
+   Supprimer un contrat.
+   Qui : Admin   |   Où : Web
+
+GET /sous-traitants
+   Voir la liste des sous-traitants.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+GET /sous-traitants/:id
+   Voir la fiche d'un sous-traitant.
+   Qui : Admin, Assistante, Chef de chantier   |   Où : Web
+
+POST /sous-traitants
+   Créer un sous-traitant.
+   Qui : Admin   |   Où : Web
+
+PATCH /sous-traitants/:id
+   Modifier un sous-traitant.
+   Qui : Admin   |   Où : Web
+
+PUT /sous-traitants/:id/compte
+   Donner un accès à l'application au sous-traitant.
+   Qui : Admin   |   Où : Web
+
+DELETE /sous-traitants/:id
+   Supprimer un sous-traitant.
+   Qui : Admin   |   Où : Web
+
+POST /sous-traitants/:id/assurances
+   Ajouter une assurance.
+   Qui : Admin   |   Où : Web
+
+PATCH /sous-traitants/:id/assurances/:aid
+   Modifier une assurance.
+   Qui : Admin   |   Où : Web
+
+DELETE /sous-traitants/:id/assurances/:aid
+   Supprimer une assurance.
+   Qui : Admin   |   Où : Web
+
+POST /sous-traitants/:id/paiements
+   Enregistrer un paiement au sous-traitant.
+   Qui : Admin   |   Où : Web
+
+PATCH /sous-traitants/:id/paiements/:pid
+   Corriger un paiement.
+   Qui : Admin   |   Où : Web
+
+DELETE /sous-traitants/:id/paiements/:pid
+   Supprimer un paiement.
+   Qui : Admin   |   Où : Web
+
+POST /sous-traitants/:id/disponibilites
+   Ajouter une période où le sous-traitant est disponible ou absent.
+   Qui : Admin   |   Où : Web
+
+DELETE /sous-traitants/:id/disponibilites/:did
+   Supprimer une période.
+   Qui : Admin   |   Où : Web
+
+POST /sous-traitants/:id/notations
+   Donner une note au sous-traitant.
+   Qui : Admin, Chef de chantier   |   Où : Web
+
+DELETE /sous-traitants/:id/notations/:nid
+   Supprimer une note.
+   Qui : Admin   |   Où : Web
+
+
+15. APPLICATION DU SOUS-TRAITANT
+--------------------------------
+
+GET /portail/sous-traitant/photos
+   Sous-traitant : voir mes photos.
+   Qui : Sous-traitant   |   Où : Web
+
+POST /portail/sous-traitant/photos
+   Sous-traitant : envoyer des photos avant / après.
+   Qui : Sous-traitant   |   Où : Web
+
+DELETE /portail/sous-traitant/photos/:id
+   Sous-traitant : supprimer une de mes photos.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/pointages
+   Sous-traitant : voir mes heures.
+   Qui : Sous-traitant   |   Où : Web
+
+POST /portail/sous-traitant/pointages
+   Sous-traitant : déclarer mes heures.
+   Qui : Sous-traitant   |   Où : Web
+
+DELETE /portail/sous-traitant/pointages/:id
+   Sous-traitant : supprimer des heures déclarées.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/profil
+   Sous-traitant : voir mon profil.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/tableau-de-bord
+   Sous-traitant : mon accueil.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/chantiers
+   Sous-traitant : voir mes chantiers.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/chantiers/:id
+   Sous-traitant : voir un de mes chantiers.
+   Qui : Sous-traitant   |   Où : Web
+
+PATCH /portail/sous-traitant/taches/:tacheId/checklist/:itemId
+   Sous-traitant : cocher une case d'une de mes tâches.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/taches/:tacheId/commentaires
+   Sous-traitant : lire les commentaires d'une de mes tâches.
+   Qui : Sous-traitant   |   Où : Mobile
+
+POST /portail/sous-traitant/taches/:tacheId/commentaires
+   Sous-traitant : écrire un commentaire sur une de mes tâches.
+   Qui : Sous-traitant   |   Où : Mobile
+
+PATCH /portail/sous-traitant/taches/:id
+   Sous-traitant : indiquer l'avancement d'une de mes tâches.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/disponibilites
+   Sous-traitant : voir mes disponibilités.
+   Qui : Sous-traitant   |   Où : Web
+
+POST /portail/sous-traitant/disponibilites
+   Sous-traitant : indiquer quand je suis disponible ou absent.
+   Qui : Sous-traitant   |   Où : Web
+
+DELETE /portail/sous-traitant/disponibilites/:id
+   Sous-traitant : supprimer une période.
+   Qui : Sous-traitant   |   Où : Web
+
+GET /portail/sous-traitant/rapports
+   Sous-traitant : voir mes comptes rendus.
+   Qui : Sous-traitant   |   Où : Web
+
+POST /portail/sous-traitant/rapports
+   Sous-traitant : envoyer un compte rendu avec photos.
+   Qui : Sous-traitant   |   Où : Web
+
+
+16. APPLICATION DU FOURNISSEUR
+------------------------------
+
+GET /portail/fournisseur/profil
+   Fournisseur : voir mon profil.
+   Qui : Fournisseur   |   Où : Prêt, pas encore dans un écran
+
+GET /portail/fournisseur/tableau-de-bord
+   Fournisseur : mon accueil.
+   Qui : Fournisseur   |   Où : Web
+
+GET /portail/fournisseur/commandes
+   Fournisseur : voir mes commandes.
+   Qui : Fournisseur   |   Où : Web
+
+GET /portail/fournisseur/commandes/:id
+   Fournisseur : voir une commande.
+   Qui : Fournisseur   |   Où : Web
+
+POST /portail/fournisseur/commandes/:id/accuser-reception
+   Fournisseur : confirmer la commande et la date de livraison.
+   Qui : Fournisseur   |   Où : Web
+
+POST /portail/fournisseur/commandes/:id/expediee
+   Fournisseur : indiquer que la commande est envoyée.
+   Qui : Fournisseur   |   Où : Web
+
+
+17. SAV (APRÈS-VENTE)
+---------------------
+
+GET /sav
+   Voir les demandes après-vente (SAV).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+
+GET /sav/chantiers
+   Voir les chantiers d'un client pour lesquels on peut ouvrir un SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /sav/:id
+   Voir une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav
+   Créer une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+PATCH /sav/:id
+   Modifier une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/notes
+   Ajouter une note à une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/photos
+   Ajouter des photos à une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+DELETE /sav/:id/photos/:fichierId
+   Supprimer une photo d'une demande SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/prendre-en-charge
+   SAV : je m'en occupe.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/attente-client
+   SAV : on attend le client.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/resoudre
+   SAV : c'est réglé.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/rouvrir
+   SAV : rouvrir.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+POST /sav/:id/cloturer
+   SAV : fermer.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+
+18. TABLEAUX DE BORD
+--------------------
+
+GET /dashboard
+   Tableau de bord du patron : devis, chiffre d'affaires, factures impayées, retards, SAV, stock.
+   Qui : Admin   |   Où : Web et mobile
+
+GET /dashboard/chef
+   Accueil du chef de chantier : chantiers du jour, tâches en retard, livraisons, SAV.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /dashboard/commercial
+   Accueil du commercial : demandes, devis en cours, devis à relancer, visites à venir, chiffre d'affaires du mois.
+   Qui : Admin, Commercial, Assistante   |   Où : Mobile
+
+
+19. NOTIFICATIONS
+-----------------
+
+GET /notifications
+   Voir mes notifications.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+GET /notifications/compteur
+   Nombre de notifications non lues.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+POST /notifications/tout-lire
+   Marquer toutes les notifications comme lues.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+POST /notifications/:id/lue
+   Marquer une notification comme lue.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+
+20. HISTORIQUE
+--------------
+
+GET /audit
+   Voir l'historique des actions importantes.
+   Qui : Admin   |   Où : Web
+
+GET /audit/:entite/:entiteId
+   Voir l'historique d'un devis, d'une facture…
+   Qui : Admin   |   Où : Prêt, pas encore dans un écran
+
+
+21. ASSISTANT DU SITE ET PERSONNES INTÉRESSÉES
+----------------------------------------------
+
+POST /public/assistant/sessions
+   Chat du site : commencer une discussion.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /public/assistant/sessions/:id
+   Chat du site : revoir la discussion.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/assistant/sessions/:id/messages
+   Chat du site : envoyer un message.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/assistant/sessions/:id/coordonnees
+   Chat du site : laisser ses coordonnées pour un devis.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/assistant/sessions/:id/feedback
+   Chat du site : donner son avis sur la réponse.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /assistant/prospects
+   Voir les personnes intéressées venues du chat ou des emails.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /assistant/prospects/statistiques
+   Voir les chiffres des personnes intéressées.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /assistant/prospects/emails/statut
+   Voir l'état de la boîte mail des demandes.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /assistant/prospects/emails/relever
+   Lire maintenant les nouveaux emails de demandes.
+   Qui : Admin   |   Où : Web
+
+GET /assistant/prospects/erreurs
+   Voir les erreurs de l'assistant.
+   Qui : Admin   |   Où : Web
+
+GET /assistant/prospects/:id
+   Voir une personne intéressée en détail.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+PATCH /assistant/prospects/:id
+   Modifier une personne intéressée.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /assistant/prospects/:id/qualifier
+   Transformer la personne intéressée en demande de devis.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /assistant/prospects/:id/rejeter
+   Écarter une personne intéressée.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /assistant/prospects/:id/rouvrir
+   Reprendre une personne écartée.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /assistant/connaissances
+   Voir les textes que l'assistant utilise pour répondre.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /assistant/connaissances/categories
+   Voir les catégories de ces textes.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+GET /assistant/connaissances/recherche
+   Tester l'assistant avec une question.
+   Qui : Admin, Commercial, Assistante   |   Où : Web
+
+POST /assistant/connaissances
+   Ajouter un texte pour l'assistant.
+   Qui : Admin   |   Où : Web
+
+PATCH /assistant/connaissances/:id
+   Modifier un texte de l'assistant.
+   Qui : Admin   |   Où : Web
+
+DELETE /assistant/connaissances/:id
+   Supprimer un texte de l'assistant.
+   Qui : Admin   |   Où : Web
+
+
+22. DÉMONSTRATION
+-----------------
+
+POST /public/demo-requests
+   Site : demander une démonstration.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+GET /demo-requests
+   Voir les demandes de démonstration.
+   Qui : Admin, Commercial   |   Où : Web
+
+GET /demo-requests/:id
+   Voir une demande de démonstration.
+   Qui : Admin, Commercial   |   Où : Web
+
+PATCH /demo-requests/:id
+   Modifier une demande de démonstration.
+   Qui : Admin, Commercial   |   Où : Web
+
+POST /demo-requests/:id/contacter
+   Démonstration : client appelé.
+   Qui : Admin, Commercial   |   Où : Web
+
+POST /demo-requests/:id/planifier
+   Démonstration : rendez-vous pris.
+   Qui : Admin, Commercial   |   Où : Web
+
+POST /demo-requests/:id/terminer
+   Démonstration : faite.
+   Qui : Admin, Commercial   |   Où : Web
+
+POST /demo-requests/:id/annuler
+   Démonstration : annulée.
+   Qui : Admin, Commercial   |   Où : Web
+
+GET /public/demo
+   Version de démonstration : voir les comptes proposés.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+POST /public/demo/connexion
+   Version de démonstration : entrer sans mot de passe.
+   Qui : Tout le monde, sans compte   |   Où : Web
+
+
+23. FICHIERS
+------------
+
+POST /fichiers
+   Envoyer un fichier (photo ou PDF).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+
+GET /fichiers/:id
+   Voir les informations d'un fichier.
+   Qui : Tout le monde (connecté)   |   Où : Prêt, pas encore dans un écran
+
+GET /fichiers/:id/contenu
+   Ouvrir ou télécharger un fichier.
+   Qui : Tout le monde (connecté)   |   Où : Web
+
+
+24. SERVEUR
+-----------
+
+GET /health
+   Vérifier que le serveur fonctionne.
+   Qui : Tout le monde, sans compte   |   Où : Prêt, pas encore dans un écran

@@ -52,6 +52,48 @@ export class PhotosChantierController {
   }
 
   @Roles(...VALIDATION)
+  @Post()
+  @UseInterceptors(FilesInterceptor('photos', MAX_PHOTOS_ENVOI))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['tacheId', 'moment', 'photos'],
+      properties: {
+        tacheId: { type: 'integer' },
+        checklistItemId: { type: 'integer' },
+        moment: { type: 'string', enum: ['AVANT', 'APRES'] },
+        date: { type: 'string', format: 'date' },
+        commentaire: { type: 'string' },
+        photos: { type: 'array', items: { type: 'string', format: 'binary' } },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Chef / bureau : prendre des photos avant / après d’une tâche (validées d’office)',
+  })
+  envoyer(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Body() dto: EnvoyerPhotosDto,
+    @UploadedFiles() photos: UploadedBinary[] | undefined,
+  ) {
+    return this.photos.envoyerParChef(user, chantierId, dto, photos);
+  }
+
+  @Roles(...VALIDATION)
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Supprimer ma photo (dans les 15 minutes après l’envoi)' })
+  supprimer(
+    @CurrentUser() user: AuthUser,
+    @Param('chantierId', ParseIntPipe) chantierId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.photos.supprimerParAuteur(user, chantierId, id);
+  }
+
+  @Roles(...VALIDATION)
   @Post('valider')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Valider des photos (visibles ensuite par le client)' })

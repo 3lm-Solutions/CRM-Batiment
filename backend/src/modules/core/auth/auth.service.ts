@@ -26,6 +26,7 @@ import {
   UpdateProfileDto,
   VerifyResetCodeDto,
 } from './dto/auth.dto';
+import { MobileSessionService } from './mobile-session.service';
 import { PasswordService } from './password.service';
 
 const INVALID_CREDENTIALS = 'Email ou mot de passe incorrect';
@@ -41,7 +42,8 @@ const PROFILE_SELECT = {
   role: true,
   telephone: true,
   companyId: true,
-  company: { select: { id: true, nom: true } },
+  // 16/11: the mobile builds its menus with the installation mode
+  company: { select: { id: true, nom: true, modeInstallation: true } },
   signatureUpdatedAt: true,
   lastLoginAt: true,
   createdAt: true,
@@ -58,11 +60,13 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly passwords: PasswordService,
     private readonly mail: MailService,
+    private readonly mobile: MobileSessionService,
   ) {}
 
   // ── Login ───────────────────────────────────────────────────────────────
 
-  async login(dto: LoginDto): Promise<LoginResponse> {
+  /** `mobile`: header « X-Client: mobile » → a refresh token is added (16/11). */
+  async login(dto: LoginDto, mobile = false, appareil?: string): Promise<LoginResponse> {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
 
     // Password checked FIRST (with a dummy hash if the email is unknown): the response
@@ -86,7 +90,7 @@ export class AuthService {
     }
 
     await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-    return this.createSession(user);
+    return this.avecRefresh(this.createSession(user), user, mobile, appareil);
   }
 
   // ── Change password (first login or voluntary) ──────────────────────────
@@ -94,6 +98,8 @@ export class AuthService {
   async changePassword(
     authUser: AuthUser,
     dto: ChangePasswordDto,
+    mobile = false,
+    appareil?: string,
   ): Promise<SessionResponse & { message: string }> {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: authUser.id } });
 
@@ -122,7 +128,10 @@ export class AuthService {
     });
 
     this.logger.log(`Mot de passe changé : utilisateur #${user.id}`);
-    return { message: 'Mot de passe modifié.', ...this.createSession(updated) };
+    return {
+      message: 'Mot de passe modifié.',
+      ...(await this.avecRefresh(this.createSession(updated), updated, mobile, appareil)),
+    };
   }
 
   // ── Forgot password: email → 6-digit code → new password ────────────────
@@ -254,6 +263,35 @@ export class AuthService {
       where: { id: authUser.id },
       data: { signatureBase64: null, signatureUpdatedAt: null },
     });
+  }
+
+  // ── Mobile session (16/11, lot B1) ──────────────────────────────────────
+
+  /** New access token + new refresh token (the one sent is consumed). */
+  async refresh(refreshToken: string): Promise<SessionResponse> {
+    const { user, appareil } = await this.mobile.consommer(refreshToken);
+    return this.avecRefresh(this.createSession(user), user, true, appareil ?? undefined);
+  }
+
+  /**
+   * Logout of the phone: the refresh token stops working and the phone no longer receives
+   * pushes. Public (the access token may have expired); unknown tokens are simply ignored.
+   */
+  async logout(refreshToken?: string, jetonPush?: string): Promise<void> {
+    const userId = refreshToken ? await this.mobile.revoquer(refreshToken) : null;
+    if (userId && jetonPush) {
+      await this.prisma.appareilPush.deleteMany({ where: { jeton: jetonPush, userId } });
+    }
+  }
+
+  private async avecRefresh(
+    session: SessionResponse,
+    user: { id: number; tokenVersion: number },
+    mobile: boolean,
+    appareil?: string,
+  ): Promise<SessionResponse> {
+    if (!mobile) return session; // the web response is unchanged
+    return { ...session, ...(await this.mobile.emettre(user, appareil)) };
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────

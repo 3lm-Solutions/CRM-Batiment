@@ -16,6 +16,7 @@ interface HttpError {
   status: number;
   message: string | string[];
   code?: string;
+  details?: unknown;
 }
 
 /**
@@ -35,7 +36,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const request = http.getRequest<AppRequest>();
     const response = http.getResponse<Response>();
 
-    const { status, message, code } = toHttpError(exception);
+    const { status, message, code, details } = toHttpError(exception);
 
     const body: ApiErrorResponse = {
       statusCode: status,
@@ -45,6 +46,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       path: request.originalUrl,
       timestamp: new Date().toISOString(),
       requestId: request.requestId,
+      ...(details !== undefined ? { details } : {}),
     };
 
     if (status >= 500) {
@@ -65,8 +67,17 @@ export function toHttpError(exception: unknown): HttpError {
     const res = exception.getResponse();
     if (typeof res === 'string') return { status, message: frenchFrameworkMessage(status, res) };
 
-    const { message, code } = res as { message?: string | string[]; code?: string };
-    return { status, message: frenchFrameworkMessage(status, message ?? exception.message), code };
+    const { message, code, details } = res as {
+      message?: string | string[];
+      code?: string;
+      details?: unknown;
+    };
+    return {
+      status,
+      message: frenchFrameworkMessage(status, message ?? exception.message),
+      code,
+      ...(details !== undefined ? { details } : {}),
+    };
   }
 
   if (exception instanceof Prisma.PrismaClientKnownRequestError) {

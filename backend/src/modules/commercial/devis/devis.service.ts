@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import {
   type AuthUser,
   BusinessException,
@@ -15,7 +15,13 @@ import { CompanyService } from '../../core/company/company.service';
 import { computeDevisTotals, isMarginAlert } from './devis.calculator';
 import { assertEditable } from './devis-status';
 import { DEVIS_CHANTIER_SELECT, DEVIS_DETAIL_SELECT, DEVIS_LIST_SELECT } from './devis.views';
-import { CreateDevisDto, DEVIS_SORT_FIELDS, QueryDevisDto, UpdateDevisDto } from './dto/devis.dto';
+import {
+  BrouillonChefDto,
+  CreateDevisDto,
+  DEVIS_SORT_FIELDS,
+  QueryDevisDto,
+  UpdateDevisDto,
+} from './dto/devis.dto';
 
 export type DevisRow = Awaited<ReturnType<DevisService['getForUpdate']>>;
 
@@ -267,10 +273,44 @@ export class DevisService {
 
   // ── helpers ─────────────────────────────────────────────────────────────
 
-  /** A chef de chantier only sees the quotes of HIS job sites. */
+  /**
+   * A chef de chantier only sees the quotes of HIS job sites — and (16/11, mobile lot 1) the
+   * drafts he prepared himself with the Devis IA (always without amounts).
+   */
   private scope(user: AuthUser): Prisma.DevisWhereInput {
     return user.role === Role.CHEF_CHANTIER
-      ? { companyId: user.companyId, chantier: { chefChantierId: user.id } }
+      ? {
+          companyId: user.companyId,
+          OR: [{ chantier: { chefChantierId: user.id } }, { createurId: user.id }],
+        }
       : { companyId: user.companyId };
+  }
+
+  /**
+   * 16/11 (mobile lot 1): a chef de chantier starts a draft for the Devis IA — only for a client
+   * of one of his job sites, or a prospect he sent himself. The office checks and sends it.
+   */
+  async createBrouillonChef(user: AuthUser, dto: BrouillonChefDto) {
+    const autorise = await this.prisma.client.count({
+      where: {
+        id: dto.clientId,
+        companyId: user.companyId,
+        OR: [
+          { chantiers: { some: { chefChantierId: user.id } } },
+          { demandesDevis: { some: { createurId: user.id, source: 'TERRAIN' } } },
+        ],
+      },
+    });
+    if (!autorise) {
+      throw new BusinessException(
+        'CLIENT_HORS_PERIMETRE',
+        'Vous pouvez préparer un devis seulement pour le client d’un de vos chantiers ou un prospect que vous avez envoyé.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    const devis = await this.prisma.$transaction((tx) =>
+      this.createDraft(tx, user, { clientId: dto.clientId, demandeDevisId: dto.demandeDevisId }),
+    );
+    return this.findOne(user, devis.id);
   }
 }

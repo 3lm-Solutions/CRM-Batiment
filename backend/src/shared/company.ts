@@ -11,4 +11,6 @@ export interface CompanySettings {
   savDureeMois: number;
   /** Months of signed quotes / orders used for the market prices: 6, 12 or 24 — 29/10 */
   prixMarcheMois: number;
+  /** 16/11 (mobile): POSE = nos équipes posent ; REGIE = installateur délégué ; LES_DEUX = selon le chantier */
+  modeInstallation: 'POSE' | 'REGIE' | 'LES_DEUX';
 }

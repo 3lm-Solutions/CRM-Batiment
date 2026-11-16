@@ -35,6 +35,8 @@ import { DevisIaModule } from './modules/ia/devis-ia/devis-ia.module';
 import { PrixMarcheModule } from './modules/commercial/prix-marche/prix-marche.module';
 import { PortailsModule } from './modules/portails/portails.module';
 import { WorkflowModule } from './modules/workflow/workflow.module';
+import { MobileModule } from './modules/mobile/mobile.module';
+import { VisitesModule } from './modules/commercial/visites/visites.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -104,6 +106,10 @@ import { PrismaModule } from './prisma/prisma.module';
     // ── IA (Step 15): proposition de lignes de devis à partir d'une description ──
     DevisIaModule,
     PrixMarcheModule, // 29/10
+
+    // ── application mobile (16/11, lot B1): push; session longue (refresh) dans AuthModule ──
+    MobileModule,
+    VisitesModule, // 16/11, lot 1
   ],
 })
 export class AppModule {}

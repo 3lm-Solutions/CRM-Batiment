@@ -5,6 +5,7 @@ import {
   ReferencePrefix,
   ReferenceService,
 } from '../../../common';
+import { toDates } from '../../../common/dates/to-dates';
 import { ContratSousTraitantStatut } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { assertDateRange } from '../chantiers/tache-rules';
@@ -46,7 +47,7 @@ export class ContratsService {
     return this.prisma.$transaction(async (tx) =>
       tx.contratSousTraitant.create({
         data: {
-          ...dto,
+          ...toDates(dto, ['dateDebut', 'dateFin']),
           companyId: user.companyId,
           reference: await this.references.next(
             ReferencePrefix.CONTRAT_SOUS_TRAITANT,
@@ -63,7 +64,10 @@ export class ContratsService {
     if (contrat.statut !== 'BROUILLON')
       throw new BusinessException('CONTRAT_ACTIF', 'Seul un contrat en brouillon se modifie.');
     assertDateRange(dto.dateDebut ?? contrat.dateDebut, dto.dateFin ?? contrat.dateFin);
-    return this.prisma.contratSousTraitant.update({ where: { id }, data: dto });
+    return this.prisma.contratSousTraitant.update({
+      where: { id },
+      data: toDates(dto, ['dateDebut', 'dateFin']),
+    });
   }
 
   /**

@@ -25,6 +25,8 @@ import { RapportsService } from '../rapports/rapports.service';
 import { AvancementTacheDto, QueryRapportsDto } from './portail-sous-traitant.dto';
 import { CocherChecklistItemDto } from '../../execution/chantiers/checklist/checklist.dto';
 import { ChecklistService } from '../../execution/chantiers/checklist/checklist.service';
+import { CreateTacheCommentaireDto } from '../../execution/chantiers/commentaires/tache-commentaires.dto';
+import { TacheCommentairesService } from '../../execution/chantiers/commentaires/tache-commentaires.service';
 import { PortailSousTraitantService } from './portail-sous-traitant.service';
 
 /** Portal of a SOUS_TRAITANT account. Every route is scoped to the job sites opened to him. */
@@ -36,6 +38,7 @@ export class PortailSousTraitantController {
     private readonly portail: PortailSousTraitantService,
     private readonly rapports: RapportsService,
     private readonly checklist: ChecklistService,
+    private readonly commentaires: TacheCommentairesService,
   ) {}
 
   @Get('profil')
@@ -67,6 +70,28 @@ export class PortailSousTraitantController {
     @Body() dto: CocherChecklistItemDto,
   ) {
     return this.checklist.cocherPortail(user, tacheId, itemId, dto.fait);
+  }
+
+  // 16/11 (mobile lot B1): comment thread of a task assigned to him
+  @Get('taches/:tacheId/commentaires')
+  @ApiOperation({ summary: 'Commentaires d’une de mes tâches' })
+  listerCommentaires(
+    @CurrentUser() user: AuthUser,
+    @Param('tacheId', ParseIntPipe) tacheId: number,
+  ) {
+    return this.commentaires.listPortail(user, tacheId);
+  }
+
+  @Post('taches/:tacheId/commentaires')
+  @ApiOperation({
+    summary: 'Commenter une de mes tâches (le chef et le bureau affecté sont notifiés)',
+  })
+  commenter(
+    @CurrentUser() user: AuthUser,
+    @Param('tacheId', ParseIntPipe) tacheId: number,
+    @Body() dto: CreateTacheCommentaireDto,
+  ) {
+    return this.commentaires.ajouterPortail(user, tacheId, dto.texte);
   }
 
   @Patch('taches/:id')

@@ -1,10 +1,14 @@
+import { randomInt } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type AuthUser, BusinessException } from '../../../common';
-import { DevisStatut, ModeValidation, Prisma } from '../../../generated/prisma/client';
+import { CanalEnvoi, DevisStatut, ModeValidation, Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { MailService } from '../../core/mail/mail.service';
+import { pdfMontant } from '../../core/pdf/pdf-document';
+import { FichiersService } from '../../core/storage/fichiers.service';
+import type { UploadedBinary } from '../../core/storage/upload.config';
 import {
   devisRelanceMail,
   devisSignatureMail,
@@ -13,10 +17,24 @@ import {
 import { type DevisEvent, DevisEvents } from './devis.events';
 import { DevisHooks } from './devis-hooks';
 import { type DevisRow, DevisService } from './devis.service';
-import { assertTransition, AWAITING_CLIENT_STATUTS } from './devis-status';
-import { AnnulerDevisDto, ReviserDevisDto, SignerConseillerDto } from './dto/devis.dto';
+import { DevisPdfService } from './devis-pdf.service';
+import {
+  assertTransition,
+  AWAITING_CLIENT_STATUTS,
+  SIGNATURE_PAPIER_STATUTS,
+} from './devis-status';
+import {
+  AnnulerDevisDto,
+  RefuserDevisInterneDto,
+  RejeterSignaturePapierDto,
+  ReviserDevisDto,
+  SignaturePapierDto,
+  SignerConseillerDto,
+  SignerSurPlaceDto,
+} from './dto/devis.dto';
 import { DevisLiensService, type ResolvedLink } from './public/devis-liens.service';
 import { promouvoirClient } from '../../referentiel/clients/client-statut';
+import { lienWhatsapp, messageWhatsapp, numeroWhatsapp } from './whatsapp';
 
 /**
  * Every quote status change goes through this service (internal actions AND client links).
@@ -34,6 +52,8 @@ export class DevisLifecycleService {
     private readonly mail: MailService,
     private readonly events: EventEmitter2,
     private readonly hooks: DevisHooks,
+    private readonly fichiers: FichiersService,
+    private readonly pdf: DevisPdfService,
   ) {}
 
   // ── advisor actions ─────────────────────────────────────────────────────
@@ -50,6 +70,7 @@ export class DevisLifecycleService {
       await this.transition(tx, devis, to, {
         dateEnvoi: new Date(),
         modeValidation: ModeValidation.EMAIL,
+        codeVerification: nouveauCodeVerification(), // 16/11: printed as a QR code on the PDF
       });
       await promouvoirClient(tx, devis.clientId, 'QUALIFIE'); // 27/10
       const lien = await this.liens.create(tx, devis, 'VALIDATION', devis.client.email!);
@@ -59,6 +80,7 @@ export class DevisLifecycleService {
     const emailSent = await this.mail.send(
       devis.client.email!,
       devisValidationMail({ ...this.mailContext(devis), url: lien.url, expiresAt: lien.expiresAt }),
+      await this.pdf.pieceJointe(devis.companyId, devis.id, devis.reference),
     );
     this.emit(DevisEvents.ENVOYE, devis, user.id);
     return { devis: await this.devis.findOne(user, id), lien, emailSent };
@@ -81,6 +103,7 @@ export class DevisLifecycleService {
     const emailSent = await this.mail.send(
       devis.client.email!,
       devisValidationMail({ ...this.mailContext(devis), url: lien.url, expiresAt: lien.expiresAt }),
+      await this.pdf.pieceJointe(devis.companyId, devis.id, devis.reference),
     );
     return { lien, emailSent };
   }
@@ -240,6 +263,276 @@ export class DevisLifecycleService {
     };
   }
 
+  // ── 05/11 (re-applied 16/11): hand delivery, WhatsApp, paper signature, team refusal ──
+
+  /**
+   * BROUILLON → ENVOYE (REVISE → RENVOYE) without email: the advisor handed the quote over
+   * in person (printed, or shown on the phone). Same content checks as the email sending.
+   */
+  async remettre(user: AuthUser, id: number) {
+    const devis = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      const to: DevisStatut = devis.statut === 'REVISE' ? 'RENVOYE' : 'ENVOYE';
+      assertTransition(devis.statut, to);
+      await this.assertContenu(tx, devis);
+      const now = new Date();
+      await this.snapshotVersion(tx, devis, user.id, 'Remis en main propre');
+      await this.transition(tx, devis, to, {
+        dateEnvoi: now,
+        remisLe: now,
+        codeVerification: nouveauCodeVerification(),
+      });
+      await promouvoirClient(tx, devis.clientId, 'QUALIFIE');
+      return devis;
+    });
+    this.emit(DevisEvents.ENVOYE, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /**
+   * A validation link for WhatsApp: the API returns a wa.me link, the advisor opens it on his
+   * phone (nothing leaves the server). The email link, if any, stays valid.
+   */
+  async lienWhatsapp(user: AuthUser, id: number) {
+    const { devis, lien, numero } = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      if (!AWAITING_CLIENT_STATUTS.includes(devis.statut)) {
+        throw new BusinessException(
+          'DEVIS_NON_ENVOYE',
+          'Le devis doit être envoyé (ou remis) et en attente de réponse.',
+        );
+      }
+      const numero = numeroWhatsapp(devis.client.telephone);
+      if (!numero) {
+        throw new BusinessException(
+          'CLIENT_SANS_TELEPHONE',
+          'Ajoutez un numéro de téléphone mobile valide au client.',
+        );
+      }
+      const lien = await this.liens.create(tx, devis, 'VALIDATION', numero, CanalEnvoi.WHATSAPP);
+      return { devis, lien, numero };
+    });
+    const ctx = this.mailContext(devis);
+    const message = messageWhatsapp({
+      clientNom: ctx.clientNom,
+      reference: devis.reference,
+      totalTTC: pdfMontant(devis.totalTTC),
+      entreprise: ctx.entreprise,
+      url: lien.url,
+    });
+    return {
+      numero,
+      message,
+      lienWhatsapp: lienWhatsapp(numero, message),
+      lien,
+    };
+  }
+
+  /**
+   * Scan / photo of the quote signed on paper → SIGNE_PAPIER, waiting for an ADMIN check.
+   * A new upload replaces the previous scan (also after a rejection).
+   */
+  async deposerSignaturePapier(
+    user: AuthUser,
+    id: number,
+    file: UploadedBinary | undefined,
+    preuve: SignaturePapierDto = {},
+  ) {
+    // Checked BEFORE storing anything (a refused upload must not leave a file behind)
+    const actuel = await this.devis.getForUpdate(user.companyId, id);
+    if (actuel.statut !== 'SIGNE_PAPIER' && !SIGNATURE_PAPIER_STATUTS.includes(actuel.statut)) {
+      throw new BusinessException(
+        'DEVIS_NON_SIGNABLE',
+        'La signature papier se dépose sur un devis envoyé, remis ou accepté.',
+      );
+    }
+    const { devis, ancienFichierId } = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      const remplacement = devis.statut === 'SIGNE_PAPIER';
+      if (!remplacement && !SIGNATURE_PAPIER_STATUTS.includes(devis.statut)) {
+        throw new BusinessException(
+          'DEVIS_NON_SIGNABLE',
+          'La signature papier se dépose sur un devis envoyé, remis ou accepté.',
+        );
+      }
+      // 16/11 (lot 1): proof kept with the scan — SHA-256 fingerprint, author, date, place
+      const position =
+        preuve.latitude !== undefined && preuve.longitude !== undefined
+          ? { latitude: preuve.latitude, longitude: preuve.longitude }
+          : null;
+      const fichier = await this.fichiers.store(user.companyId, user.id, file, {}, tx, {
+        position,
+      });
+      const data = {
+        signaturePapierFichierId: fichier.id,
+        signaturePapierLe: new Date(),
+        signaturePapierParId: user.id,
+        signaturePapierRejet: null,
+      };
+      if (remplacement) {
+        const { count } = await tx.devis.updateMany({
+          where: { id, statut: 'SIGNE_PAPIER' },
+          data,
+        });
+        if (!count) throw this.concurrentChange();
+      } else {
+        await this.transition(tx, devis, 'SIGNE_PAPIER', data);
+      }
+      return { devis, ancienFichierId: devis.signaturePapierFichierId };
+    });
+    // After the commit: the old scan is no longer referenced
+    if (ancienFichierId) await this.fichiers.remove(ancienFichierId).catch(() => undefined);
+    this.emit(DevisEvents.SIGNE_PAPIER, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /** ADMIN: the scan is fine → SIGNE (job site, deposit invoice… exactly like an online signature). */
+  async validerSignaturePapier(user: AuthUser, id: number) {
+    const devis = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      if (devis.statut !== 'SIGNE_PAPIER' || !devis.signaturePapierFichierId) {
+        throw new BusinessException(
+          'SIGNATURE_PAPIER_ABSENTE',
+          'Aucune signature papier en attente de vérification.',
+        );
+      }
+      await this.finaliserSignature(tx, devis, {
+        modeValidation: ModeValidation.PAPIER,
+        signatureClientDate: devis.signaturePapierLe ?? new Date(),
+      });
+      return devis;
+    });
+    this.emit(DevisEvents.SIGNE, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /** ADMIN: the scan is not acceptable → back to the previous status, with the reason. */
+  async rejeterSignaturePapier(user: AuthUser, id: number, dto: RejeterSignaturePapierDto) {
+    const devis = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      if (devis.statut !== 'SIGNE_PAPIER') {
+        throw new BusinessException(
+          'SIGNATURE_PAPIER_ABSENTE',
+          'Aucune signature papier en attente de vérification.',
+        );
+      }
+      // ACCEPTE sets dateValidation; a revised quote (version > 1) was RENVOYE
+      const retour: DevisStatut = devis.dateValidation
+        ? 'ACCEPTE'
+        : devis.versionCourante > 1
+          ? 'RENVOYE'
+          : 'ENVOYE';
+      await this.transition(tx, devis, retour, { signaturePapierRejet: dto.motif });
+      return devis;
+    });
+    this.emit(DevisEvents.SIGNATURE_PAPIER_REJETEE, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /** The client said no to the advisor (phone, in person): ENVOYE / RENVOYE → REFUSE. */
+  async refuser(user: AuthUser, id: number, dto: RefuserDevisInterneDto) {
+    const devis = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      await this.transition(tx, devis, 'REFUSE', { motifRefus: dto.motif });
+      await this.liens.cancelAll(tx, id);
+      return devis;
+    });
+    this.emit(DevisEvents.REFUSE, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /**
+   * Mobile lot B1: the client signs on the advisor's phone. The advisor's profile signature is
+   * added at the same time, so the quote is SIGNE at once (mode SUR_PLACE, with the signer's name
+   * and, if the phone gave it, the place).
+   */
+  async signerSurPlace(user: AuthUser, id: number, dto: SignerSurPlaceDto) {
+    const conseiller = await this.prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      select: { signatureBase64: true },
+    });
+    if (!conseiller.signatureBase64) {
+      throw new BusinessException(
+        'SIGNATURE_CONSEILLER_MANQUANTE',
+        'Enregistrez d’abord votre signature dans votre profil.',
+      );
+    }
+    const devis = await this.prisma.$transaction(async (tx) => {
+      const devis = await this.devis.getForUpdate(user.companyId, id, tx);
+      if (![...AWAITING_CLIENT_STATUTS, 'ACCEPTE'].includes(devis.statut)) {
+        throw new BusinessException(
+          'DEVIS_NON_SIGNABLE',
+          'La signature sur place se fait sur un devis envoyé, remis ou accepté.',
+        );
+      }
+      const now = new Date();
+      await this.finaliserSignature(tx, devis, {
+        modeValidation: ModeValidation.SUR_PLACE,
+        signatureClientBase64: dto.signatureClientBase64,
+        signatureClientDate: now,
+        signataireNom: dto.nomSignataire,
+        signatureLatitude: dto.latitude ?? null,
+        signatureLongitude: dto.longitude ?? null,
+        signatureConseillerBase64: conseiller.signatureBase64,
+        signatureConseillerDate: now,
+      });
+      return devis;
+    });
+    this.emit(DevisEvents.SIGNE, devis, user.id);
+    return this.devis.findOne(user, id);
+  }
+
+  /**
+   * QR code scanned on a printed quote: is it a quote of this company, and is the paper the
+   * CURRENT version? Never throws for a bad code: the answer says why.
+   */
+  async verifierQr(user: AuthUser, contenu: string) {
+    const m = /^BATIFLOW:DEV:(\d{1,9}):(\d{1,4}):([A-Z0-9]{6,12})$/.exec(contenu.trim());
+    if (!m)
+      return {
+        valide: false,
+        motif: 'QR_INCONNU',
+        message: 'Ce QR code n’est pas un devis BATIFLOW.',
+      };
+    const [, idTexte, versionTexte, code] = m;
+    const devis = await this.prisma.devis.findFirst({
+      where: { id: Number(idTexte), companyId: user.companyId },
+      select: {
+        id: true,
+        reference: true,
+        statut: true,
+        versionCourante: true,
+        codeVerification: true,
+        totalTTC: true,
+        dateEnvoi: true,
+        client: { select: { id: true, nom: true, prenom: true } },
+      },
+    });
+    if (!devis || !devis.codeVerification || devis.codeVerification !== code) {
+      return {
+        valide: false,
+        motif: 'DEVIS_INCONNU',
+        message: 'Devis introuvable ou code invalide.',
+      };
+    }
+    const { codeVerification: _c, ...resume } = devis;
+    const version = Number(versionTexte);
+    if (version !== devis.versionCourante) {
+      return {
+        valide: false,
+        motif: 'VERSION_PERIMEE',
+        message: `Ce papier est la version ${version} ; la version en cours est la ${devis.versionCourante}.`,
+        devis: resume,
+      };
+    }
+    return {
+      valide: true,
+      motif: null,
+      message: 'Devis authentique, version à jour.',
+      devis: resume,
+    };
+  }
+
   // ── client actions (through a link) ─────────────────────────────────────
 
   async accepterParClient(link: ResolvedLink): Promise<void> {
@@ -344,6 +637,11 @@ export class DevisLifecycleService {
         'Ajoutez une adresse email au client avant l’envoi.',
       );
     }
+    await this.assertContenu(db, devis);
+  }
+
+  /** Content checks shared by the email sending and the hand delivery (05/11). */
+  private async assertContenu(db: DbClient, devis: DevisRow): Promise<void> {
     const lignes = await db.ligneDevis.count({ where: { devisId: devis.id } });
     if (lignes === 0)
       throw new BusinessException(
@@ -417,4 +715,12 @@ export class DevisLifecycleService {
       at: new Date(),
     } satisfies DevisEvent);
   }
+}
+
+/** 6 characters without ambiguous ones (0/O, 1/I): readable if typed by hand. */
+export function nouveauCodeVerification(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += alphabet[randomInt(alphabet.length)];
+  return code;
 }

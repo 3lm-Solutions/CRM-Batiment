@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   type AuthUser,
   BusinessException,
@@ -27,7 +27,8 @@ import {
   type PositionPrix,
   type PrixMarche,
 } from '../../commercial/prix-marche/prix-marche.rules';
-import type { Unite } from '../../../generated/prisma/client';
+import { Role, type Unite } from '../../../generated/prisma/client';
+import { NotificationsService } from '../../pilotage/notifications/notifications.service';
 import {
   type CatalogueEntry,
   extractLength,
@@ -89,6 +90,21 @@ export interface PropositionView {
 
 type PropositionBrute = { lignes: LigneProposee[]; nonCouverts: string[]; hypotheses: string[] };
 
+/** 16/11 (mobile lot 1): what a chef de chantier receives — the same proposal, without any price. */
+export type PropositionSansPrix = Omit<PropositionView, 'totalHT' | 'lignes'> & {
+  lignes: Omit<LignePropositionView, 'prixUnitaireHT' | 'totalHT' | 'marche' | 'positionMarche'>[];
+};
+
+export function sansPrix(v: PropositionView): PropositionSansPrix {
+  const { totalHT: _t, lignes, ...reste } = v;
+  return {
+    ...reste,
+    lignes: lignes.map(
+      ({ prixUnitaireHT: _p, totalHT: _l, marche: _m, positionMarche: _pm, ...l }) => l,
+    ),
+  };
+}
+
 /** Image analysis is slower than text: up to 60 s before giving up. */
 const PHOTO_TIMEOUT_MS = 60_000;
 const PHOTO_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -110,6 +126,7 @@ export class DevisIaService {
     @Inject(LLM_VISION_CLIENT) private readonly vision: LlmClient | null,
     @Inject(TRANSCRIPTION_CLIENT) private readonly transcription: TranscriptionClient | null,
     private readonly marche: PrixMarcheService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   /**
@@ -165,7 +182,7 @@ export class DevisIaService {
     user: AuthUser,
     devisId: number,
     dto: ProposerDevisIaDto,
-  ): Promise<PropositionView> {
+  ): Promise<PropositionView | PropositionSansPrix> {
     const devis = await this.editableDevis(user, devisId);
     const catalogue = await this.loadCatalogue(user.companyId);
     if (!catalogue.length) {
@@ -220,7 +237,7 @@ export class DevisIaService {
     devisId: number,
     description: string,
     photos: UploadedBinary[] | undefined,
-  ): Promise<PropositionView> {
+  ): Promise<PropositionView | PropositionSansPrix> {
     const devis = await this.editableDevis(user, devisId);
     if (!photos?.length)
       throw new BusinessException('PHOTO_MANQUANTE', 'Ajoutez au moins une photo du chantier.');
@@ -320,7 +337,7 @@ export class DevisIaService {
     modeIA: boolean,
     avertissement: string | null,
     analysePhoto: AnalysePhoto | null = null,
-  ): Promise<PropositionView> {
+  ): Promise<PropositionView | PropositionSansPrix> {
     const byId = new Map(catalogue.map((c) => [c.id, c]));
     const lignes: LignePropositionView[] = [];
     // 29/10: market price shown next to the catalogue price (a failure never blocks the proposal)
@@ -360,7 +377,7 @@ export class DevisIaService {
         'Aucune prestation du catalogue ne correspond : précisez la description ou ajoutez les lignes à la main.',
       );
 
-    return {
+    const view: PropositionView = {
       modeIA,
       lignes,
       nonCouverts: proposition.nonCouverts,
@@ -369,16 +386,47 @@ export class DevisIaService {
       avertissement,
       analysePhoto,
     };
+    // 16/11: a chef de chantier never sees prices, margins or market prices
+    return user.role === Role.CHEF_CHANTIER ? sansPrix(view) : view;
   }
 
   /** Adds the lines the technician kept, all at once (one transaction). Returns the quote. */
   async appliquer(user: AuthUser, devisId: number, dto: AppliquerDevisIaDto) {
-    await this.editableDevis(user, devisId);
-    return this.lignes.addMany(
+    const devis = await this.editableDevis(user, devisId);
+    const resultat = await this.lignes.addMany(
       user,
       devisId,
       dto.lignes.map((l) => ({ prestationId: l.prestationId, quantite: l.quantite })),
     );
+    // 16/11: a chef's draft is ready → the sales team checks the prices and sends it
+    if (user.role === Role.CHEF_CHANTIER) {
+      const [auteur, bureau] = await Promise.all([
+        this.prisma.user.findUniqueOrThrow({
+          where: { id: user.id },
+          select: { nom: true, prenom: true },
+        }),
+        this.prisma.user.findMany({
+          where: {
+            companyId: user.companyId,
+            actif: true,
+            role: { in: [Role.TECHNICO, Role.ADMIN] },
+          },
+          select: { id: true },
+        }),
+      ]);
+      await this.notifications.notifyUsers(
+        user.companyId,
+        bureau.map((u) => u.id),
+        {
+          type: 'DEVIS_BROUILLON_CHEF',
+          niveau: 'INFO',
+          titre: `Brouillon de devis ${devis.reference} préparé sur le terrain`,
+          message: `${auteur.prenom} ${auteur.nom} a ajouté ${dto.lignes.length} ligne(s) avec le Devis IA. Vérifiez les prix avant l’envoi.`,
+          lien: `/devis/${devisId}`,
+        },
+      );
+    }
+    return resultat;
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────
@@ -412,11 +460,24 @@ export class DevisIaService {
   }
 
   private async editableDevis(user: AuthUser, devisId: number) {
+    const chef = user.role === Role.CHEF_CHANTIER;
     const devis = await this.prisma.devis.findFirst({
       where: { id: devisId, companyId: user.companyId },
-      select: { id: true, reference: true, statut: true },
+      select: { id: true, reference: true, statut: true, createurId: true },
     });
     if (!devis) throw new NotFoundException(`Devis #${devisId} introuvable`);
+    // 16/11: a chef only works on the drafts he started himself (POST /devis/brouillon-chef)
+    if (chef && devis.createurId !== user.id) {
+      throw new ForbiddenException(
+        'Le Devis IA du chef de chantier ne s’utilise que sur ses propres brouillons.',
+      );
+    }
+    if (chef && devis.statut !== 'BROUILLON') {
+      throw new BusinessException(
+        'DEVIS_NON_BROUILLON',
+        'Le bureau a repris ce devis : il ne se modifie plus depuis le terrain.',
+      );
+    }
     assertEditable(devis.statut);
     return devis;
   }

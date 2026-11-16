@@ -14,7 +14,9 @@ export class BusinessException extends HttpException {
     public readonly code: string,
     message: string,
     status: HttpStatus = HttpStatus.UNPROCESSABLE_ENTITY,
+    /** 16/11: optional data returned with the error (`details` in the response) */
+    details?: unknown,
   ) {
-    super({ message, code }, status);
+    super({ message, code, ...(details !== undefined ? { details } : {}) }, status);
   }
 }

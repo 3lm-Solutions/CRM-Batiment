@@ -16,7 +16,7 @@ import {
   IsUrl,
 } from 'class-validator';
 import { PaginationQueryDto, ToStringArray, Trim, TrimOrNull } from '../../../../common';
-import { ChantierStatut, TacheStatut } from '../../../../generated/prisma/client';
+import { ChantierStatut, ModeInstallation, TacheStatut } from '../../../../generated/prisma/client';
 
 export class CreateChantierDto {
   @ApiProperty()
@@ -93,6 +93,12 @@ export class UpdateChantierDto {
   @IsOptional()
   @IsDateString()
   dateFin?: string | null;
+
+  /** 16/11 (mobile): POSE / REGIE / LES_DEUX ; null = le réglage de l'entreprise. Bureau uniquement. */
+  @ApiPropertyOptional({ enum: ModeInstallation, nullable: true })
+  @IsOptional()
+  @IsEnum(ModeInstallation)
+  modeInstallation?: ModeInstallation | null;
 }
 
 export class QueryChantiersDto extends PaginationQueryDto {
@@ -114,6 +120,26 @@ export class QueryChantiersDto extends PaginationQueryDto {
   @IsInt()
   @Min(1)
   chefChantierId?: number;
+
+  // ── 16/11 (mobile): filtres date et équipe ──
+
+  /** Chantiers en cours pendant la période (dates qui chevauchent du → au) */
+  @ApiPropertyOptional({ example: '2026-11-01' })
+  @IsOptional()
+  @IsDateString()
+  du?: string;
+
+  @ApiPropertyOptional({ example: '2026-11-30' })
+  @IsOptional()
+  @IsDateString()
+  au?: string;
+
+  /** Chantiers où ce compte (sous-traitant, chef…) a une tâche ou un accès */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  intervenantId?: number;
 }
 
 export class AccesSousTraitantsDto {

@@ -1,12 +1,20 @@
 import { Logger } from '@nestjs/common';
 import { createTransport, type Transporter } from 'nodemailer';
 
+/** File attached to an email (16/11: the quote / invoice PDF). */
+export interface MailAttachment {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+}
+
 export interface MailMessage {
   to: string;
   subject: string;
   html: string;
   /** Plain-text version: better deliverability, and readable in logs/tests */
   text: string;
+  attachments?: MailAttachment[];
 }
 
 /** Abstraction over "how an email leaves the app" — swapped for a fake in tests. */
@@ -45,7 +53,7 @@ export class ConsoleMailTransport implements MailTransport {
 
   send(message: MailMessage): Promise<void> {
     this.logger.log(
-      `\n──── EMAIL (non envoyé, MAIL_HOST vide) ────\nÀ     : ${message.to}\nSujet : ${message.subject}\n\n${message.text}\n────────────────────────────────────────────`,
+      `\n──── EMAIL (non envoyé, MAIL_HOST vide) ────\nÀ     : ${message.to}\nSujet : ${message.subject}\n${(message.attachments ?? []).map((a) => `PJ    : ${a.filename} (${a.content.length} octets)\n`).join('')}\n${message.text}\n────────────────────────────────────────────`,
     );
     return Promise.resolve();
   }
@@ -74,6 +82,14 @@ export class ResendMailTransport implements MailTransport {
           subject: message.subject,
           html: message.html,
           text: message.text,
+          ...(message.attachments?.length
+            ? {
+                attachments: message.attachments.map((a) => ({
+                  filename: a.filename,
+                  content: a.content.toString('base64'),
+                })),
+              }
+            : {}),
         }),
       });
 

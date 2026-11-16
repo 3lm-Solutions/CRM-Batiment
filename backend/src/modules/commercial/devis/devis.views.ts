@@ -64,7 +64,9 @@ export const DEVIS_LIST_SELECT = {
   totalHT: true,
   totalTTC: true,
   margePourcent: true,
-  client: { select: { id: true, nom: true, prenom: true } },
+  remisLe: true,
+  signaturePapierLe: true,
+  client: { select: { id: true, nom: true, prenom: true, telephone: true } },
   createur: { select: { id: true, nom: true, prenom: true } },
   chantierId: true,
 } satisfies Prisma.DevisSelect;
@@ -89,6 +91,28 @@ export const DEVIS_DETAIL_SELECT = {
   margePourcent: true,
   signatureClientDate: true,
   signatureConseillerDate: true,
+  // 05/11 (re-applied 16/11) + mobile lot B1
+  remisLe: true,
+  codeVerification: true,
+  signataireNom: true,
+  signatureLatitude: true,
+  signatureLongitude: true,
+  signaturePapierLe: true,
+  signaturePapierRejet: true,
+  // 16/11 (lot 1): proof of the scan — fingerprint, date, author, place
+  signaturePapierFichier: {
+    select: {
+      id: true,
+      nom: true,
+      mime: true,
+      taille: true,
+      sha256: true,
+      latitude: true,
+      longitude: true,
+      createdAt: true,
+    },
+  },
+  signaturePapierPar: { select: { id: true, nom: true, prenom: true } },
   createdAt: true,
   updatedAt: true,
   client: {
@@ -116,6 +140,7 @@ export const DEVIS_DETAIL_SELECT = {
       type: true,
       statut: true,
       destinataire: true,
+      canal: true,
       versionDevis: true,
       expiresAt: true,
       usedAt: true,

@@ -15,7 +15,10 @@ import { MAX_PHOTOS_PER_RAPPORT, type UploadedBinary } from '../../core/storage/
 import { CHANTIER_FERME, ChantiersService } from '../../execution/chantiers/chantiers.service';
 import { normalizeTaskProgress } from '../../execution/chantiers/tache-rules';
 import { PortailEvents, type RapportEvent } from '../portails.events';
-import { CreateRapportDto } from './rapports.dto';
+import { CreateRapportChefDto, CreateRapportDto } from './rapports.dto';
+
+/** 16/11: the author may delete what he just sent (a wrong photo, a report on the wrong job site) */
+export const DELAI_SUPPRESSION_MS = 15 * 60_000;
 
 export const RAPPORT_INCLUDE = {
   auteur: { select: { id: true, nom: true, prenom: true } },
@@ -132,6 +135,80 @@ export class RapportsService {
   }
 
   // ── office / chef side ──────────────────────────────────────────────────
+
+  /**
+   * 16/11 (mobile lot 1): report written by the chef de chantier (or the office) himself. He is
+   * the one who reviews reports, so it is recorded as already validated.
+   */
+  async createParChef(
+    user: AuthUser,
+    chantierId: number,
+    dto: CreateRapportChefDto,
+    photos: UploadedBinary[] = [],
+  ) {
+    if (photos.length > MAX_PHOTOS_PER_RAPPORT) {
+      throw new BusinessException(
+        'TROP_DE_PHOTOS',
+        `${MAX_PHOTOS_PER_RAPPORT} photos maximum par rapport.`,
+      );
+    }
+    if (photos.some((p) => !detectFileType(p.buffer))) {
+      throw new BusinessException(
+        'FICHIER_TYPE_REFUSE',
+        `Format de photo non accepté (${ACCEPTED_LABEL}).`,
+      );
+    }
+    const chantier = await this.chantiers.assertAccess(user, chantierId);
+    if (!REPORTABLE.includes(chantier.statut)) {
+      throw new BusinessException(
+        'CHANTIER_FERME',
+        'Ce chantier est clôturé : il ne reçoit plus de rapports.',
+      );
+    }
+    if (dto.tacheId) {
+      const ok = await this.prisma.tache.count({ where: { id: dto.tacheId, chantierId } });
+      if (!ok) throw new NotFoundException(`Tâche #${dto.tacheId} introuvable`);
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const created = await tx.rapportChantier.create({
+        data: {
+          companyId: user.companyId,
+          chantierId,
+          tacheId: dto.tacheId,
+          auteurId: user.id,
+          contenu: dto.contenu,
+          statut: RapportStatut.VALIDE,
+          valideParId: user.id,
+          valideLe: new Date(),
+        },
+      });
+      for (const photo of photos) {
+        await this.fichiers.create(user, photo, { chantierId, rapportId: created.id }, tx);
+      }
+      return tx.rapportChantier.findUniqueOrThrow({
+        where: { id: created.id },
+        include: RAPPORT_INCLUDE,
+      });
+    });
+  }
+
+  /** 16/11: the author deletes his own report, only just after sending it (15 minutes). */
+  async supprimerMien(user: AuthUser, chantierId: number, id: number): Promise<void> {
+    const rapport = await this.prisma.rapportChantier.findFirst({
+      where: { id, chantierId, companyId: user.companyId, auteurId: user.id },
+      select: { id: true, createdAt: true, photos: { select: { id: true } } },
+    });
+    if (!rapport) throw new NotFoundException(`Rapport #${id} introuvable`);
+    if (Date.now() - rapport.createdAt.getTime() > DELAI_SUPPRESSION_MS) {
+      throw new BusinessException(
+        'DELAI_DEPASSE',
+        'Un rapport ne se supprime que dans les 15 minutes après son envoi.',
+      );
+    }
+    // Files first (bytes + rows): deleting the report would cascade the rows and orphan the bytes
+    for (const photo of rapport.photos) await this.fichiers.remove(photo.id);
+    await this.prisma.rapportChantier.delete({ where: { id } });
+  }
 
   async forChantier(user: AuthUser, chantierId: number) {
     await this.chantiers.assertAccess(user, chantierId);

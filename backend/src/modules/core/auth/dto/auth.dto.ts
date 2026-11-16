@@ -102,3 +102,27 @@ export class SaveSignatureDto {
   @IsSignaturePng()
   signatureBase64: string;
 }
+
+// ── mobile session (16/11, lot B1) ────────────────────────────────────────
+
+export class RefreshDto {
+  @ApiProperty({ description: 'Jeton de rafraîchissement reçu à la connexion mobile' })
+  @IsString()
+  @MaxLength(200)
+  @Matches(/^[A-Za-z0-9_-]{20,200}$/, { message: 'Jeton de rafraîchissement invalide' })
+  refreshToken: string;
+}
+
+export class LogoutDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  refreshToken?: string;
+
+  @ApiPropertyOptional({ description: 'Jeton push Expo de ce téléphone (à ne plus notifier)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(250)
+  jetonPush?: string;
+}

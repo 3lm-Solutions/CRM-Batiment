@@ -21,9 +21,12 @@ import {
 } from './dto/chantiers.dto';
 import { CHECKLIST_SELECT } from './checklist/checklist-rules';
 import { assertDateRange, chantierProgress } from './tache-rules';
+import { toDates } from '../../../common/dates/to-dates';
 
 /** Frozen job sites: no more changes to tasks, documents, notes or access. */
 export const CHANTIER_FERME: ChantierStatut[] = ['CLOTURE', 'ANNULE'];
+
+const DATES = ['dateDebut', 'dateFin'] as const;
 
 const LIST_SELECT = {
   id: true,
@@ -68,6 +71,26 @@ export class ChantiersService {
           statut: query.statuts?.length ? { in: query.statuts } : undefined,
           clientId: query.clientId,
           chefChantierId: query.chefChantierId,
+        },
+        // 16/11 (mobile): period and team filters, each its own AND (they combine with the search)
+        ...(query.au
+          ? [{ OR: [{ dateDebut: null }, { dateDebut: { lte: new Date(query.au) } }] }]
+          : []),
+        ...(query.du
+          ? [{ OR: [{ dateFin: null }, { dateFin: { gte: new Date(query.du) } }] }]
+          : []),
+        ...(query.intervenantId
+          ? [
+              {
+                OR: [
+                  { chefChantierId: query.intervenantId },
+                  { taches: { some: { affectations: { some: { userId: query.intervenantId } } } } },
+                  { sousTraitantsVisibles: { some: { userId: query.intervenantId } } },
+                ],
+              },
+            ]
+          : []),
+        {
           ...(query.search && {
             OR: [
               { reference: { contains: query.search, mode: 'insensitive' } },
@@ -137,7 +160,16 @@ export class ChantiersService {
       },
     });
     if (!chantier) await this.notVisible(user, id);
-    return { ...chantier!, avancement: chantierProgress(chantier!.taches) };
+    // 16/11: the mode really applied (the job site's own, or the company's)
+    const { modeInstallation: modeEntreprise } = await this.prisma.company.findUniqueOrThrow({
+      where: { id: chantier!.companyId },
+      select: { modeInstallation: true },
+    });
+    return {
+      ...chantier!,
+      avancement: chantierProgress(chantier!.taches),
+      modeInstallationEffectif: chantier!.modeInstallation ?? modeEntreprise,
+    };
   }
 
   /** Throws 404 if the user may not see this job site. */
@@ -178,7 +210,7 @@ export class ChantiersService {
     const created = await this.prisma.$transaction(async (tx) =>
       tx.chantier.create({
         data: {
-          ...dto,
+          ...toDates(dto, DATES),
           companyId: user.companyId,
           reference: await this.references.next(ReferencePrefix.CHANTIER, user.companyId, tx),
         },
@@ -226,9 +258,15 @@ export class ChantiersService {
         'Seul le bureau peut changer le chef de chantier.',
       );
     }
+    if (dto.modeInstallation !== undefined && user.role === Role.CHEF_CHANTIER) {
+      throw new BusinessException(
+        'MODE_NON_MODIFIABLE',
+        'Seul le bureau peut changer le mode d’installation du chantier.',
+      );
+    }
     assertDateRange(dto.dateDebut ?? chantier.dateDebut, dto.dateFin ?? chantier.dateFin);
     await this.assertChef(user.companyId, dto.chefChantierId);
-    await this.prisma.chantier.update({ where: { id }, data: dto });
+    await this.prisma.chantier.update({ where: { id }, data: toDates(dto, DATES) });
     return this.findOne(user, id);
   }
 

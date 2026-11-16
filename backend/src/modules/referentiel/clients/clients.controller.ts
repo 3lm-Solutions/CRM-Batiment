@@ -6,16 +6,22 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ClientsService } from './clients.service';
-import { CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients.dto';
+import {
+  CreateClientDto,
+  DoublonsClientQueryDto,
+  QueryClientsDto,
+  UpdateClientDto,
+} from './dto/clients.dto';
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -30,6 +36,14 @@ export class ClientsController {
     return this.clients.findAll(user, query);
   }
 
+  /** 16/11 (mobile): declared before `:id`. The chef only gets names and statuses. */
+  @Roles(...STAFF)
+  @Get('doublons')
+  @ApiOperation({ summary: 'Clients existants avec le même téléphone ou le même email' })
+  doublons(@CurrentUser() user: AuthUser, @Query() query: DoublonsClientQueryDto) {
+    return this.clients.chercherDoublons(user.companyId, query, user.role !== Role.CHEF_CHANTIER);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Fiche client + dernières demandes, devis et chantiers' })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
@@ -37,8 +51,17 @@ export class ClientsController {
   }
 
   @Post()
-  create(@CurrentUser() user: AuthUser, @Body() dto: CreateClientDto) {
-    return this.clients.create(user, dto);
+  @ApiQuery({
+    name: 'verifierDoublons',
+    required: false,
+    description: 'true (mobile) : 409 CLIENT_EXISTANT si le téléphone ou l’email existe déjà',
+  })
+  create(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateClientDto,
+    @Query('verifierDoublons', new ParseBoolPipe({ optional: true })) verifierDoublons?: boolean,
+  ) {
+    return this.clients.create(user, dto, verifierDoublons ?? false);
   }
 
   @Patch(':id')

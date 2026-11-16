@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { MAIL_TRANSPORT, type MailTransport } from './mail.transport';
+import { type MailAttachment, MAIL_TRANSPORT, type MailTransport } from './mail.transport';
 import type { RenderedMail } from './templates/layout';
 
 /**
@@ -16,9 +16,9 @@ export class MailService {
 
   constructor(@Inject(MAIL_TRANSPORT) private readonly transport: MailTransport) {}
 
-  async send(to: string, mail: RenderedMail): Promise<boolean> {
+  async send(to: string, mail: RenderedMail, attachments?: MailAttachment[]): Promise<boolean> {
     try {
-      await this.transport.send({ to, ...mail });
+      await this.transport.send({ to, ...mail, ...(attachments?.length ? { attachments } : {}) });
       this.logger.log(`Email « ${mail.subject} » envoyé à ${to}`);
       return true;
     } catch (error) {

@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsEnum,
   IsIn,
   IsInt,
   IsNumber,
@@ -12,6 +13,7 @@ import {
   Min,
 } from 'class-validator';
 import { IsBic, IsIban, NormalizeEmail, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import { ModeInstallation } from '../../../../generated/prisma/client';
 
 export class UpdateCompanyDto {
   @ApiPropertyOptional()
@@ -143,4 +145,10 @@ export class UpdateCompanySettingsDto {
   @IsOptional()
   @IsIn([6, 12, 24])
   prixMarcheMois?: number;
+
+  /** 16/11 (mobile): menus « installation déléguée » visibles en REGIE ou LES_DEUX */
+  @ApiPropertyOptional({ enum: ModeInstallation })
+  @IsOptional()
+  @IsEnum(ModeInstallation)
+  modeInstallation?: ModeInstallation;
 }

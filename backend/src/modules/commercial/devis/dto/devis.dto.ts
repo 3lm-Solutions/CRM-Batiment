@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
@@ -6,6 +7,8 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
+  IsLatitude,
+  IsLongitude,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -15,6 +18,7 @@ import {
   Min,
 } from 'class-validator';
 import {
+  IsSignaturePng,
   PaginationQueryDto,
   ToIntArray,
   ToStringArray,
@@ -127,4 +131,86 @@ export class ReordonnerLignesDto {
   @ArrayMaxSize(500)
   @IsInt({ each: true })
   ligneIds: number[];
+}
+
+// ── 05/11 (re-applied 16/11) + mobile lot B1 ──────────────────────────────
+
+/** Refusal recorded by the team (the client said no by phone / in person). */
+export class RefuserDevisInterneDto {
+  @ApiProperty({ example: 'Budget trop élevé' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  motif: string;
+}
+
+export class RejeterSignaturePapierDto {
+  @ApiProperty({ example: 'Page 2 non signée' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  motif: string;
+}
+
+/** Signature on the advisor's phone, in front of the client (mobile lot B1). */
+export class SignerSurPlaceDto {
+  @IsSignaturePng()
+  signatureClientBase64: string;
+
+  @ApiProperty({ example: 'Jean Dupont' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(150)
+  nomSignataire: string;
+
+  @ApiPropertyOptional({ example: 48.8566 })
+  @IsOptional()
+  @IsLatitude()
+  latitude?: number;
+
+  @ApiPropertyOptional({ example: 2.3522 })
+  @IsOptional()
+  @IsLongitude()
+  longitude?: number;
+}
+
+export class VerifierQrDto {
+  @ApiProperty({ example: 'BATIFLOW:DEV:12:1:7K3Q9P' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  contenu: string;
+}
+
+/** 16/11 (mobile lot 1): draft started by a chef de chantier for the Devis IA. */
+export class BrouillonChefDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(1)
+  clientId: number;
+
+  @ApiPropertyOptional({ description: 'Le prospect terrain envoyé par le chef' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  demandeDevisId?: number;
+}
+
+/** 16/11 (lot 1): multipart fields sent with the scan of the paper signature (proof). */
+export class SignaturePapierDto {
+  @ApiPropertyOptional({ example: 48.8566 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsLatitude()
+  latitude?: number;
+
+  @ApiPropertyOptional({ example: 2.3522 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsLongitude()
+  longitude?: number;
 }

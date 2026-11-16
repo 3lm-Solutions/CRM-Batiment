@@ -46,3 +46,20 @@ export class ReviewRapportDto {
   @MaxLength(2000)
   commentaire?: string;
 }
+
+/** 16/11 (mobile lot 1): report written by the chef (or the office) on site. */
+export class CreateRapportChefDto {
+  @ApiPropertyOptional({ description: 'Tâche concernée (facultatif)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  tacheId?: number;
+
+  @ApiProperty({ example: 'Livraison du carrelage reçue, pose demain matin.' })
+  @Trim()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(5000)
+  contenu: string;
+}

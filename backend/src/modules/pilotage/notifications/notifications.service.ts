@@ -3,6 +3,7 @@ import { type AuthUser, paginate, PaginationQueryDto, toSkipTake } from '../../.
 import { NiveauNotification, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { NotificationsGateway } from './notifications.gateway';
+import { PushService } from './push.service';
 
 export interface NotificationInput {
   type: string;
@@ -19,6 +20,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gateway: NotificationsGateway,
+    private readonly push: PushService,
   ) {}
 
   /** To specific users (inactive ones are skipped). Never throws. */
@@ -40,6 +42,11 @@ export class NotificationsService {
         });
         this.gateway.pushToUser(userId, 'notification', notification);
       }
+      // 16/11: same notification on the phones of these users (mobile app), never awaited
+      void this.push.envoyer(
+        users.map((u) => u.id),
+        { type: input.type, titre: input.titre, message: input.message, lien: input.lien },
+      );
     } catch (error) {
       this.logger.error(
         `Notification « ${input.type} » non envoyée`,

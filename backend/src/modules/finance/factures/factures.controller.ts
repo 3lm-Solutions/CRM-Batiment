@@ -10,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  StreamableFile,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { type AuthUser, BUREAU, CurrentUser, FACTURATION, Roles } from '../../../common';
@@ -41,6 +42,16 @@ export class FacturesController {
   @Get('factures/:id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.factures.findOne(user, id);
+  }
+
+  /** 16/11: PDF of the invoice (reading roles: the office). */
+  @Get('factures/:id/pdf')
+  @ApiOperation({ summary: 'PDF de la facture' })
+  pdf(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<StreamableFile> {
+    return this.factures.telechargerPdf(user, id);
   }
 
   @Roles(...FACTURATION)

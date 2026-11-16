@@ -8,6 +8,7 @@ import {
   ReferenceService,
   toSkipTake,
 } from '../../../common';
+import { toDates } from '../../../common/dates/to-dates';
 import {
   Prisma,
   Role,
@@ -125,7 +126,7 @@ export class SavService {
     const ticket = await this.prisma.$transaction(async (tx) => {
       const created = await tx.savTicket.create({
         data: {
-          ...dto,
+          ...toDates(dto, ['dateEcheance']),
           companyId: user.companyId,
           createurId: user.id,
           reference: await this.references.next(ReferencePrefix.SAV, user.companyId, tx),
@@ -155,7 +156,10 @@ export class SavService {
       throw new BusinessException('TICKET_CLOTURE', 'Un ticket clôturé ne se modifie plus.');
     await this.assertAssignee(user.companyId, dto.assignedToId);
 
-    const updated = await this.prisma.savTicket.update({ where: { id }, data: dto });
+    const updated = await this.prisma.savTicket.update({
+      where: { id },
+      data: toDates(dto, ['dateEcheance']),
+    });
     if (dto.assignedToId && dto.assignedToId !== ticket.assignedTo?.id)
       this.emit(SavEvents.ASSIGNE, updated);
     return this.findOne(user, id);

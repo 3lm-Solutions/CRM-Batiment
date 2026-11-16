@@ -13,7 +13,7 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
+import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
 import type { UploadedBinary } from '../../core/storage/upload.config';
 import { MAX_PHOTOS_IA } from './devis-ia.prompt';
 import { DevisIaService } from './devis-ia.service';
@@ -21,7 +21,8 @@ import { AppliquerDevisIaDto, ProposerDevisIaDto, ProposerPhotoIaDto } from './d
 
 @ApiTags('Devis — assistant IA')
 @ApiBearerAuth()
-@Roles(...BUREAU)
+// 16/11 (mobile lot 1): + chef de chantier, on his own drafts only and without any price
+@Roles(...STAFF)
 @Controller('devis/:devisId/ia')
 export class DevisIaController {
   constructor(private readonly service: DevisIaService) {}

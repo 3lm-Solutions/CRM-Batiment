@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { type AuthUser, BusinessException, BUREAU } from '../../../common';
 import { Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
+import { AUDIO_ACCEPTE, detectAudio } from '../../ia/devis-ia/audio-type';
 import { ACCEPTED_LABEL, detectFileType, sanitizeFileName } from './file-type';
 import { StorageService } from './storage.service';
 import type { UploadedBinary } from './upload.config';
@@ -14,6 +16,14 @@ export const FICHIER_SELECT = {
   taille: true,
   createdAt: true,
 } satisfies Prisma.FichierSelect;
+
+export interface StoreOptions {
+  imagesOnly?: boolean;
+  /** Also accept audio recordings (WebM, Ogg, M4A, MP3, WAV) */
+  allowAudio?: boolean;
+  /** 16/11: where the phone was when the document was captured (proof, optional) */
+  position?: { latitude: number; longitude: number } | null;
+}
 
 export interface FichierLinks {
   chantierId?: number;
@@ -46,7 +56,7 @@ export class FichiersService {
     file: UploadedBinary | undefined,
     links: FichierLinks = {},
     db: DbClient = this.prisma,
-    options: { imagesOnly?: boolean } = {},
+    options: StoreOptions = {},
   ) {
     return this.store(user.companyId, user.id, file, links, db, options);
   }
@@ -61,13 +71,18 @@ export class FichiersService {
     file: UploadedBinary | undefined,
     links: FichierLinks = {},
     db: DbClient = this.prisma,
-    options: { imagesOnly?: boolean } = {},
+    options: StoreOptions = {},
   ) {
     if (!file?.buffer?.length)
       throw new BusinessException('FICHIER_MANQUANT', 'Aucun fichier reçu.');
-    const type = detectFileType(file.buffer);
+    // 16/11: voice notes of a prospect (mobile) — only where the caller allows audio
+    const type =
+      detectFileType(file.buffer) ?? (options.allowAudio ? detectAudio(file.buffer) : null);
     if (!type)
-      throw new BusinessException('FICHIER_TYPE_REFUSE', `Format non accepté (${ACCEPTED_LABEL}).`);
+      throw new BusinessException(
+        'FICHIER_TYPE_REFUSE',
+        `Format non accepté (${ACCEPTED_LABEL}${options.allowAudio ? `, ou audio ${AUDIO_ACCEPTE}` : ''}).`,
+      );
     if (options.imagesOnly && !type.mime.startsWith('image/')) {
       throw new BusinessException(
         'FICHIER_TYPE_REFUSE',
@@ -93,6 +108,10 @@ export class FichiersService {
           nom: sanitizeFileName(file.originalname, `fichier.${type.ext}`),
           mime: type.mime,
           taille: file.buffer.length,
+          // 16/11: SHA-256 fingerprint of the bytes — proves the document was not changed since
+          sha256: createHash('sha256').update(file.buffer).digest('hex'),
+          latitude: options.position?.latitude ?? null,
+          longitude: options.position?.longitude ?? null,
           chantierId: links.chantierId,
           rapportId: links.rapportId,
           savTicketId: links.savTicketId,
@@ -163,12 +182,21 @@ export class FichiersService {
         savTicket: {
           select: { assignedToId: true, chantier: { select: { chefChantierId: true } } },
         },
+        // 16/11: quote scans and prospect voice notes / photos are office documents
+        devisSignaturePapier: { select: { id: true } },
+        demandeDevisFichier: { select: { id: true } },
       },
     });
     // 404 rather than 403: never confirm that someone else's file exists
     if (!fichier || !(await this.canRead(user, fichier)))
       throw new NotFoundException(`Fichier #${id} introuvable`);
-    const { rapport: _r, savTicket: _s, ...rest } = fichier;
+    const {
+      rapport: _r,
+      savTicket: _s,
+      devisSignaturePapier: _d,
+      demandeDevisFichier: _f,
+      ...rest
+    } = fichier;
     return rest;
   }
 
@@ -182,11 +210,15 @@ export class FichiersService {
         assignedToId: number | null;
         chantier: { chefChantierId: number | null } | null;
       } | null;
+      devisSignaturePapier?: { id: number } | null;
+      demandeDevisFichier?: { id: number } | null;
     },
   ): Promise<boolean> {
     if (BUREAU.includes(user.role)) return true;
     if (f.uploadedById === user.id) return true;
     if (user.role === Role.FOURNISSEUR) return false;
+    // Signed quote scan, prospect photo / voice note (16/11): office (and uploader) only
+    if (f.devisSignaturePapier || f.demandeDevisFichier) return false;
 
     // After-sales photo (C42): same scope as the ticket itself (a chef: assigned to it, or chef of its job site)
     if (f.savTicket) {

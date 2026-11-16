@@ -19,3 +19,4 @@ export * from './validators/validation-messages';
 export * from './state-machine/state-machine';
 export * from './auth/session-validator.service';
 export * from './auth/hide-costs';
+export * from './dates/to-dates';

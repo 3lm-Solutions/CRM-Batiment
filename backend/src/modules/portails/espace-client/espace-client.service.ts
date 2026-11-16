@@ -23,7 +23,16 @@ const VALIDITY_DAYS = 90;
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex');
 
 /** What the client may see: quotes once sent, invoices once issued. Never drafts, costs or margins. */
-const DEVIS_VISIBLES: DevisStatut[] = ['ENVOYE', 'RENVOYE', 'ACCEPTE', 'SIGNE', 'REFUSE', 'REVISE'];
+// 05/11 : un devis signé sur papier reste visible pendant la vérification de la photo
+const DEVIS_VISIBLES: DevisStatut[] = [
+  'ENVOYE',
+  'RENVOYE',
+  'ACCEPTE',
+  'SIGNE_PAPIER',
+  'SIGNE',
+  'REFUSE',
+  'REVISE',
+];
 const FACTURES_VISIBLES: FactureStatut[] = ['ENVOYEE', 'PAYEE', 'ANNULEE'];
 
 type ResolvedEspace = { id: number; companyId: number; clientId: number };

@@ -19,3 +19,5 @@ process.env.IMAP_SUBJECTS = '';
 // Never send real emails in tests (even when backend/.env has a Gmail account): printed in the console
 process.env.MAIL_HOST = '';
 process.env.DEMO_MODE = 'false';
+// Never call Expo push servers in tests (16/11): a test that needs it injects a fake PushService
+process.env.PUSH_ACTIF = 'false';

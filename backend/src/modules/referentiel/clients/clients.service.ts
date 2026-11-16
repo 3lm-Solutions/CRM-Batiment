@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { type AuthUser, BusinessException, paginate, parseSort, toSkipTake } from '../../../common';
 import { Prisma, Role, type TypeClient } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -8,6 +8,7 @@ import {
   QueryClientsDto,
   UpdateClientDto,
 } from './dto/clients.dto';
+import { cleEmail, cleTelephone, type Correspondance } from './doublons';
 
 const CLIENT_INCLUDE = {
   typeProjetLinks: {
@@ -126,7 +127,77 @@ export class ClientsService {
     return chef ? { ...vue, devis: vue.devis.map(({ totalTTC: _montant, ...d }) => d) } : vue;
   }
 
-  async create(user: AuthUser, dto: CreateClientDto) {
+  // ── doublons (16/11, mobile lot 1) ──────────────────────────────────────
+
+  /**
+   * Clients of the company with the same phone (last 9 digits) or the same email (any case).
+   * `complet: false` (chef de chantier): name and status only, never the contact details.
+   */
+  async chercherDoublons(
+    companyId: number,
+    q: { telephone?: string | null; email?: string | null; excludeId?: number },
+    complet = true,
+  ) {
+    const tel = cleTelephone(q.telephone);
+    const email = cleEmail(q.email);
+    if (!tel && !email) return [];
+    const parTelephone = tel
+      ? await this.prisma.$queryRaw<{ id: number }[]>(Prisma.sql`
+          SELECT id FROM clients
+          WHERE "companyId" = ${companyId}
+            AND right(regexp_replace(coalesce(telephone, ''), '\D', '', 'g'), 9) = ${tel}
+          LIMIT 10`)
+      : [];
+    const idsTel = new Set(parTelephone.map((r) => r.id));
+    const rows = await this.prisma.client.findMany({
+      where: {
+        companyId,
+        ...(q.excludeId && { id: { not: q.excludeId } }),
+        OR: [
+          ...(idsTel.size ? [{ id: { in: [...idsTel] } }] : []),
+          ...(email ? [{ email: { equals: email, mode: 'insensitive' as const } }] : []),
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        statut: true,
+        typeClient: true,
+        archivedAt: true,
+        telephone: true,
+        email: true,
+      },
+    });
+    return rows.map(({ telephone, email: mail, ...c }) => {
+      const correspondances: Correspondance[] = [];
+      if (idsTel.has(c.id)) correspondances.push('TELEPHONE');
+      if (email && cleEmail(mail) === email) correspondances.push('EMAIL');
+      return { ...c, ...(complet && { telephone, email: mail }), correspondances };
+    });
+  }
+
+  /** POST /clients?verifierDoublons=true: 409 CLIENT_EXISTANT with the clients found. */
+  async assertPasDeDoublon(
+    companyId: number,
+    q: { telephone?: string | null; email?: string | null },
+    complet = true,
+  ): Promise<void> {
+    const doublons = await this.chercherDoublons(companyId, q, complet);
+    if (doublons.length) {
+      throw new BusinessException(
+        'CLIENT_EXISTANT',
+        'Un client avec ce téléphone ou cet email existe déjà. Ouvrez sa fiche, ou créez quand même.',
+        HttpStatus.CONFLICT,
+        { doublons },
+      );
+    }
+  }
+
+  async create(user: AuthUser, dto: CreateClientDto, verifierDoublons = false) {
+    if (verifierDoublons) await this.assertPasDeDoublon(user.companyId, dto);
     const { typeProjetIds, ...rest } = dto;
     await this.assertTypesProjet(user.companyId, typeProjetIds);
     // 29/10: the « Prospects » list only holds qualified prospects — a contact entered by hand

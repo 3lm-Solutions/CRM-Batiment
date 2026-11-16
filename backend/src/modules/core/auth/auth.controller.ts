@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Patch,
@@ -25,6 +26,8 @@ import {
   ChangePasswordDto,
   ForgotPasswordDto,
   LoginDto,
+  LogoutDto,
+  RefreshDto,
   ResetPasswordDto,
   SaveSignatureDto,
   UpdateProfileDto,
@@ -34,6 +37,11 @@ import {
 /** Brute-force protection on public endpoints (per IP). */
 const STRICT = { default: { limit: 5, ttl: 60_000 } };
 const VERY_STRICT = { default: { limit: 3, ttl: 60_000 } };
+/** A phone refreshes about once a day; a few retries allowed. */
+const REFRESH = { default: { limit: 10, ttl: 60_000 } };
+
+/** 16/11: the mobile app sends « X-Client: mobile » (and optionally « X-Appareil: <name> »). */
+const estMobile = (client?: string) => client?.trim().toLowerCase() === 'mobile';
 
 @ApiTags('Authentification')
 @Controller('auth')
@@ -50,8 +58,35 @@ export class AuthController {
       'Retourne un accessToken, ou — au premier login — un passwordChangeToken valable 15 min ' +
       'utilisable UNIQUEMENT sur POST /auth/change-password.',
   })
-  login(@Body() dto: LoginDto) {
-    return this.auth.login(dto);
+  login(
+    @Body() dto: LoginDto,
+    @Headers('x-client') client?: string,
+    @Headers('x-appareil') appareil?: string,
+  ) {
+    return this.auth.login(dto, estMobile(client), appareil);
+  }
+
+  @Public()
+  @Throttle(REFRESH)
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Mobile : nouveau token avec le jeton de rafraîchissement (qui est remplacé)',
+  })
+  refresh(@Body() dto: RefreshDto) {
+    return this.auth.refresh(dto.refreshToken);
+  }
+
+  @Public()
+  @Throttle(REFRESH)
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary:
+      'Mobile : déconnexion (jeton de rafraîchissement révoqué, plus de push sur ce téléphone)',
+  })
+  logout(@Body() dto: LogoutDto) {
+    return this.auth.logout(dto.refreshToken, dto.jetonPush);
   }
 
   @ApiBearerAuth()
@@ -64,8 +99,13 @@ export class AuthController {
     description:
       'Exige le mot de passe actuel. Ferme toutes les autres sessions et renvoie un nouveau token.',
   })
-  changePassword(@CurrentUser() user: AuthUser, @Body() dto: ChangePasswordDto) {
-    return this.auth.changePassword(user, dto);
+  changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+    @Headers('x-client') client?: string,
+    @Headers('x-appareil') appareil?: string,
+  ) {
+    return this.auth.changePassword(user, dto, estMobile(client), appareil);
   }
 
   @Public()

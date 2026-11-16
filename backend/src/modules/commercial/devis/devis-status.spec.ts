@@ -46,7 +46,27 @@ describe('devis state machine', () => {
   });
 
   it('lists the sources of a target state', () => {
-    expect(sourcesOf('SIGNE').sort()).toEqual(['ACCEPTE', 'ENVOYE', 'RENVOYE']);
+    expect(sourcesOf('SIGNE').sort()).toEqual(['ACCEPTE', 'ENVOYE', 'RENVOYE', 'SIGNE_PAPIER']);
+  });
+
+  // 05/11 — paper signature
+  it.each([
+    ['ENVOYE', 'SIGNE_PAPIER'],
+    ['RENVOYE', 'SIGNE_PAPIER'],
+    ['ACCEPTE', 'SIGNE_PAPIER'],
+    ['SIGNE_PAPIER', 'SIGNE'], // admin validates the photo
+    ['SIGNE_PAPIER', 'ENVOYE'], // admin rejects the photo
+    ['SIGNE_PAPIER', 'ACCEPTE'],
+  ] as [DevisStatut, DevisStatut][])('paper signature: allows %s → %s', (from, to) => {
+    expect(canTransition(from, to)).toBe(true);
+  });
+
+  it.each([
+    ['BROUILLON', 'SIGNE_PAPIER'], // never shown to the client
+    ['REFUSE', 'SIGNE_PAPIER'],
+    ['SIGNE_PAPIER', 'REVISE'],
+  ] as [DevisStatut, DevisStatut][])('paper signature: forbids %s → %s', (from, to) => {
+    expect(canTransition(from, to)).toBe(false);
   });
 
   it('only drafts and revisions are editable', () => {

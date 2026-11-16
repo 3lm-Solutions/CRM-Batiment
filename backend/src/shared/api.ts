@@ -26,6 +26,8 @@ export interface ApiErrorResponse {
   timestamp: string;
   /** Same value as the X-Request-Id response header — quote it when reporting a bug */
   requestId?: string;
+  /** 16/11 (mobile): extra data for some business errors, e.g. the existing clients for CLIENT_EXISTANT */
+  details?: unknown;
 }
 
 export interface HealthResponse {

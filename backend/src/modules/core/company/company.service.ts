@@ -28,6 +28,7 @@ const SETTINGS_SELECT = {
   pasArrondiPrix: true,
   savDureeMois: true,
   prixMarcheMois: true,
+  modeInstallation: true,
 } satisfies Prisma.CompanySelect;
 
 export type CompanySettingsRecord = Prisma.CompanyGetPayload<{ select: typeof SETTINGS_SELECT }>;
@@ -81,5 +82,6 @@ function toSettings(r: CompanySettingsRecord): CompanySettings {
     pasArrondiPrix: r.pasArrondiPrix.toNumber(),
     savDureeMois: r.savDureeMois,
     prixMarcheMois: r.prixMarcheMois,
+    modeInstallation: r.modeInstallation,
   };
 }

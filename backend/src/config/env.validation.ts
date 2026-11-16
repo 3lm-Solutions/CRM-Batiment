@@ -160,6 +160,20 @@ export const envSchema = z
       .enum(['true', 'false'])
       .default('false')
       .transform((v) => v === 'true'),
+
+    // ── Mobile app (16/11, lot B1) ──
+    // Push notifications through Expo (https://exp.host). false = never call Expo (tests, demo).
+    PUSH_ACTIF: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
+    // Optional: only if « Enhanced push security » is enabled on the Expo project
+    EXPO_ACCESS_TOKEN: z
+      .string()
+      .optional()
+      .transform((v) => v?.trim() || undefined),
+    // Lifetime of a mobile refresh token (rotated at each use)
+    MOBILE_REFRESH_JOURS: z.coerce.number().int().min(1).max(365).default(60),
   })
   .superRefine((env, ctx) => {
     // Safety: the nightly wipe must never hit a real database by mistake

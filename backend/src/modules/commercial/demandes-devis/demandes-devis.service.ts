@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { FichiersService } from '../../core/storage/fichiers.service';
+import type { UploadedBinary } from '../../core/storage/upload.config';
 import {
   type AuthUser,
   BusinessException,
@@ -26,13 +28,68 @@ const INCLUDE = {
   devis: { select: { id: true, reference: true, statut: true }, orderBy: { createdAt: 'desc' } },
 } satisfies Prisma.DemandeDevisInclude;
 
+/** 16/11 (mobile): photos and voice notes, in the detail only. */
+const PIECE_JOINTE_SELECT = {
+  id: true,
+  type: true,
+  dureeSecondes: true,
+  createdAt: true,
+  fichier: { select: { id: true, nom: true, mime: true, taille: true } },
+} satisfies Prisma.DemandeDevisFichierSelect;
+const MAX_PIECES_JOINTES = 20;
+
 @Injectable()
 export class DemandesDevisService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly references: ReferenceService,
     private readonly devis: DevisService,
+    private readonly fichiers: FichiersService,
   ) {}
+
+  // ── photos / voice notes (16/11, mobile lot B1) ─────────────────────────
+
+  /** A photo (JPG, PNG, WebP), a PDF or a voice note (WebM, Ogg, M4A, MP3, WAV) of the prospect. */
+  async ajouterFichier(
+    user: AuthUser,
+    id: number,
+    file: UploadedBinary | undefined,
+    dureeSecondes?: number,
+  ) {
+    const demande = await this.prisma.demandeDevis.findFirst({
+      where: { id, companyId: user.companyId },
+      select: { id: true, _count: { select: { fichiers: true } } },
+    });
+    if (!demande) throw new NotFoundException(`Demande #${id} introuvable`);
+    if (demande._count.fichiers >= MAX_PIECES_JOINTES) {
+      throw new BusinessException(
+        'TROP_DE_FICHIERS',
+        `${MAX_PIECES_JOINTES} pièces jointes au plus par demande.`,
+      );
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const fichier = await this.fichiers.create(user, file, {}, tx, { allowAudio: true });
+      return tx.demandeDevisFichier.create({
+        data: {
+          demandeDevisId: id,
+          fichierId: fichier.id,
+          type: fichier.mime.startsWith('audio/') ? 'AUDIO' : 'PHOTO',
+          dureeSecondes: fichier.mime.startsWith('audio/') ? (dureeSecondes ?? null) : null,
+        },
+        select: PIECE_JOINTE_SELECT,
+      });
+    });
+  }
+
+  async supprimerFichier(user: AuthUser, id: number, pieceId: number): Promise<void> {
+    const piece = await this.prisma.demandeDevisFichier.findFirst({
+      where: { id: pieceId, demandeDevisId: id, demandeDevis: { companyId: user.companyId } },
+      select: { fichierId: true },
+    });
+    if (!piece) throw new NotFoundException(`Pièce jointe #${pieceId} introuvable`);
+    // Deleting the file cascades to the link row
+    await this.fichiers.remove(piece.fichierId);
+  }
 
   async findAll(user: AuthUser, query: QueryDemandesDevisDto) {
     const where: Prisma.DemandeDevisWhereInput = {
@@ -40,6 +97,7 @@ export class DemandesDevisService {
       statut: query.statuts?.length ? { in: query.statuts } : undefined,
       source: query.source,
       clientId: query.clientId,
+      ...(query.mesProspects && { createurId: user.id }),
       ...(query.search && {
         OR: [
           { reference: { contains: query.search, mode: 'insensitive' } },
@@ -63,7 +121,10 @@ export class DemandesDevisService {
   async findOne(user: AuthUser, id: number) {
     const row = await this.prisma.demandeDevis.findFirst({
       where: { id, companyId: user.companyId },
-      include: INCLUDE,
+      include: {
+        ...INCLUDE,
+        fichiers: { select: PIECE_JOINTE_SELECT, orderBy: { createdAt: 'asc' } },
+      },
     });
     if (!row) throw new NotFoundException(`Demande #${id} introuvable`);
     return row;

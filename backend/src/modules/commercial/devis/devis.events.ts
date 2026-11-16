@@ -9,6 +9,9 @@ export const DevisEvents = {
   SIGNE: 'devis.signe',
   ANNULE: 'devis.annule',
   PRIX_MODIFIE: 'devis.prix.modifie',
+  /** 05/11: scan of the paper signature uploaded, waiting for an ADMIN check */
+  SIGNE_PAPIER: 'devis.signe-papier',
+  SIGNATURE_PAPIER_REJETEE: 'devis.signature-papier.rejetee',
 } as const;
 
 export interface DevisEvent {

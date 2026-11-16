@@ -66,6 +66,23 @@ Légende : **C** créer · **L** lire · **M** modifier · **S** supprimer · **
 | Prospects (fiches clients qualifiées sans devis signé, menu « Prospects ») | CLMS | CLM | CLM | — | — | — | 29-10 ✅ |
 | Prix de marché (consultation ; barème CSV : import, modèle, vider = ADMIN) | LMA | L | L | — | — | — | 29-10 ✅ |
 | Devis IA — proposer / ajouter des lignes (devis modifiable) ; onglets Texte et **Photo** (1 à 3 photos, analysées par l’IA puis oubliées — jamais stockées) | A | A | A | — | — | — | 15 ✅ / 21-10 ✅ |
+| Devis — terrain (05/11, repris le 16/11) : remis en main propre (`remettre`), lien WhatsApp (`lien-whatsapp`, lien wa.me, rien n'est envoyé par le serveur), refus constaté par l'équipe (`refuser`, motif obligatoire), dépôt du scan signé (`signature-papier` → SIGNE_PAPIER), PDF (`GET /devis/:id/pdf`, prix de vente seulement) | A + L | A + L | A + L | — | — | — | 16-11 ✅ |
+| Devis — vérifier / rejeter une signature papier (`signature-papier/valider` → SIGNE, `signature-papier/rejeter` → statut précédent + motif) | A | — | — | — | — | — | 16-11 ✅ |
+| Devis — signature du client sur le téléphone du conseiller (`signer-sur-place`, signature du conseiller dans le profil requise ; nom du signataire, position facultative) et vérification du QR imprimé (`GET /devis/verifier-qr`) | A + L | A + L | A + L | — | — | — | 16-11 ✅ |
+| Scan de signature papier, photos et notes vocales d'une demande (fichiers) | L | L | L | — (404) | — | — | 16-11 ✅ |
+| Demandes de devis — pièces jointes (`POST /demandes-devis/:id/fichiers` : photo, PDF ou note vocale WebM / Ogg / M4A / MP3 / WAV, 20 max ; `DELETE …/fichiers/:pieceId`) et filtre `?mesProspects=true` | CLS | CLS | CLS | — | — | — | 16-11 ✅ |
+| Factures — PDF (`GET /factures/:id/pdf`) | L | L | L | — | — | — | 16-11 ✅ |
+| Commentaires d'une tâche (`/chantiers/:id/taches/:tacheId/commentaires`) — les intervenants et le chef sont notifiés (+ push) | CL | L | CL | CL ses chantiers | CL ses tâches (`/portail/sous-traitant/taches/:tacheId/commentaires`) | — | 16-11 ✅ |
+| Tableau de bord d'exécution mobile (`GET /dashboard/chef` : chantiers du jour, tâches en retard, livraisons, SAV — sans montants) | L tout | L tout | L tout | L ses chantiers | — | — | 16-11 ✅ |
+| Tableau de bord commercial mobile (`GET /dashboard/commercial` : TECHNICO = ses chiffres ; bureau = l'entreprise, ou `?moi=true`) | L | L (les siens) | L | — | — | — | 16-11 ✅ |
+| Téléphones pour les notifications push (`/mobile/appareils` : enregistrer, lister, retirer ses propres jetons Expo) | CLS | CLS | CLS | CLS | CLS | CLS | 16-11 ✅ |
+| Doublons de clients (`GET /clients/doublons` : même téléphone — 9 derniers chiffres — ou même email ; `POST /clients?verifierDoublons=true` → 409 CLIENT_EXISTANT avec les fiches trouvées) | L | L | L | L (noms et statuts seulement) | — | — | lot 1 ✅ |
+| Prospect terrain (`/prospects-terrain` : nouveau contact ou client existant + besoin, photos / note vocale ; commerciaux et admin notifiés ; suivi sans montants) | CLS (tous) | CLS (tous) | CLS (tous) | CLS (les siens) | — | — | lot 1 ✅ |
+| Devis IA en brouillon par le chef (`POST /devis/brouillon-chef` pour le client d'un de ses chantiers ou un de ses prospects ; `/devis/:id/ia/*` sur SES brouillons, réponses sans aucun prix ; commerciaux et admin notifiés) | — | — | — | C ses brouillons | — | — | lot 1 ✅ |
+| Visites programmées (`/visites` : programmer, déplacer, faite, annuler ; rappel la veille à 18 h ; bloc « visites » de `/dashboard/commercial`) | CLM tout | CLM les siennes | CLM tout | — | — | — | lot 1 ✅ |
+| Mode d'installation (réglage `modeInstallation` de `/company/settings` : POSE / REGIE / LES_DEUX ; sur un chantier via `PATCH /chantiers/:id`, null = réglage de l'entreprise ; `modeInstallationEffectif` dans le détail ; `company.modeInstallation` dans `/auth/me`) | M | L | M chantier | L | — | — | lot 1 ✅ |
+| Photos avant / après et rapports pris par le chef ou le bureau (`POST /chantiers/:id/photos`, `POST /chantiers/:id/rapports` : validés d'office ; suppression de SA photo / SON rapport dans les 15 minutes) | CS | — | CS | CS ses chantiers | — | — | lot 1 ✅ |
+| Filtres chantiers `du`, `au` (période) et `intervenantId` (équipe) sur `GET /chantiers` | L | L | L | L ses chantiers | — | — | lot 1 ✅ |
 
 ## Routes publiques (`@Public()`)
 
@@ -82,11 +99,17 @@ Elles valident elles-mêmes un jeton, une expiration ou un périmètre dans le s
 | Démo en ligne `/public/demo` (étape 15) | `GET` : indique si l'instance est la démo ; `POST connexion` : session sans mot de passe **uniquement si `DEMO_MODE=true`** (sinon 404), 10 / minute / IP ; `DEMO_MODE` est refusé au démarrage si le nom de la base ne contient pas « demo » |
 | Chatbot `/public/assistant/sessions…` (étape 14) | jeton de conversation de 256 bits (haché), en-tête `X-Chat-Token`, même 404 pour un id inconnu ou un mauvais jeton, conversation de 7 jours max, 40 messages ; 10 conversations, 15 messages, 5 formulaires / minute / IP ; réponses filtrées (jamais de prix ni de donnée interne) |
 | Webhook WhatsApp (étape 15) | signature Meta (`rawBody`) |
+| En-tête `Idempotency-Key` (application mobile, lot 1) | sur toute route authentifiée POST / PUT / PATCH / DELETE : la même clé (même utilisateur, même adresse) renvoie la réponse gardée au lieu de refaire l'action (en-tête `Idempotent-Replayed: true`) ; clé gardée 24 h ; une requête en échec est oubliée ; sans l'en-tête rien ne change |
+| `POST /auth/refresh`, `POST /auth/logout` (application mobile, 16/11) | jeton de rafraîchissement de 384 bits, seul son SHA-256 est stocké ; délivré seulement à la connexion avec l'en-tête `X-Client: mobile` ; à usage unique (rotation) — un jeton déjà utilisé révoque **toutes** les sessions mobiles du compte ; lié à `tokenVersion` (changement de mot de passe, réinitialisation, désactivation = fin de session) ; 60 jours (`MOBILE_REFRESH_JOURS`) ; 10 requêtes / minute / IP |
 
 ## Temps réel
 
 `socket.io`, espace `/notifications`, jeton dans `auth.token` à la connexion. Mêmes contrôles que
 l'API HTTP (`SessionValidator`) : un compte désactivé ou un jeton révoqué est déconnecté.
+
+Application mobile (16/11) : chaque notification est aussi envoyée en **push** (service Expo) aux
+téléphones enregistrés du destinataire — exactement les mêmes destinataires que la notification.
+`PUSH_ACTIF=false` coupe l'envoi (toujours coupé en tests et sur la démo).
 
 ## Groupes de rôles (code)
 

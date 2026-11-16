@@ -10,17 +10,25 @@ import { BusinessException } from '../../../common';
  *                          └─client refuse→ REFUSE ─réviser→ REVISE ─envoyer→ RENVOYE ─(comme ENVOYE)
  *   ENVOYE / RENVOYE can also be revised directly (client asks for a change by phone).
  *   Any non-final state → ANNULE.  SIGNE and ANNULE are final.
+ *
+ *   05/11 — paper signature: ENVOYE / RENVOYE / ACCEPTE ─photo du devis signé→ SIGNE_PAPIER
+ *   SIGNE_PAPIER ─ADMIN valide→ SIGNE  |  ─ADMIN refuse la photo→ back to ENVOYE / RENVOYE / ACCEPTE
+ *   (« remis au client » uses the same BROUILLON → ENVOYE / REVISE → RENVOYE transitions, without email)
  */
 export const DEVIS_TRANSITIONS: Record<DevisStatut, readonly DevisStatut[]> = {
   BROUILLON: ['ENVOYE', 'ANNULE'],
-  ENVOYE: ['ACCEPTE', 'REFUSE', 'REVISE', 'SIGNE', 'ANNULE'],
-  RENVOYE: ['ACCEPTE', 'REFUSE', 'REVISE', 'SIGNE', 'ANNULE'],
-  ACCEPTE: ['SIGNE', 'ANNULE'],
+  ENVOYE: ['ACCEPTE', 'REFUSE', 'REVISE', 'SIGNE', 'SIGNE_PAPIER', 'ANNULE'],
+  RENVOYE: ['ACCEPTE', 'REFUSE', 'REVISE', 'SIGNE', 'SIGNE_PAPIER', 'ANNULE'],
+  ACCEPTE: ['SIGNE', 'SIGNE_PAPIER', 'ANNULE'],
   REFUSE: ['REVISE', 'ANNULE'],
   REVISE: ['RENVOYE', 'ANNULE'],
+  SIGNE_PAPIER: ['SIGNE', 'ENVOYE', 'RENVOYE', 'ACCEPTE', 'ANNULE'],
   SIGNE: [],
   ANNULE: [],
 };
+
+/** 05/11: a photo of the signed paper quote can be uploaded from these states. */
+export const SIGNATURE_PAPIER_STATUTS: readonly DevisStatut[] = ['ENVOYE', 'RENVOYE', 'ACCEPTE'];
 
 /** Lines and header can only be edited in these states. */
 export const EDITABLE_STATUTS: readonly DevisStatut[] = ['BROUILLON', 'REVISE'];

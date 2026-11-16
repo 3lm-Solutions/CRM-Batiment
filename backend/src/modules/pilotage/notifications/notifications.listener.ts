@@ -16,6 +16,15 @@ import {
   type TacheAvanceeEvent,
 } from '../../portails/portails.events';
 import { type SavEvent, SavEvents } from '../sav/sav.events';
+import {
+  type ProspectTerrainCreeEvent,
+  ProspectTerrainEvents,
+} from '../../mobile/prospects-terrain/prospects-terrain.events';
+import {
+  type TacheAffecteeEvent,
+  type TacheCommenteeEvent,
+  TacheEvents,
+} from '../../execution/chantiers/taches.events';
 import { NotificationsService } from './notifications.service';
 
 const ASYNC = { async: true } as const;
@@ -68,6 +77,37 @@ export class NotificationsListener {
         lien: `/devis/${e.devisId}`,
       },
       [await this.createur(e.devisId)],
+    );
+  }
+
+  /** 05/11 (re-applied 16/11): a scan of the paper signature must be checked by an ADMIN. */
+  @OnEvent(DevisEvents.SIGNE_PAPIER, ASYNC)
+  async devisSignePapier(e: DevisEvent) {
+    await this.notifications.notifyRoles(e.companyId, [Role.ADMIN], {
+      type: 'DEVIS_SIGNE_PAPIER',
+      niveau: 'INFO',
+      titre: `Devis ${e.reference} signé sur papier`,
+      message: 'Vérifiez le scan de la signature puis validez-le ou rejetez-le.',
+      lien: `/devis/${e.devisId}`,
+    });
+  }
+
+  @OnEvent(DevisEvents.SIGNATURE_PAPIER_REJETEE, ASYNC)
+  async signaturePapierRejetee(e: DevisEvent) {
+    const devis = await this.prisma.devis.findUnique({
+      where: { id: e.devisId },
+      select: { createurId: true, signaturePapierParId: true, signaturePapierRejet: true },
+    });
+    await this.notifications.notifyUsers(
+      e.companyId,
+      [devis?.signaturePapierParId, devis?.createurId],
+      {
+        type: 'DEVIS_SIGNATURE_PAPIER_REJETEE',
+        niveau: 'ALERTE',
+        titre: `Signature papier du devis ${e.reference} refusée`,
+        message: devis?.signaturePapierRejet ?? 'Déposez un nouveau scan du devis signé.',
+        lien: `/devis/${e.devisId}`,
+      },
     );
   }
 
@@ -210,6 +250,83 @@ export class NotificationsListener {
       message: `${e.auteurNom} indique ${e.avancement} % d’avancement.`,
       lien: `/chantiers/${e.chantierId}`,
     });
+  }
+
+  // ── tâches (16/11, mobile lot B1) ───────────────────────────────────────
+
+  @OnEvent(TacheEvents.AFFECTEE, ASYNC)
+  async tacheAffectee(e: TacheAffecteeEvent) {
+    await this.notifierParRole(e.companyId, e.userIds, e.chantierId, {
+      type: 'TACHE_AFFECTEE',
+      titre: `Nouvelle tâche — ${e.chantierReference}`,
+      message: `Vous êtes affecté à « ${e.tacheLibelle} ».`,
+    });
+  }
+
+  @OnEvent(TacheEvents.COMMENTEE, ASYNC)
+  async tacheCommentee(e: TacheCommenteeEvent) {
+    await this.notifierParRole(e.companyId, e.destinataires, e.chantierId, {
+      type: 'TACHE_COMMENTEE',
+      titre: `${e.chantierReference} — ${e.tacheLibelle}`,
+      message: `${e.auteurNom || 'Un intervenant'} : ${e.extrait}`,
+    });
+  }
+
+  // ── prospect terrain (16/11, mobile lot 1) ──────────────────────────────
+
+  @OnEvent(ProspectTerrainEvents.CREE, ASYNC)
+  async prospectTerrain(e: ProspectTerrainCreeEvent) {
+    const destinataires = await this.prisma.user.findMany({
+      where: {
+        companyId: e.companyId,
+        actif: true,
+        role: { in: [Role.TECHNICO, Role.ADMIN] },
+        id: { not: e.auteurId },
+      },
+      select: { id: true },
+    });
+    await this.notifications.notifyUsers(
+      e.companyId,
+      destinataires.map((u) => u.id),
+      {
+        type: 'PROSPECT_TERRAIN',
+        niveau: 'INFO',
+        titre: `Prospect terrain : ${e.clientNom}`,
+        message: `${e.auteurNom} a rencontré un prospect (${e.reference}). À rappeler.`,
+        lien: '/demandes',
+      },
+    );
+  }
+
+  /** The link differs: a sous-traitant opens his portal, the others the job site. */
+  private async notifierParRole(
+    companyId: number,
+    userIds: number[],
+    chantierId: number,
+    input: { type: string; titre: string; message: string },
+  ) {
+    if (!userIds.length) return;
+    const sousTraitants = new Set<number>(
+      (
+        await this.prisma.user.findMany({
+          where: { id: { in: userIds }, role: Role.SOUS_TRAITANT },
+          select: { id: true },
+        })
+      ).map((u) => u.id),
+    );
+    const autres = userIds.filter((id) => !sousTraitants.has(id));
+    if (sousTraitants.size) {
+      await this.notifications.notifyUsers(companyId, [...sousTraitants], {
+        ...input,
+        lien: `/portail/chantiers/${chantierId}`,
+      });
+    }
+    if (autres.length) {
+      await this.notifications.notifyUsers(companyId, autres, {
+        ...input,
+        lien: `/chantiers/${chantierId}`,
+      });
+    }
   }
 
   @OnEvent(PortailEvents.COMMANDE_ACCUSEE, ASYNC)

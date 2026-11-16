@@ -195,3 +195,25 @@ export class QueryClientsDto extends PaginationQueryDto {
   @IsBoolean()
   archived?: boolean;
 }
+
+/** 16/11 (mobile): GET /clients/doublons */
+export class DoublonsClientQueryDto {
+  @ApiPropertyOptional({ example: '06 12 34 56 78' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  telephone?: string;
+
+  @ApiPropertyOptional({ example: 'paul.martin@mail.fr' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(254)
+  email?: string;
+
+  /** Ignorer ce client (vérification pendant la modification de sa fiche) */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  excludeId?: number;
+}

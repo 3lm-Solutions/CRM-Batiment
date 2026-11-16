@@ -14,6 +14,9 @@ export interface SessionUser {
 export interface SessionResponse {
   accessToken: string;
   user: SessionUser;
+  /** Mobile app only (header « X-Client: mobile », 16/11): long session, rotated by POST /auth/refresh */
+  refreshToken?: string;
+  refreshExpiresAt?: Date;
 }
 
 /**

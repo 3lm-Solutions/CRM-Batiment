@@ -10,12 +10,17 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { UploadedBinary } from '../../core/storage/upload.config';
 import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { DemandesDevisService } from './demandes-devis.service';
 import {
+  AjouterFichierDemandeDto,
   CreateDemandeDevisDto,
   QueryDemandesDevisDto,
   UpdateDemandeDevisDto,
@@ -92,5 +97,41 @@ export class DemandesDevisController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.demandes.remove(user, id);
+  }
+
+  // ── photos / voice notes (16/11, mobile lot B1) ─────────────────────────
+
+  @Post(':id/fichiers')
+  @UseInterceptors(FileInterceptor('fichier'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['fichier'],
+      properties: {
+        fichier: { type: 'string', format: 'binary' },
+        dureeSecondes: { type: 'integer' },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Joindre une photo ou une note vocale à la demande (mobile)' })
+  ajouterFichier(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AjouterFichierDemandeDto,
+    @UploadedFile() fichier: UploadedBinary | undefined,
+  ) {
+    return this.demandes.ajouterFichier(user, id, fichier, dto.dureeSecondes);
+  }
+
+  @Delete(':id/fichiers/:pieceId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Retirer une pièce jointe' })
+  supprimerFichier(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Param('pieceId', ParseIntPipe) pieceId: number,
+  ) {
+    return this.demandes.supprimerFichier(user, id, pieceId);
   }
 }

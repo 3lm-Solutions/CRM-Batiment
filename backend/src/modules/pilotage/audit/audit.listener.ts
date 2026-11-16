@@ -74,6 +74,17 @@ export class AuditListener {
     return this.devis('DEVIS_ANNULE', e);
   }
 
+  // 16/11: paper signature uploaded / rejected (validation is recorded as DEVIS_SIGNE)
+  @OnEvent(DevisEvents.SIGNE_PAPIER, ASYNC)
+  onSignePapier(e: DevisEvent) {
+    return this.devis('DEVIS_SIGNE_PAPIER', e);
+  }
+
+  @OnEvent(DevisEvents.SIGNATURE_PAPIER_REJETEE, ASYNC)
+  onSignaturePapierRejetee(e: DevisEvent) {
+    return this.devis('DEVIS_SIGNATURE_PAPIER_REJETEE', e);
+  }
+
   @OnEvent(FactureEvents.EMISE, ASYNC)
   onFactureEmise(e: FactureEvent) {
     return this.facture('FACTURE_EMISE', e);

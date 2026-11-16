@@ -43,9 +43,11 @@ export class DevisLiensService {
     devis: { id: number; versionCourante: number },
     type: DevisLienType,
     destinataire: string,
+    // 05/11: a WhatsApp link does not cancel the link sent by email (and vice versa)
+    canal: CanalEnvoi = CanalEnvoi.EMAIL,
   ): Promise<{ url: string; expiresAt: Date }> {
     await db.devisLienClient.updateMany({
-      where: { devisId: devis.id, type, statut: { in: ACTIVE_LINK_STATUTS } },
+      where: { devisId: devis.id, type, canal, statut: { in: ACTIVE_LINK_STATUTS } },
       data: { statut: 'ANNULE' },
     });
 
@@ -57,7 +59,7 @@ export class DevisLiensService {
         type,
         tokenHash: sha256(token),
         versionDevis: devis.versionCourante,
-        canal: CanalEnvoi.EMAIL,
+        canal,
         destinataire,
         expiresAt,
       },

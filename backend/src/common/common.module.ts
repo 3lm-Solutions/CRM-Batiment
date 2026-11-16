@@ -9,6 +9,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { DecimalSerializerInterceptor } from './interceptors/decimal-serializer.interceptor';
+import { IdempotencyInterceptor } from './interceptors/idempotency.interceptor';
 import { ReferenceService } from './references/reference.service';
 
 /**
@@ -16,7 +17,8 @@ import { ReferenceService } from './references/reference.service';
  *
  * Request pipeline:
  *   request-context middleware (configureApp) → ThrottlerGuard → JwtAuthGuard → RolesGuard
- *   → ValidationPipe → controller → DecimalSerializerInterceptor
+ *   → IdempotencyInterceptor (only with an Idempotency-Key header) → ValidationPipe → controller
+ *   → DecimalSerializerInterceptor
  *   → AllExceptionsFilter (on any error)
  */
 @Global()
@@ -48,6 +50,8 @@ import { ReferenceService } from './references/reference.service';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    // 16/11: outermost, so it keeps the answer exactly as sent (Decimals already converted)
+    { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
     { provide: APP_INTERCEPTOR, useClass: DecimalSerializerInterceptor },
   ],
   exports: [ReferenceService, SessionValidator],

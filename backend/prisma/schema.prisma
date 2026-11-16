@@ -58,6 +58,8 @@ model Company {
   // ── Market prices (29/10) ──
   /// Months of signed quotes / supplier orders used to compute the market prices (6, 12 or 24)
   prixMarcheMois       Int     @default(12)
+  /// 16/11 (mobile lot 1): POSE = nos équipes posent ; REGIE = installateur délégué ; LES_DEUX
+  modeInstallation     ModeInstallation @default(POSE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -99,6 +101,8 @@ model Company {
   photosAvancement           PhotoAvancement[]
   retoursClient              RetourClient[]
   prixReferences             PrixReference[]
+
+  visites              Visite[]
 
   @@map("companies")
 }
@@ -163,6 +167,15 @@ model User {
   checklistCoches      TacheChecklistItem[]
 
   prixReferencesImportes PrixReference[]
+  /// 05/11
+  devisSignaturesPapier Devis[]              @relation("DevisSignaturePapierPar")
+  /// Mobile (lot B1)
+  appareilsPush         AppareilPush[]
+  sessionsMobile        SessionMobile[]
+  commentairesTaches    TacheCommentaire[]
+  /// Mobile (lot 1)
+  visitesCommercial     Visite[]               @relation("VisiteCommercial")
+  clesIdempotence       CleIdempotence[]
   @@index([companyId])
   @@index([role])
   @@map("users")
@@ -285,6 +298,7 @@ model Client {
   espaceLiens     ClientEspaceLien[]
   chatSessions    ChatSession[]
   retours         RetourClient[]
+  visites         Visite[]
 
   @@index([companyId, archivedAt])
   @@index([companyId, typeClient])
@@ -558,6 +572,9 @@ model DemandeDevis {
   devis    Devis[]
   /// Chatbot conversation this request came from (Step 14)
   chatSession ChatSession?
+  /// Mobile (lot B1) : photos et notes vocales du prospect terrain
+  fichiers    DemandeDevisFichier[]
+  visites     Visite[]
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -592,6 +609,20 @@ model Devis {
   signatureClientDate       DateTime?
   signatureConseillerBase64 String?
   signatureConseillerDate   DateTime?
+  /// 05/11 : devis remis en main propre (sans email ni lien)
+  remisLe                   DateTime?
+  /// 05/11 : photo ou scan du devis signé sur papier (lisible par le bureau uniquement)
+  signaturePapierFichierId  Int?            @unique
+  signaturePapierLe         DateTime?
+  signaturePapierParId      Int?
+  /// Motif du dernier refus de la photo par l'ADMIN
+  signaturePapierRejet      String?
+  /// Mobile (lot B1) : code imprimé dans le QR du PDF (vérifie que le document vient de BÂTIFLOW)
+  codeVerification          String?
+  /// Mobile (lot B1) : signature sur place — nom du signataire et position du téléphone
+  signataireNom             String?
+  signatureLatitude         Decimal?        @db.Decimal(9, 6)
+  signatureLongitude        Decimal?        @db.Decimal(9, 6)
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
 
@@ -600,6 +631,8 @@ model Devis {
   demandeDevis         DemandeDevis?                 @relation(fields: [demandeDevisId], references: [id], onDelete: SetNull)
   chantier             Chantier?                     @relation(fields: [chantierId], references: [id], onDelete: SetNull)
   createur             User?                         @relation("DevisCreateur", fields: [createurId], references: [id], onDelete: SetNull)
+  signaturePapierFichier Fichier?                    @relation("DevisSignaturePapier", fields: [signaturePapierFichierId], references: [id], onDelete: SetNull)
+  signaturePapierPar   User?                         @relation("DevisSignaturePapierPar", fields: [signaturePapierParId], references: [id], onDelete: SetNull)
   lignes               LigneDevis[]
   versions             VersionDevis[]
   liensClient          DevisLienClient[]
@@ -927,6 +960,8 @@ model Chantier {
   statut         ChantierStatut @default(PLANIFIE)
   dateDebut      DateTime?
   dateFin        DateTime?
+  /// 16/11 (mobile lot 1): null = le réglage de l'entreprise
+  modeInstallation ModeInstallation?
   notes          String?
   plan2d         Json?
   createdAt      DateTime       @default(now())
@@ -992,6 +1027,8 @@ model Tache {
   pointages    Pointage[]
   photos       PhotoAvancement[]
   retoursClient RetourClient[]
+  /// Mobile (lot B1) : fil de commentaires
+  commentaires TacheCommentaire[]
 
   @@index([chantierId, statut])
   @@map("taches")
@@ -1580,6 +1617,10 @@ model Fichier {
   nom          String
   mime         String
   taille       Int
+  /// 16/11 (mobile lot 1): preuve — empreinte SHA-256 des octets, position à la prise
+  sha256       String?
+  latitude     Decimal? @db.Decimal(9, 6)
+  longitude    Decimal? @db.Decimal(9, 6)
   /// Readable by the people of this job site (chef, sous-traitants given access)
   chantierId   Int?
   /// Photo attached to a site report
@@ -1598,6 +1639,10 @@ model Fichier {
   assurances AssuranceSousTraitant[]
   /// Before / after photo of a task (26/10)
   photoAvancement PhotoAvancement?
+  /// 05/11 : scan d'un devis signé sur papier
+  devisSignaturePapier Devis?          @relation("DevisSignaturePapier")
+  /// Mobile (lot B1) : photo ou note vocale d'une demande (prospect terrain)
+  demandeDevisFichier  DemandeDevisFichier?
 
   @@index([companyId])
   @@index([chantierId])
@@ -1722,6 +1767,8 @@ enum LeadSource {
   /// Prospect read from the company's mailbox (22/10)
   EMAIL
   AUTRE
+  /// 16/11 (mobile lot 1): contact met on a job site (prospect terrain)
+  TERRAIN
 }
 
 enum DemandeStatut {
@@ -1742,6 +1789,8 @@ enum DevisStatut {
   REVISE
   RENVOYE
   ANNULE
+  /// 05/11 : photo ou scan du devis signé sur papier déposé, en attente de vérification par l'ADMIN
+  SIGNE_PAPIER
 }
 
 enum DevisLienType {
@@ -1762,6 +1811,8 @@ enum DevisLienStatut {
 enum CanalEnvoi {
   EMAIL
   SMS
+  /// 05/11 : lien de validation partagé sur WhatsApp (wa.me)
+  WHATSAPP
 }
 
 enum ModeValidation {
@@ -1769,6 +1820,10 @@ enum ModeValidation {
   SIGNATURE
   VERBAL
   AUTRE
+  /// 05/11 : signature sur papier, scan vérifié par l'ADMIN
+  PAPIER
+  /// Mobile (lot B1) : signature tactile du client sur le téléphone du conseiller
+  SUR_PLACE
 }
 
 enum RelanceType {
@@ -1964,4 +2019,147 @@ model PrixReference {
   @@index([companyId, prestationId])
   @@index([companyId, materiauId])
   @@map("prix_references")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Application mobile — lot B1 (16/11/2026). Ajouts uniquement : rien de la version web ne change.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Pièce jointe d'une demande de devis (prospect terrain)
+enum PieceJointeType {
+  PHOTO
+  AUDIO
+}
+
+/// Téléphone qui reçoit les notifications push (jeton Expo)
+model AppareilPush {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  /// ExponentPushToken[...]
+  jeton            String   @unique
+  /// ios | android
+  plateforme       String?
+  nom              String?
+  createdAt        DateTime @default(now())
+  derniereActivite DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("appareils_push")
+}
+
+/// Session longue de l'application mobile (refresh token, renouvelé à chaque usage)
+model SessionMobile {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  /// SHA-256 du refresh token (le jeton lui-même n'est jamais stocké)
+  tokenHash    String    @unique
+  /// users.tokenVersion au moment de la création : un changement de mot de passe invalide la session
+  tokenVersion Int
+  appareil     String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions_mobile")
+}
+
+/// Commentaire sur une tâche de chantier
+model TacheCommentaire {
+  id        Int      @id @default(autoincrement())
+  tacheId   Int
+  auteurId  Int?
+  texte     String
+  createdAt DateTime @default(now())
+
+  tache  Tache @relation(fields: [tacheId], references: [id], onDelete: Cascade)
+  auteur User? @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+
+  @@index([tacheId, createdAt])
+  @@map("taches_commentaires")
+}
+
+/// Photo ou note vocale jointe à une demande de devis (prospect terrain)
+model DemandeDevisFichier {
+  id             Int             @id @default(autoincrement())
+  demandeDevisId Int
+  fichierId      Int             @unique
+  type           PieceJointeType
+  /// Durée d'une note vocale, en secondes
+  dureeSecondes  Int?
+  createdAt      DateTime        @default(now())
+
+  demandeDevis DemandeDevis @relation(fields: [demandeDevisId], references: [id], onDelete: Cascade)
+  fichier      Fichier      @relation(fields: [fichierId], references: [id], onDelete: Cascade)
+
+  @@index([demandeDevisId])
+  @@map("demandes_devis_fichiers")
+}
+
+// ── Application mobile — lot 1 (16/11) ──────────────────────────────────────
+
+enum ModeInstallation {
+  POSE
+  REGIE
+  LES_DEUX
+}
+
+enum VisiteStatut {
+  PREVUE
+  FAITE
+  ANNULEE
+}
+
+/// Visite programmée d'un commercial chez un client (rappel la veille).
+model Visite {
+  id              Int          @id @default(autoincrement())
+  companyId       Int
+  commercialId    Int
+  clientId        Int
+  demandeDevisId  Int?
+  dateHeure       DateTime
+  dureeMinutes    Int          @default(60)
+  adresse         String?
+  objet           String?
+  statut          VisiteStatut @default(PREVUE)
+  compteRendu     String?
+  motifAnnulation String?
+  rappelEnvoyeLe  DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  commercial   User          @relation("VisiteCommercial", fields: [commercialId], references: [id], onDelete: Cascade)
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  demandeDevis DemandeDevis? @relation(fields: [demandeDevisId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, dateHeure])
+  @@index([commercialId, dateHeure])
+  @@index([clientId])
+  @@index([statut, dateHeure])
+  @@map("visites")
+}
+
+/// Clé Idempotency-Key d'une action envoyée par le mobile (renvoi sans doublon, gardée 24 h).
+model CleIdempotence {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  cle       String
+  methode   String
+  chemin    String
+  /// EN_COURS puis TERMINE
+  statut    String   @default("EN_COURS")
+  codeHttp  Int?
+  reponse   Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cle])
+  @@index([createdAt])
+  @@map("cles_idempotence")
 }

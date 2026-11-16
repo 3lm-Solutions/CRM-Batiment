@@ -32,6 +32,8 @@ export const PHOTO_SELECT = {
 } satisfies Prisma.PhotoAvancementSelect;
 
 const MOMENT_LABEL = { AVANT: 'avant', APRES: 'après' } as const;
+/** 16/11: delay to take back a photo sent by mistake (chef / office) */
+const DELAI_SUPPRESSION_PHOTO_MS = 15 * 60_000;
 const jourFr = (d: Date) => d.toLocaleDateString('fr-FR', { timeZone: 'UTC' });
 
 /**
@@ -84,39 +86,7 @@ export class PhotosAvancementService {
         );
     }
 
-    // One file + one row per photo; anything refused (not an image) undoes the whole upload
-    const ids: number[] = [];
-    const fichiersCrees: number[] = [];
-    try {
-      for (const photo of photos!) {
-        const fichier = await this.fichiers.create(
-          user,
-          photo,
-          { chantierId: tache.chantier.id },
-          this.prisma,
-          { imagesOnly: true },
-        );
-        fichiersCrees.push(fichier.id);
-        const row = await this.prisma.photoAvancement.create({
-          data: {
-            companyId: user.companyId,
-            chantierId: tache.chantier.id,
-            tacheId: tache.id,
-            checklistItemId: dto.checklistItemId ?? null,
-            auteurId: user.id,
-            date: jour,
-            moment: dto.moment,
-            commentaire: dto.commentaire ?? null,
-            fichierId: fichier.id,
-          },
-          select: { id: true },
-        });
-        ids.push(row.id);
-      }
-    } catch (error) {
-      for (const id of fichiersCrees) await this.fichiers.remove(id); // rows go with their file
-      throw error;
-    }
+    const ids = await this.creerPhotos(user, tache, dto, photos!, jour, false);
 
     // To validate: the chef of the job site, or the office when there is none
     const auteur = await this.prisma.user.findUniqueOrThrow({
@@ -138,6 +108,112 @@ export class PhotosAvancementService {
       select: PHOTO_SELECT,
       orderBy: { id: 'asc' },
     });
+  }
+
+  /** One file + one row per photo; anything refused (not an image) undoes the whole upload. */
+  private async creerPhotos(
+    user: AuthUser,
+    tache: { id: number; chantier: { id: number } },
+    dto: EnvoyerPhotosDto,
+    photos: UploadedBinary[],
+    jour: Date,
+    valideeDirectement: boolean,
+  ): Promise<number[]> {
+    const ids: number[] = [];
+    const fichiersCrees: number[] = [];
+    try {
+      for (const photo of photos) {
+        const fichier = await this.fichiers.create(
+          user,
+          photo,
+          { chantierId: tache.chantier.id },
+          this.prisma,
+          { imagesOnly: true },
+        );
+        fichiersCrees.push(fichier.id);
+        const row = await this.prisma.photoAvancement.create({
+          data: {
+            companyId: user.companyId,
+            chantierId: tache.chantier.id,
+            tacheId: tache.id,
+            checklistItemId: dto.checklistItemId ?? null,
+            auteurId: user.id,
+            date: jour,
+            moment: dto.moment,
+            commentaire: dto.commentaire ?? null,
+            fichierId: fichier.id,
+            ...(valideeDirectement && {
+              statut: 'VALIDEE' as const,
+              valideParId: user.id,
+              valideLe: new Date(),
+            }),
+          },
+          select: { id: true },
+        });
+        ids.push(row.id);
+      }
+    } catch (error) {
+      for (const id of fichiersCrees) await this.fichiers.remove(id); // rows go with their file
+      throw error;
+    }
+    return ids;
+  }
+
+  // ── chef / office taking photos themselves (16/11, mobile lot 1) ─────────
+
+  /**
+   * The chef (or the office) takes before / after photos on site. He is the one who validates
+   * photos, so his own are validated at once.
+   */
+  async envoyerParChef(
+    user: AuthUser,
+    chantierId: number,
+    dto: EnvoyerPhotosDto,
+    photos: UploadedBinary[] | undefined,
+  ) {
+    assertNombrePhotos(photos?.length ?? 0);
+    const jour = jourPhoto(dto.date);
+    assertJourPhoto(jour);
+    await this.assertChantier(user, chantierId);
+    const tache = await this.prisma.tache.findFirst({
+      where: { id: dto.tacheId, chantierId },
+      select: { id: true, chantier: { select: { id: true, statut: true } } },
+    });
+    if (!tache) throw new NotFoundException(`Tâche #${dto.tacheId} introuvable`);
+    if (!CHANTIERS_PHOTOS.includes(tache.chantier.statut))
+      throw new BusinessException('CHANTIER_FERME', 'Ce chantier est clôturé ou annulé.');
+    if (dto.checklistItemId) {
+      const ok = await this.prisma.tacheChecklistItem.count({
+        where: { id: dto.checklistItemId, tacheId: tache.id },
+      });
+      if (!ok)
+        throw new BusinessException(
+          'SOUS_TACHE_INVALIDE',
+          'Cette sous-tâche n’appartient pas à la tâche.',
+        );
+    }
+    const ids = await this.creerPhotos(user, tache, dto, photos!, jour, true);
+    return this.prisma.photoAvancement.findMany({
+      where: { id: { in: ids } },
+      select: PHOTO_SELECT,
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  /** 16/11: the author deletes his own photo, only just after sending it (15 minutes). */
+  async supprimerParAuteur(user: AuthUser, chantierId: number, id: number): Promise<void> {
+    const photo = await this.prisma.photoAvancement.findFirst({
+      where: { id, chantierId, companyId: user.companyId, auteurId: user.id },
+      select: { fichierId: true, createdAt: true },
+    });
+    if (!photo) throw new NotFoundException(`Photo #${id} introuvable`);
+    if (Date.now() - photo.createdAt.getTime() > DELAI_SUPPRESSION_PHOTO_MS) {
+      throw new BusinessException(
+        'DELAI_DEPASSE',
+        'Une photo ne se supprime que dans les 15 minutes après son envoi : masquez-la plutôt.',
+      );
+    }
+    await this.fichiers.remove(photo.fichierId); // the row goes with its file (cascade)
   }
 
   /** My photos of a month (all job sites, or one / one task), with their status. */

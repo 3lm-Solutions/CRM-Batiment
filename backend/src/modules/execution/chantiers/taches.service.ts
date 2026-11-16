@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type AuthUser, BusinessException } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -7,6 +8,10 @@ import { ChantiersService } from './chantiers.service';
 import { CreateTacheDto, UpdateTacheDto } from './dto/chantiers.dto';
 import { CHECKLIST_SELECT } from './checklist/checklist-rules';
 import { assertDateRange, normalizeTaskProgress } from './tache-rules';
+import { toDates } from '../../../common/dates/to-dates';
+import { TacheEvents, type TacheAffecteeEvent } from './taches.events';
+
+const DATES = ['dateDebut', 'dateFin'] as const;
 
 const INCLUDE = {
   affectations: {
@@ -20,6 +25,7 @@ export class TachesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly chantiers: ChantiersService,
+    private readonly events: EventEmitter2,
   ) {}
 
   async list(user: AuthUser, chantierId: number) {
@@ -32,16 +38,16 @@ export class TachesService {
   }
 
   async create(user: AuthUser, chantierId: number, dto: CreateTacheDto) {
-    await this.chantiers.assertWritable(user, chantierId);
+    const chantier = await this.chantiers.assertWritable(user, chantierId);
     assertDateRange(dto.dateDebut, dto.dateFin);
     const { assigneeIds = [], ...data } = dto;
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       await this.assertAssignees(tx, user, assigneeIds);
       const ordre = await tx.tache.count({ where: { chantierId } });
       const tache = await tx.tache.create({
         data: {
-          ...data,
+          ...toDates(data, DATES),
           chantierId,
           ordre,
           affectations: { create: assigneeIds.map((userId) => ({ userId })) },
@@ -51,10 +57,12 @@ export class TachesService {
       await this.grantSousTraitantAccess(tx, chantierId, assigneeIds);
       return tache;
     });
+    this.emitAffectee(user, chantier, created, assigneeIds);
+    return created;
   }
 
   async update(user: AuthUser, chantierId: number, tacheId: number, dto: UpdateTacheDto) {
-    await this.chantiers.assertWritable(user, chantierId);
+    const chantier = await this.chantiers.assertWritable(user, chantierId);
     const tache = await this.prisma.tache.findFirst({ where: { id: tacheId, chantierId } });
     if (!tache) throw new NotFoundException(`Tâche #${tacheId} introuvable`);
     assertDateRange(dto.dateDebut ?? tache.dateDebut, dto.dateFin ?? tache.dateFin);
@@ -65,7 +73,8 @@ export class TachesService {
       avancement: dto.avancement,
     });
 
-    return this.prisma.$transaction(async (tx) => {
+    let ajoutes: number[] = [];
+    const updated = await this.prisma.$transaction(async (tx) => {
       if (assigneeIds) {
         const current = await tx.affectationTache.findMany({
           where: { tacheId },
@@ -74,6 +83,7 @@ export class TachesService {
         const alreadyAssigned = current
           .map((a) => a.userId)
           .filter((id): id is number => id !== null);
+        ajoutes = assigneeIds.filter((id) => !alreadyAssigned.includes(id));
         await this.assertAssignees(tx, user, assigneeIds, alreadyAssigned);
         await tx.affectationTache.deleteMany({ where: { tacheId } });
         await tx.affectationTache.createMany({
@@ -83,10 +93,32 @@ export class TachesService {
       }
       return tx.tache.update({
         where: { id: tacheId },
-        data: { ...fields, ...progress },
+        data: { ...toDates(fields, DATES), ...progress },
         include: INCLUDE,
       });
     });
+    this.emitAffectee(user, chantier, updated, ajoutes);
+    return updated;
+  }
+
+  /** 16/11: tell the people newly put on the task (notification + push on their phone). */
+  private emitAffectee(
+    user: AuthUser,
+    chantier: { id: number; reference: string },
+    tache: { id: number; libelle: string },
+    ids: number[],
+  ): void {
+    const userIds = [...new Set(ids)].filter((id) => id !== user.id);
+    if (!userIds.length) return;
+    this.events.emit(TacheEvents.AFFECTEE, {
+      companyId: user.companyId,
+      chantierId: chantier.id,
+      chantierReference: chantier.reference,
+      tacheId: tache.id,
+      tacheLibelle: tache.libelle,
+      userIds,
+      parId: user.id,
+    } satisfies TacheAffecteeEvent);
   }
 
   async remove(user: AuthUser, chantierId: number, tacheId: number): Promise<void> {
