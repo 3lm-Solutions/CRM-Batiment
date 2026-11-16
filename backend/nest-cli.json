@@ -3,6 +3,9 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "assets": [{ "include": "database/seed/data/*.json", "watchAssets": true }],
+    "builder": "tsc",
+    "tsConfigPath": "tsconfig.build.json"
   }
 }

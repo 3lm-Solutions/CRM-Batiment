@@ -1,1 +1,0 @@
-SELECT id, nom, unite, "prixUnitaire" as prix, "productiviteJour" as prod_jour, "coutJournalier" as cout_jour FROM services_main_oeuvre ORDER BY id;

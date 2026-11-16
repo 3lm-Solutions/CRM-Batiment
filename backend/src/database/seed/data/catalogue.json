@@ -1,0 +1,5718 @@
+[
+  {
+    "nom": "Démolition",
+    "description": "Travaux de démolition, dépose et évacuation",
+    "sousCategories": [
+      {
+        "nom": "Cloisons",
+        "description": "Démolition de cloisons",
+        "prestations": [
+          {
+            "nom": "Démolition cloison",
+            "unite": "M2",
+            "prixVenteMin": 15,
+            "prixVenteMax": 35,
+            "description": "Démolition de cloison non porteuse + évacuation gravats",
+            "compositions": [
+              {
+                "serviceMo": "Démolition cloison",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de cloison",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Cloison en plâtre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cloison en brique creuse",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "Cloison en plaques de plâtre",
+                    "impactPrix": 3
+                  },
+                  {
+                    "nom": "Cloison en béton cellulaire",
+                    "impactPrix": 8
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Sols",
+        "description": "Dépose de revêtements de sol",
+        "prestations": [
+          {
+            "nom": "Dépose revêtement sol",
+            "unite": "M2",
+            "prixVenteMin": 10,
+            "prixVenteMax": 25,
+            "description": "Dépose de revêtement de sol existant + évacuation",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de revêtement",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Carrelage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Parquet collé",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "Parquet flottant",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "Moquette",
+                    "impactPrix": 2
+                  },
+                  {
+                    "nom": "Vinyle / PVC",
+                    "impactPrix": 1
+                  },
+                  {
+                    "nom": "Lino",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Sanitaires",
+        "description": "Dépose d'équipements sanitaires",
+        "prestations": [
+          {
+            "nom": "Dépose sanitaires",
+            "unite": "PIECE",
+            "prixVenteMin": 50,
+            "prixVenteMax": 200,
+            "description": "Dépose d'un équipement sanitaire",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'équipement",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Baignoire",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Douche / receveur",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "WC",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "Lavabo / vasque",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "Bidet",
+                    "impactPrix": 20
+                  },
+                  {
+                    "nom": "Meuble vasque",
+                    "impactPrix": 25
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Murs",
+        "description": "Démolition d'éléments muraux",
+        "prestations": [
+          {
+            "nom": "Démolition murale partielle",
+            "unite": "M2",
+            "prixVenteMin": 25,
+            "prixVenteMax": 60,
+            "description": "Démolition partielle de mur avec protection zones adjacentes",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de mur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Brique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Béton",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "Pierre",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "Parpaing",
+                    "impactPrix": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Dépose carrelage mural",
+            "unite": "M2",
+            "prixVenteMin": 12,
+            "prixVenteMax": 25,
+            "description": "Dépose de carrelage ou faïence murale",
+            "compositions": [],
+            "options": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Maçonnerie",
+    "description": "Gros œuvre, ouvertures, cloisons, chapes",
+    "sousCategories": [
+      {
+        "nom": "Ouvertures",
+        "description": "Création et modification d'ouvertures",
+        "prestations": [
+          {
+            "nom": "Ouverture mur porteur",
+            "unite": "FORFAIT",
+            "prixVenteMin": 1500,
+            "prixVenteMax": 3500,
+            "description": "Ouverture dans un mur porteur avec pose IPN",
+            "compositions": [
+              {
+                "materiau": "IPN 200 (6m)",
+                "qte": 1
+              },
+              {
+                "materiau": "Sac ciment 35kg",
+                "qte": 3
+              },
+              {
+                "serviceMo": "Démolition cloison",
+                "qte": 4
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de mur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Béton armé",
+                    "impactPrix": 300
+                  },
+                  {
+                    "nom": "Brique pleine",
+                    "impactPrix": 150
+                  },
+                  {
+                    "nom": "Pierre",
+                    "impactPrix": 400
+                  },
+                  {
+                    "nom": "Parpaing",
+                    "impactPrix": 100
+                  }
+                ]
+              },
+              {
+                "nom": "Largeur ouverture",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "< 1m",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "1m à 2m",
+                    "impactPrix": 400
+                  },
+                  {
+                    "nom": "2m à 3m",
+                    "impactPrix": 800
+                  },
+                  {
+                    "nom": "> 3m",
+                    "impactPrix": 1200
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Création ouverture fenêtre",
+            "unite": "FORFAIT",
+            "prixVenteMin": 800,
+            "prixVenteMax": 1800,
+            "description": "Création d'une ouverture pour fenêtre dans mur existant",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de mur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Brique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Parpaing",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pierre",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Cloisons",
+        "description": "Montage de cloisons",
+        "prestations": [
+          {
+            "nom": "Montage cloison placo",
+            "unite": "M2",
+            "prixVenteMin": 35,
+            "prixVenteMax": 60,
+            "description": "Montage cloison en plaque de plâtre sur rail",
+            "compositions": [
+              {
+                "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                "qte": 0.67
+              },
+              {
+                "materiau": "Rail métallique R48 (3m)",
+                "qte": 0.33
+              },
+              {
+                "materiau": "Montant M48 (3m)",
+                "qte": 0.33
+              },
+              {
+                "serviceMo": "Montage cloison placo",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de placo",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "BA13 standard",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.67
+                      },
+                      {
+                        "materiau": "Rail métallique R48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "materiau": "Montant M48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "serviceMo": "Montage cloison placo",
+                        "qte": 1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "BA13 hydrofuge",
+                    "impactPrix": 12,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.67
+                      },
+                      {
+                        "materiau": "Rail métallique R48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "materiau": "Montant M48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "serviceMo": "Montage cloison placo",
+                        "qte": 1.1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "BA13 phonique",
+                    "impactPrix": 20,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.67
+                      },
+                      {
+                        "materiau": "Laine de roche soufflée (sac 12.5kg)",
+                        "qte": 0.4
+                      },
+                      {
+                        "materiau": "Rail métallique R48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "materiau": "Montant M48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "serviceMo": "Montage cloison placo",
+                        "qte": 1.15
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "BA13 feu (rose)",
+                    "impactPrix": 15,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.67
+                      },
+                      {
+                        "materiau": "Rail métallique R48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "materiau": "Montant M48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "serviceMo": "Montage cloison placo",
+                        "qte": 1.05
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Double parement",
+                    "impactPrix": 35,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 1.34
+                      },
+                      {
+                        "materiau": "Rail métallique R48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "materiau": "Montant M48 (3m)",
+                        "qte": 0.33
+                      },
+                      {
+                        "serviceMo": "Montage cloison placo",
+                        "qte": 1.3
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Isolation intégrée",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Sans isolation",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Laine de verre 45mm",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "Laine de verre 70mm",
+                    "impactPrix": 25
+                  },
+                  {
+                    "nom": "Laine de roche 45mm",
+                    "impactPrix": 20
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Montage cloison briques",
+            "unite": "M2",
+            "prixVenteMin": 40,
+            "prixVenteMax": 70,
+            "description": "Montage cloison en briques plâtrières",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "5cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "7cm",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "10cm",
+                    "impactPrix": 15
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Chapes",
+        "description": "Réalisation de chapes",
+        "prestations": [
+          {
+            "nom": "Chape béton",
+            "unite": "M2",
+            "prixVenteMin": 20,
+            "prixVenteMax": 45,
+            "description": "Réalisation d'une chape béton",
+            "compositions": [
+              {
+                "materiau": "Sac ciment 35kg",
+                "qte": 0.6
+              },
+              {
+                "serviceMo": "Chape béton",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de chape",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Chape traditionnelle",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Sac ciment 35kg",
+                        "qte": 0.85
+                      },
+                      {
+                        "materiau": "Sable fin (25kg)",
+                        "qte": 1.3
+                      },
+                      {
+                        "serviceMo": "Chape béton",
+                        "qte": 1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Chape allégée",
+                    "impactPrix": 20,
+                    "compositions": [
+                      {
+                        "materiau": "Sac ciment 35kg",
+                        "qte": 0.57
+                      },
+                      {
+                        "materiau": "Polystyrène expansé (m³)",
+                        "qte": 0.05
+                      },
+                      {
+                        "materiau": "Sable fin (25kg)",
+                        "qte": 0.65
+                      },
+                      {
+                        "serviceMo": "Chape béton",
+                        "qte": 0.8
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Chape fibrée",
+                    "impactPrix": 15,
+                    "compositions": [
+                      {
+                        "materiau": "Sac ciment 35kg",
+                        "qte": 0.85
+                      },
+                      {
+                        "materiau": "Sable fin (25kg)",
+                        "qte": 1.3
+                      },
+                      {
+                        "materiau": "Fibres de polypropylène (1kg)",
+                        "qte": 0.05
+                      },
+                      {
+                        "serviceMo": "Chape béton",
+                        "qte": 1.1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Chape liquide anhydrite",
+                    "impactPrix": 35,
+                    "compositions": [
+                      {
+                        "materiau": "Anhydrite (25kg)",
+                        "qte": 1
+                      },
+                      {
+                        "serviceMo": "Chape béton",
+                        "qte": 0.7
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "3-4 cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "5-6 cm",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "7-8 cm",
+                    "impactPrix": 20
+                  },
+                  {
+                    "nom": "> 8 cm",
+                    "impactPrix": 30
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Murs",
+        "description": "Construction de murs",
+        "prestations": [
+          {
+            "nom": "Montage mur agglo",
+            "unite": "M2",
+            "prixVenteMin": 45,
+            "prixVenteMax": 80,
+            "description": "Construction de mur en agglo / parpaing",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'agglo",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Creux 20cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Creux 15cm",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "Plein 20cm",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "Plein 15cm",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "Béton cellulaire",
+                    "impactPrix": 25
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Plâtrerie",
+    "description": "Plâtrerie, faux plafonds, doublage",
+    "sousCategories": [
+      {
+        "nom": "Faux plafonds",
+        "description": "Réalisation de faux plafonds",
+        "prestations": [
+          {
+            "nom": "Faux plafond placo",
+            "unite": "M2",
+            "prixVenteMin": 35,
+            "prixVenteMax": 65,
+            "description": "Pose de faux plafond en plaques de plâtre sur ossature métallique",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de plaque",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "BA13 standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "BA13 hydrofuge",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "Acoustique haute performance",
+                    "impactPrix": 25
+                  },
+                  {
+                    "nom": "Feu M1",
+                    "impactPrix": 15
+                  }
+                ]
+              },
+              {
+                "nom": "Hauteur sous plafond perdue",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "5-10 cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "10-20 cm",
+                    "impactPrix": 3
+                  },
+                  {
+                    "nom": "20-40 cm",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "> 40 cm",
+                    "impactPrix": 12
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Faux plafond dalles",
+            "unite": "M2",
+            "prixVenteMin": 25,
+            "prixVenteMax": 50,
+            "description": "Pose de faux plafond en dalles sur ossature apparente",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de dalle",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Minérale standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Minérale acoustique",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "Métallique",
+                    "impactPrix": 20
+                  },
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Doublage",
+        "description": "Doublage de murs",
+        "prestations": [
+          {
+            "nom": "Doublage mur",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 55,
+            "description": "Doublage isolant collé ou sur ossature",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Polystyrène expansé (PSE)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Polystyrène extrudé (XPS)",
+                    "impactPrix": 50
+                  },
+                  {
+                    "nom": "Laine de verre",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 20
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "40mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "60mm",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "80mm",
+                    "impactPrix": 30
+                  },
+                  {
+                    "nom": "100mm",
+                    "impactPrix": 45
+                  },
+                  {
+                    "nom": "120mm",
+                    "impactPrix": 60
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Enduits",
+        "description": "Travaux d'enduits intérieurs",
+        "prestations": [
+          {
+            "nom": "Enduit plâtre mur",
+            "unite": "M2",
+            "prixVenteMin": 18,
+            "prixVenteMax": 35,
+            "description": "Application enduit plâtre sur mur",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Lissé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Taloché",
+                    "impactPrix": 3
+                  },
+                  {
+                    "nom": "Projeté",
+                    "impactPrix": 2
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Bandes à joints",
+            "unite": "ML",
+            "prixVenteMin": 5,
+            "prixVenteMax": 12,
+            "description": "Réalisation de bandes à joints sur plaques de plâtre",
+            "compositions": [],
+            "options": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Isolation",
+    "description": "Isolation thermique et phonique",
+    "sousCategories": [
+      {
+        "nom": "Murs",
+        "description": "Isolation des murs",
+        "prestations": [
+          {
+            "nom": "Isolation mur intérieur",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 65,
+            "description": "Isolation thermique mur intérieur (isolant + placo)",
+            "compositions": [
+              {
+                "materiau": "Laine de verre GR32 100mm (R=3.15)",
+                "qte": 1.05
+              },
+              {
+                "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                "qte": 0.34
+              },
+              {
+                "serviceMo": "Isolation laine de verre",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Laine de verre",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Laine de verre GR32 100mm (R=3.15)",
+                        "qte": 1.05
+                      },
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.34
+                      },
+                      {
+                        "serviceMo": "Isolation laine de verre",
+                        "qte": 1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 20,
+                    "compositions": [
+                      {
+                        "materiau": "Laine de roche soufflée (sac 12.5kg)",
+                        "qte": 0.8
+                      },
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.34
+                      },
+                      {
+                        "serviceMo": "Isolation laine de verre",
+                        "qte": 1.1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Polystyrène expansé",
+                    "impactPrix": 5,
+                    "compositions": [
+                      {
+                        "materiau": "Polystyrène expansé (m³)",
+                        "qte": 0.1
+                      },
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.34
+                      },
+                      {
+                        "serviceMo": "Isolation laine de verre",
+                        "qte": 0.9
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Polyuréthane",
+                    "impactPrix": 80,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.34
+                      },
+                      {
+                        "serviceMo": "Isolation laine de verre",
+                        "qte": 1.15
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Fibre de bois",
+                    "impactPrix": 40,
+                    "compositions": [
+                      {
+                        "materiau": "Plaque de plâtre BA13 (2.5x1.2m)",
+                        "qte": 0.34
+                      },
+                      {
+                        "serviceMo": "Isolation laine de verre",
+                        "qte": 1.2
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "60mm (R=1.85)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "80mm (R=2.50)",
+                    "impactPrix": 20
+                  },
+                  {
+                    "nom": "100mm (R=3.15)",
+                    "impactPrix": 40
+                  },
+                  {
+                    "nom": "120mm (R=3.75)",
+                    "impactPrix": 60
+                  },
+                  {
+                    "nom": "140mm (R=4.35)",
+                    "impactPrix": 80
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Combles",
+        "description": "Isolation des combles",
+        "prestations": [
+          {
+            "nom": "Isolation combles soufflage",
+            "unite": "M2",
+            "prixVenteMin": 18,
+            "prixVenteMax": 40,
+            "description": "Isolation des combles perdus par soufflage",
+            "compositions": [
+              {
+                "materiau": "Laine de roche soufflée (sac 12.5kg)",
+                "qte": 0.8
+              },
+              {
+                "serviceMo": "Isolation combles soufflage",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Laine de verre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 8
+                  },
+                  {
+                    "nom": "Ouate de cellulose",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "Fibre de bois",
+                    "impactPrix": 20
+                  }
+                ]
+              },
+              {
+                "nom": "Résistance thermique",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "R=7 (30cm)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "R=8 (35cm)",
+                    "impactPrix": 5
+                  },
+                  {
+                    "nom": "R=10 (40cm)",
+                    "impactPrix": 10
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Isolation combles rampants",
+            "unite": "M2",
+            "prixVenteMin": 35,
+            "prixVenteMax": 65,
+            "description": "Isolation sous rampants de toiture",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Laine de verre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 12
+                  },
+                  {
+                    "nom": "Fibre de bois",
+                    "impactPrix": 25
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Sols",
+        "description": "Isolation des sols",
+        "prestations": [
+          {
+            "nom": "Isolation sol",
+            "unite": "M2",
+            "prixVenteMin": 25,
+            "prixVenteMax": 50,
+            "description": "Isolation thermique du sol",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Polystyrène extrudé (XPS)",
+                    "impactPrix": 30
+                  },
+                  {
+                    "nom": "Polyuréthane",
+                    "impactPrix": 60
+                  },
+                  {
+                    "nom": "Laine de roche haute densité",
+                    "impactPrix": 20
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "40mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "60mm",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "80mm",
+                    "impactPrix": 30
+                  },
+                  {
+                    "nom": "100mm",
+                    "impactPrix": 45
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Phonique",
+        "description": "Isolation acoustique",
+        "prestations": [
+          {
+            "nom": "Isolation phonique",
+            "unite": "M2",
+            "prixVenteMin": 40,
+            "prixVenteMax": 80,
+            "description": "Isolation acoustique mur ou plafond",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Support",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Mur",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Plafond",
+                    "impactPrix": 10
+                  },
+                  {
+                    "nom": "Cloison",
+                    "impactPrix": 5
+                  }
+                ]
+              },
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mousse acoustique",
+                    "impactPrix": 15
+                  },
+                  {
+                    "nom": "Placo phonique + laine",
+                    "impactPrix": 25
+                  },
+                  {
+                    "nom": "Membrane acoustique",
+                    "impactPrix": 20
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Plomberie",
+    "description": "Installation et réparation plomberie / sanitaire",
+    "sousCategories": [
+      {
+        "nom": "Douche",
+        "description": "Installation et remplacement de douche",
+        "prestations": [
+          {
+            "nom": "Installation douche complète",
+            "unite": "FORFAIT",
+            "prixVenteMin": 800,
+            "prixVenteMax": 2000,
+            "description": "Installation complète d'une douche (receveur, robinetterie, raccordements)",
+            "compositions": [
+              {
+                "materiau": "Receveur douche 80x120",
+                "qte": 1
+              },
+              {
+                "materiau": "Mitigeur douche thermostatique",
+                "qte": 1
+              },
+              {
+                "materiau": "Tube PER 16mm (couronne 100m)",
+                "qte": 6
+              },
+              {
+                "serviceMo": "Plomberie — pose sanitaire",
+                "qte": 5
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de douche",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Douche italienne",
+                    "impactPrix": 500
+                  },
+                  {
+                    "nom": "Receveur extra-plat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Receveur surélevé",
+                    "impactPrix": 150
+                  },
+                  {
+                    "nom": "Cabine de douche complète",
+                    "impactPrix": 400
+                  }
+                ]
+              },
+              {
+                "nom": "Paroi",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Sans paroi",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Paroi fixe",
+                    "impactPrix": 100
+                  },
+                  {
+                    "nom": "Paroi battante",
+                    "impactPrix": 150
+                  },
+                  {
+                    "nom": "Paroi coulissante",
+                    "impactPrix": 200
+                  },
+                  {
+                    "nom": "Rideau de douche",
+                    "impactPrix": 30
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "WC",
+        "description": "Installation et remplacement de WC",
+        "prestations": [
+          {
+            "nom": "Remplacement WC",
+            "unite": "PIECE",
+            "prixVenteMin": 350,
+            "prixVenteMax": 800,
+            "description": "Dépose ancien WC + pose nouveau WC",
+            "compositions": [
+              {
+                "materiau": "WC complet avec réservoir",
+                "qte": 1
+              },
+              {
+                "serviceMo": "Plomberie — pose sanitaire",
+                "qte": 3
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de WC",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "WC posé classique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "WC suspendu",
+                    "impactPrix": 200
+                  },
+                  {
+                    "nom": "WC broyeur",
+                    "impactPrix": 500
+                  },
+                  {
+                    "nom": "WC lavant",
+                    "impactPrix": 800
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Lavabo",
+        "description": "Installation de lavabos et vasques",
+        "prestations": [
+          {
+            "nom": "Installation lavabo",
+            "unite": "PIECE",
+            "prixVenteMin": 300,
+            "prixVenteMax": 600,
+            "description": "Pose d'un lavabo avec robinetterie et raccordement",
+            "compositions": [
+              {
+                "materiau": "Lavabo vasque 60cm",
+                "qte": 1
+              },
+              {
+                "serviceMo": "Plomberie — raccordement",
+                "qte": 2
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de vasque",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Vasque à poser",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vasque encastrée",
+                    "impactPrix": 50
+                  },
+                  {
+                    "nom": "Lavabo suspendu",
+                    "impactPrix": 30
+                  },
+                  {
+                    "nom": "Lave-mains",
+                    "impactPrix": 10
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Baignoire",
+        "description": "Installation de baignoires",
+        "prestations": [
+          {
+            "nom": "Pose baignoire",
+            "unite": "FORFAIT",
+            "prixVenteMin": 600,
+            "prixVenteMax": 1500,
+            "description": "Pose de baignoire avec tablier et raccordement",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de baignoire",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Baignoire standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Baignoire balnéo",
+                    "impactPrix": 300
+                  },
+                  {
+                    "nom": "Baignoire îlot",
+                    "impactPrix": 600
+                  },
+                  {
+                    "nom": "Baignoire d'angle",
+                    "impactPrix": 400
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Chauffe-eau",
+        "description": "Installation de chauffe-eau",
+        "prestations": [
+          {
+            "nom": "Remplacement chauffe-eau",
+            "unite": "FORFAIT",
+            "prixVenteMin": 600,
+            "prixVenteMax": 1500,
+            "description": "Dépose + pose chauffe-eau",
+            "compositions": [
+              {
+                "materiau": "Chauffe-eau électrique 200L",
+                "qte": 1
+              },
+              {
+                "serviceMo": "Plomberie — raccordement",
+                "qte": 4
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de chauffe-eau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Électrique (cumulus)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Gaz",
+                    "impactPrix": 200
+                  },
+                  {
+                    "nom": "Thermodynamique",
+                    "impactPrix": 800
+                  },
+                  {
+                    "nom": "Solaire",
+                    "impactPrix": 1500
+                  }
+                ]
+              },
+              {
+                "nom": "Capacité",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "100L",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "150L",
+                    "impactPrix": 150
+                  },
+                  {
+                    "nom": "200L",
+                    "impactPrix": 300
+                  },
+                  {
+                    "nom": "300L",
+                    "impactPrix": 500
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Tuyauterie",
+        "description": "Remplacement et création de réseaux",
+        "prestations": [
+          {
+            "nom": "Remplacement tuyauterie",
+            "unite": "ML",
+            "prixVenteMin": 25,
+            "prixVenteMax": 60,
+            "description": "Remplacement de tuyauterie eau chaude/froide",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de tuyau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "PER",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cuivre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Multicouche",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Diamètre",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "12mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "16mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "20mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "25mm",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Création point d'eau",
+            "unite": "FORFAIT",
+            "prixVenteMin": 250,
+            "prixVenteMax": 600,
+            "description": "Création d'un nouveau point d'eau (alimentation + évacuation)",
+            "compositions": [],
+            "options": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Électricité",
+    "description": "Travaux électriques et mise aux normes",
+    "sousCategories": [
+      {
+        "nom": "Prises et interrupteurs",
+        "description": "Installation de prises et interrupteurs",
+        "prestations": [
+          {
+            "nom": "Pose prise électrique",
+            "unite": "PIECE",
+            "prixVenteMin": 45,
+            "prixVenteMax": 90,
+            "description": "Pose d'une prise électrique avec saignée et raccordement",
+            "compositions": [
+              {
+                "materiau": "Prise électrique encastrée",
+                "qte": 1
+              },
+              {
+                "materiau": "Câble R2V 3G2.5 (100m)",
+                "qte": 5
+              },
+              {
+                "serviceMo": "Électricité — pose appareillage",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de prise",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Prise simple 2P+T",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Prise double",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Prise USB",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Prise étanche (IP44)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Prise spécialisée 32A",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Pose interrupteur",
+            "unite": "PIECE",
+            "prixVenteMin": 40,
+            "prixVenteMax": 75,
+            "description": "Pose d'un interrupteur",
+            "compositions": [
+              {
+                "materiau": "Interrupteur va-et-vient",
+                "qte": 1
+              },
+              {
+                "materiau": "Câble R2V 3G2.5 (100m)",
+                "qte": 4
+              },
+              {
+                "serviceMo": "Électricité — pose appareillage",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'interrupteur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Simple allumage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Va-et-vient",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double allumage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Variateur",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bouton poussoir",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Éclairage",
+        "description": "Installation d'éclairages",
+        "prestations": [
+          {
+            "nom": "Pose luminaire",
+            "unite": "PIECE",
+            "prixVenteMin": 50,
+            "prixVenteMax": 120,
+            "description": "Pose d'un luminaire avec raccordement",
+            "compositions": [
+              {
+                "materiau": "Spot LED encastré 7W",
+                "qte": 1
+              },
+              {
+                "materiau": "Câble R2V 3G2.5 (100m)",
+                "qte": 3
+              },
+              {
+                "serviceMo": "Électricité — pose appareillage",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de luminaire",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Spot encastré LED",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Suspension",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Applique murale",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Plafonnier",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bandeau LED",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Réglette LED",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Tableau électrique",
+        "description": "Tableau et mise aux normes",
+        "prestations": [
+          {
+            "nom": "Mise aux normes tableau",
+            "unite": "FORFAIT",
+            "prixVenteMin": 800,
+            "prixVenteMax": 2500,
+            "description": "Mise aux normes NF C 15-100 du tableau électrique",
+            "compositions": [
+              {
+                "materiau": "Tableau électrique 2 rangées",
+                "qte": 1
+              },
+              {
+                "materiau": "Disjoncteur 20A",
+                "qte": 6
+              },
+              {
+                "materiau": "Câble R2V 3G2.5 (100m)",
+                "qte": 30
+              },
+              {
+                "serviceMo": "Électricité — câblage",
+                "qte": 8
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'installation",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Monophasé standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Monophasé renforcé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Triphasé",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Nombre de circuits",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "< 10 circuits",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "10 à 20 circuits",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "> 20 circuits",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Remplacement tableau",
+            "unite": "FORFAIT",
+            "prixVenteMin": 500,
+            "prixVenteMax": 1500,
+            "description": "Remplacement du tableau électrique vétuste",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Nombre de rangées",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "1 rangée (13 modules)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "2 rangées (26 modules)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "3 rangées (39 modules)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "4 rangées (52 modules)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Domotique",
+        "description": "Installations domotiques",
+        "prestations": [
+          {
+            "nom": "Installation domotique",
+            "unite": "PIECE",
+            "prixVenteMin": 80,
+            "prixVenteMax": 250,
+            "description": "Installation d'un équipement domotique",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'équipement",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Interrupteur connecté",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Thermostat connecté",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Volets roulants connectés",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Prise connectée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Détecteur de mouvement",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Carrelage",
+    "description": "Pose et fourniture de carrelage (sol et mur)",
+    "sousCategories": [
+      {
+        "nom": "Sol",
+        "description": "Carrelage au sol",
+        "prestations": [
+          {
+            "nom": "Pose carrelage sol",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 65,
+            "description": "Pose de carrelage au sol",
+            "compositions": [
+              {
+                "materiau": "Carrelage grès cérame 60x60",
+                "qte": 1.05
+              },
+              {
+                "materiau": "Colle carrelage C2 (25kg)",
+                "qte": 0.2
+              },
+              {
+                "materiau": "Joint carrelage (5kg)",
+                "qte": 0.06
+              },
+              {
+                "serviceMo": "Pose carrelage sol",
+                "qte": 0.2
+              }
+            ],
+            "options": [
+              {
+                "nom": "Format",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "20x20 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 20x20",
+                        "qte": 1.07
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.22
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.02
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.24
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "30x30 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 30x30",
+                        "qte": 1.06
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.21
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.016
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.22
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "45x45 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 45x45",
+                        "qte": 1.05
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.205
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.013
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.21
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "60x60 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 60x60",
+                        "qte": 1.05
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.2
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.012
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.2
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "30x60 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 30x60",
+                        "qte": 1.05
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.195
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.012
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.205
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "120x60 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 120x60",
+                        "qte": 1.08
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S1 (25kg)",
+                        "qte": 0.24
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.014
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.26
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "120x120 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 120x120",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S2 (25kg)",
+                        "qte": 0.28
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.018
+                      },
+                      {
+                        "serviceMo": "Pose carrelage sol",
+                        "qte": 0.32
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Type de pose",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Pose droite",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pose diagonale",
+                    "impactPrix": 4.5
+                  },
+                  {
+                    "nom": "Pose décalée 1/3",
+                    "impactPrix": 2.8
+                  },
+                  {
+                    "nom": "Pose en chevron",
+                    "impactPrix": 8.5
+                  },
+                  {
+                    "nom": "Pose cabochon",
+                    "impactPrix": 10
+                  }
+                ]
+              },
+              {
+                "nom": "Type de colle",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Colle C1 (intérieur)",
+                    "impactPrix": -2
+                  },
+                  {
+                    "nom": "Colle C2 (renforcée)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Colle C2S1 (déformable)",
+                    "impactPrix": 2.2
+                  },
+                  {
+                    "nom": "Colle C2S2 (grands formats)",
+                    "impactPrix": 4.8
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Mural",
+        "description": "Carrelage mural",
+        "prestations": [
+          {
+            "nom": "Pose carrelage mural",
+            "unite": "M2",
+            "prixVenteMin": 35,
+            "prixVenteMax": 70,
+            "description": "Pose de carrelage mural",
+            "compositions": [
+              {
+                "materiau": "Faïence murale 30x60",
+                "qte": 1.1
+              },
+              {
+                "materiau": "Colle carrelage C2 (25kg)",
+                "qte": 0.2
+              },
+              {
+                "materiau": "Joint carrelage (5kg)",
+                "qte": 0.08
+              },
+              {
+                "serviceMo": "Pose carrelage mural",
+                "qte": 0.2
+              }
+            ],
+            "options": [
+              {
+                "nom": "Format",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "10x10 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage mural 10x10",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.24
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.03
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.3
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "10x20 cm (métro)",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage métro 10x20",
+                        "qte": 1.08
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.23
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.025
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.26
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "20x20 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage mural 20x20",
+                        "qte": 1.08
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.22
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.02
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.23
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "30x60 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Faïence murale 30x60",
+                        "qte": 1.08
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.2
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.016
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.2
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "25x75 cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage mural 25x75",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S1 (25kg)",
+                        "qte": 0.24
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.018
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.28
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Grand format > 60cm",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage grès cérame 120x60",
+                        "qte": 1.12
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S2 (25kg)",
+                        "qte": 0.27
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.02
+                      },
+                      {
+                        "serviceMo": "Pose carrelage mural",
+                        "qte": 0.32
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Pièce",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Salle de bain",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cuisine (crédence)",
+                    "impactPrix": 2.5
+                  },
+                  {
+                    "nom": "WC",
+                    "impactPrix": 1.2
+                  },
+                  {
+                    "nom": "Autre",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Faïence",
+        "description": "Pose de faïence décorative",
+        "prestations": [
+          {
+            "nom": "Pose faïence",
+            "unite": "M2",
+            "prixVenteMin": 40,
+            "prixVenteMax": 75,
+            "description": "Pose de faïence murale décorative",
+            "compositions": [
+              {
+                "materiau": "Faïence murale 30x60",
+                "qte": 1.1
+              },
+              {
+                "materiau": "Colle carrelage C2 (25kg)",
+                "qte": 0.2
+              },
+              {
+                "materiau": "Joint carrelage (5kg)",
+                "qte": 0.08
+              },
+              {
+                "serviceMo": "Pose faïence",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Faïence classique",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Faïence murale 30x60",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.2
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.08
+                      },
+                      {
+                        "serviceMo": "Pose faïence",
+                        "qte": 1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Carreaux métro",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carrelage métro 10x20",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2 (25kg)",
+                        "qte": 0.22
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.1
+                      },
+                      {
+                        "serviceMo": "Pose faïence",
+                        "qte": 1.12
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Zellige",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Zellige artisanal 10x10",
+                        "qte": 1.15
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S1 (25kg)",
+                        "qte": 0.24
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.11
+                      },
+                      {
+                        "serviceMo": "Pose faïence",
+                        "qte": 1.35
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Mosaïque",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Mosaïque pâte de verre 2x2",
+                        "qte": 1.12
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S1 (25kg)",
+                        "qte": 0.26
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.12
+                      },
+                      {
+                        "serviceMo": "Pose faïence",
+                        "qte": 1.4
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Carreaux de ciment",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Carreaux de ciment 20x20",
+                        "qte": 1.1
+                      },
+                      {
+                        "materiau": "Colle carrelage C2S2 (25kg)",
+                        "qte": 0.28
+                      },
+                      {
+                        "materiau": "Joint carrelage (5kg)",
+                        "qte": 0.11
+                      },
+                      {
+                        "serviceMo": "Pose faïence",
+                        "qte": 1.25
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Préparation",
+        "description": "Préparation des supports avant pose",
+        "prestations": [
+          {
+            "nom": "Ragréage sol",
+            "unite": "M2",
+            "prixVenteMin": 12,
+            "prixVenteMax": 28,
+            "description": "Ragréage et préparation du sol avant pose",
+            "compositions": [
+              {
+                "materiau": "Ragréage autolissant P3 (25kg)",
+                "qte": 0.12
+              },
+              {
+                "serviceMo": "Ragréage sol",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de ragréage",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Autolissant standard (P3)",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Ragréage autolissant P3 (25kg)",
+                        "qte": 0.12
+                      },
+                      {
+                        "serviceMo": "Ragréage sol",
+                        "qte": 1
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Autolissant renforcé (P4)",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Ragréage autolissant P4 (25kg)",
+                        "qte": 0.13
+                      },
+                      {
+                        "serviceMo": "Ragréage sol",
+                        "qte": 1.05
+                      }
+                    ]
+                  },
+                  {
+                    "nom": "Fibré haute résistance",
+                    "impactPrix": 0,
+                    "compositions": [
+                      {
+                        "materiau": "Ragréage fibré haute résistance (25kg)",
+                        "qte": 0.14
+                      },
+                      {
+                        "serviceMo": "Ragréage sol",
+                        "qte": 1.1
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "1-3 mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "3-10 mm",
+                    "impactPrix": 5.5
+                  },
+                  {
+                    "nom": "10-30 mm",
+                    "impactPrix": 12
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Primaire d'accrochage",
+            "unite": "M2",
+            "prixVenteMin": 3,
+            "prixVenteMax": 8,
+            "description": "Application primaire d'accrochage avant ragréage ou colle",
+            "compositions": [
+              {
+                "materiau": "Primaire d'accrochage universel (5L)",
+                "qte": 0.15
+              },
+              {
+                "serviceMo": "Ragréage sol",
+                "qte": 0.2
+              }
+            ],
+            "options": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Peinture",
+    "description": "Travaux de peinture intérieure et extérieure",
+    "sousCategories": [
+      {
+        "nom": "Murs intérieurs",
+        "description": "Peinture murale intérieure",
+        "prestations": [
+          {
+            "nom": "Peinture mur intérieur",
+            "unite": "M2",
+            "prixVenteMin": 14,
+            "prixVenteMax": 28,
+            "description": "Peinture murale intérieure (2 couches)",
+            "compositions": [
+              {
+                "materiau": "Peinture acrylique mat 10L",
+                "qte": 0.025
+              },
+              {
+                "materiau": "Sous-couche universelle 10L",
+                "qte": 0.01
+              },
+              {
+                "serviceMo": "Peinture mur (2 couches)",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Mat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Satin",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Velours",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Brillant",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type de peinture",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Acrylique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Glycéro",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Alkyde",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bio-sourcée",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Plafonds",
+        "description": "Peinture de plafonds",
+        "prestations": [
+          {
+            "nom": "Peinture plafond",
+            "unite": "M2",
+            "prixVenteMin": 16,
+            "prixVenteMax": 32,
+            "description": "Peinture plafond (2 couches)",
+            "compositions": [
+              {
+                "materiau": "Peinture acrylique mat 10L",
+                "qte": 0.025
+              },
+              {
+                "materiau": "Sous-couche universelle 10L",
+                "qte": 0.01
+              },
+              {
+                "serviceMo": "Peinture plafond (2 couches)",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Acrylique mat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Glycéro",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Anti-humidité",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Anti-moisissure",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Extérieur",
+        "description": "Peinture extérieure",
+        "prestations": [
+          {
+            "nom": "Peinture extérieure façade",
+            "unite": "M2",
+            "prixVenteMin": 22,
+            "prixVenteMax": 48,
+            "description": "Peinture extérieure sur façade",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de peinture",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Acrylique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Siloxane",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pliolite",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Hydropliolite",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Boiseries",
+        "description": "Peinture sur bois",
+        "prestations": [
+          {
+            "nom": "Peinture boiseries",
+            "unite": "ML",
+            "prixVenteMin": 10,
+            "prixVenteMax": 25,
+            "description": "Peinture sur boiseries (portes, plinthes, fenêtres)",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Laque brillante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Laque satinée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vernis",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Enduits décoratifs",
+        "description": "Application d'enduits décoratifs",
+        "prestations": [
+          {
+            "nom": "Enduit décoratif",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 70,
+            "description": "Application d'enduit décoratif",
+            "compositions": [
+              {
+                "materiau": "Enduit de lissage (25kg)",
+                "qte": 0.16
+              },
+              {
+                "serviceMo": "Enduit mur",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'enduit",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Stuc vénitien",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Tadelakt",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Béton ciré",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Enduit à la chaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Enduit texturé",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Préparation",
+        "description": "Préparation des murs avant peinture",
+        "prestations": [
+          {
+            "nom": "Préparation murs",
+            "unite": "M2",
+            "prixVenteMin": 8,
+            "prixVenteMax": 18,
+            "description": "Lessivage, rebouchage, ponçage, sous-couche",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "État du support",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bon état (lessivage)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fissures légères (rebouchage)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mauvais état (enduit complet)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Décollement (décapage)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Revêtement de sol",
+    "description": "Parquet, vinyle, moquette, résine",
+    "sousCategories": [
+      {
+        "nom": "Parquet flottant",
+        "description": "Pose de parquet flottant / stratifié",
+        "prestations": [
+          {
+            "nom": "Pose parquet flottant",
+            "unite": "M2",
+            "prixVenteMin": 22,
+            "prixVenteMax": 48,
+            "description": "Pose de parquet flottant avec sous-couche",
+            "compositions": [
+              {
+                "materiau": "Parquet flottant chêne 7mm",
+                "qte": 1.08
+              },
+              {
+                "materiau": "Sous-couche parquet 3mm",
+                "qte": 1.02
+              },
+              {
+                "serviceMo": "Pose parquet flottant",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de parquet",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Stratifié",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Contrecollé chêne",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Contrecollé noyer",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "PVC clipsable",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "7mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "8mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "10mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "12mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "14mm",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Parquet massif",
+        "description": "Pose de parquet massif",
+        "prestations": [
+          {
+            "nom": "Pose parquet massif",
+            "unite": "M2",
+            "prixVenteMin": 45,
+            "prixVenteMax": 90,
+            "description": "Pose de parquet massif collé ou cloué",
+            "compositions": [
+              {
+                "materiau": "Parquet massif chêne 14mm",
+                "qte": 1.1
+              },
+              {
+                "serviceMo": "Pose parquet massif",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Essence",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Chêne",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Hêtre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Noyer",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bambou",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Teck",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Wengé",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type de pose",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Collé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cloué",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pose à l'anglaise",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pose en point de Hongrie",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pose en chevron",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Ponçage vitrification parquet",
+            "unite": "M2",
+            "prixVenteMin": 20,
+            "prixVenteMax": 40,
+            "description": "Ponçage et vitrification de parquet existant",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Vitrification mat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitrification satin",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitrification brillant",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Huilé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ciré",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Vinyle / PVC",
+        "description": "Pose de revêtement vinyle",
+        "prestations": [
+          {
+            "nom": "Pose sol vinyle/PVC",
+            "unite": "M2",
+            "prixVenteMin": 14,
+            "prixVenteMax": 32,
+            "description": "Pose de revêtement vinyle ou PVC",
+            "compositions": [
+              {
+                "materiau": "Sol PVC lame clipsable",
+                "qte": 1.05
+              },
+              {
+                "serviceMo": "Pose sol PVC",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Lames clipsables",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Dalles clipsables",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Rouleau collé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Lames adhésives",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Moquette",
+        "description": "Pose de moquette",
+        "prestations": [
+          {
+            "nom": "Pose moquette",
+            "unite": "M2",
+            "prixVenteMin": 12,
+            "prixVenteMax": 30,
+            "description": "Pose de moquette",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de moquette",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bouclée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Velours",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aiguilletée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Shaggy",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type de pose",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Collée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Tendue (thibaude)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Libre (pose flottante)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Menuiserie intérieure",
+    "description": "Portes, placards, escaliers",
+    "sousCategories": [
+      {
+        "nom": "Portes",
+        "description": "Pose de portes intérieures",
+        "prestations": [
+          {
+            "nom": "Pose porte intérieure",
+            "unite": "PIECE",
+            "prixVenteMin": 150,
+            "prixVenteMax": 350,
+            "description": "Pose d'une porte intérieure avec huisserie",
+            "compositions": [
+              {
+                "materiau": "Bloc porte intérieur 83cm",
+                "qte": 1
+              },
+              {
+                "serviceMo": "Pose porte intérieure",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de porte",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Battante standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissante à galandage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissante en applique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pliante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitrée",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bois massif",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "MDF peint",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "MDF plaqué",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verre",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Placards",
+        "description": "Aménagement de placards",
+        "prestations": [
+          {
+            "nom": "Pose placard sur mesure",
+            "unite": "ML",
+            "prixVenteMin": 300,
+            "prixVenteMax": 700,
+            "description": "Fabrication et pose de placard sur mesure",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de portes",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Portes battantes",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Portes coulissantes",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sans portes (dressing ouvert)",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Aménagement intérieur",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Étagères simples",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Étagères + penderie",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Étagères + tiroirs + penderie",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sur mesure complet",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Escaliers",
+        "description": "Rénovation d'escaliers",
+        "prestations": [
+          {
+            "nom": "Rénovation escalier",
+            "unite": "FORFAIT",
+            "prixVenteMin": 1500,
+            "prixVenteMax": 5000,
+            "description": "Rénovation complète d'un escalier",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau marches",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bois massif",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois stratifié",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Béton ciré",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Carrelage",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type de garde-corps",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Inox + câbles",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verre",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fer forgé",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Menuiserie extérieure",
+    "description": "Fenêtres, portes d'entrée, volets, baies vitrées",
+    "sousCategories": [
+      {
+        "nom": "Fenêtres",
+        "description": "Pose et remplacement de fenêtres",
+        "prestations": [
+          {
+            "nom": "Pose fenêtre",
+            "unite": "PIECE",
+            "prixVenteMin": 250,
+            "prixVenteMax": 600,
+            "description": "Dépose + pose fenêtre avec finitions",
+            "compositions": [
+              {
+                "materiau": "Fenêtre PVC 2 vantaux 120x135",
+                "qte": 1
+              },
+              {
+                "serviceMo": "Pose fenêtre",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mixte bois-alu",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type d'ouverture",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Battante (à la française)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Oscillo-battante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fixe",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Basculante",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Vitrage",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Double vitrage standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double vitrage ITR",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Triple vitrage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitrage phonique",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Porte d'entrée",
+        "description": "Pose de portes d'entrée",
+        "prestations": [
+          {
+            "nom": "Pose porte d'entrée",
+            "unite": "PIECE",
+            "prixVenteMin": 500,
+            "prixVenteMax": 2000,
+            "description": "Dépose + pose porte d'entrée",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Acier / blindée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Composite",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Serrure",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "3 points",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "5 points",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Serrure connectée",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Volets",
+        "description": "Pose de volets",
+        "prestations": [
+          {
+            "nom": "Pose volets",
+            "unite": "PIECE",
+            "prixVenteMin": 200,
+            "prixVenteMax": 800,
+            "description": "Pose de volets",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Volets roulants",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Volets battants",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Volets coulissants",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Persiennes",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Motorisation",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Manuel",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé filaire",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé radio",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé solaire",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Baies vitrées",
+        "description": "Pose de baies vitrées",
+        "prestations": [
+          {
+            "nom": "Pose baie vitrée",
+            "unite": "PIECE",
+            "prixVenteMin": 600,
+            "prixVenteMax": 2500,
+            "description": "Dépose + pose baie vitrée",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Coulissante 2 vantaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissante 3 vantaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "À galandage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Battante",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mixte bois-alu",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Toiture",
+    "description": "Travaux de toiture, couverture et charpente",
+    "sousCategories": [
+      {
+        "nom": "Couverture",
+        "description": "Réfection de couverture",
+        "prestations": [
+          {
+            "nom": "Réfection toiture complète",
+            "unite": "M2",
+            "prixVenteMin": 80,
+            "prixVenteMax": 160,
+            "description": "Dépose + repose couverture complète",
+            "compositions": [
+              {
+                "serviceMo": "Couverture toiture",
+                "qte": 1.5
+              }
+            ],
+            "options": [
+              {
+                "nom": "Matériau couverture",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Tuiles terre cuite",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Tuiles béton",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ardoises naturelles",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ardoises synthétiques",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bac acier",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Zinc",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Réparation",
+        "description": "Réparations ponctuelles",
+        "prestations": [
+          {
+            "nom": "Réparation toiture",
+            "unite": "M2",
+            "prixVenteMin": 50,
+            "prixVenteMax": 110,
+            "description": "Remplacement tuiles/ardoises, reprises ponctuelles",
+            "compositions": [
+              {
+                "serviceMo": "Couverture toiture",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type de réparation",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Remplacement tuiles",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Reprise étanchéité",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Reprise faîtage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Reprise noue",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Remplacement solin",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Nettoyage",
+        "description": "Nettoyage et traitement",
+        "prestations": [
+          {
+            "nom": "Nettoyage toiture",
+            "unite": "M2",
+            "prixVenteMin": 10,
+            "prixVenteMax": 28,
+            "description": "Nettoyage et traitement de toiture",
+            "compositions": [
+              {
+                "serviceMo": "Nettoyage toiture",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Méthode",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Haute pression",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Brosse + mousse biocide",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Traitement hydrofuge seul",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Gouttières",
+        "description": "Pose et remplacement de gouttières",
+        "prestations": [
+          {
+            "nom": "Remplacement gouttières",
+            "unite": "ML",
+            "prixVenteMin": 20,
+            "prixVenteMax": 55,
+            "description": "Dépose + pose de gouttières et descentes",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Zinc",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium laqué",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cuivre",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Forme",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Demi-ronde",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Carrée",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Havraise",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Charpente",
+        "description": "Traitement et réparation de charpente",
+        "prestations": [
+          {
+            "nom": "Traitement charpente",
+            "unite": "M2",
+            "prixVenteMin": 15,
+            "prixVenteMax": 35,
+            "description": "Traitement préventif ou curatif de charpente bois",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de traitement",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Préventif (injection)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Curatif (gel + injection)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Curatif + remplacement bois",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Façade",
+    "description": "Ravalement, enduit de façade, isolation extérieure",
+    "sousCategories": [
+      {
+        "nom": "Ravalement",
+        "description": "Travaux de ravalement",
+        "prestations": [
+          {
+            "nom": "Ravalement façade",
+            "unite": "M2",
+            "prixVenteMin": 40,
+            "prixVenteMax": 90,
+            "description": "Ravalement complet de façade (nettoyage + enduit + peinture)",
+            "compositions": [
+              {
+                "materiau": "Enduit de lissage (25kg)",
+                "qte": 0.2
+              },
+              {
+                "materiau": "Peinture acrylique mat 10L",
+                "qte": 0.03
+              },
+              {
+                "serviceMo": "Ravalement façade",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Ravalement complet",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ravalement partiel",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Simple nettoyage + peinture",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Enduit",
+        "description": "Application d'enduit de façade",
+        "prestations": [
+          {
+            "nom": "Enduit façade",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 65,
+            "description": "Application d'enduit sur façade",
+            "compositions": [
+              {
+                "materiau": "Enduit de lissage (25kg)",
+                "qte": 0.2
+              },
+              {
+                "serviceMo": "Ravalement façade",
+                "qte": 1
+              }
+            ],
+            "options": [
+              {
+                "nom": "Type d'enduit",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Monocouche taloché",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Monocouche gratté",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Traditionnel 3 couches",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Enduit projeté",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Nettoyage",
+        "description": "Nettoyage de façade",
+        "prestations": [
+          {
+            "nom": "Nettoyage façade",
+            "unite": "M2",
+            "prixVenteMin": 10,
+            "prixVenteMax": 30,
+            "description": "Nettoyage de façade",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Méthode",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Haute pression",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sablage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Gommage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Nébulisation",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Peeling chimique",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "ITE",
+        "description": "Isolation thermique par l'extérieur",
+        "prestations": [
+          {
+            "nom": "Isolation thermique extérieure (ITE)",
+            "unite": "M2",
+            "prixVenteMin": 100,
+            "prixVenteMax": 200,
+            "description": "Isolation thermique par l'extérieur avec enduit de finition",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type d'isolant",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Polystyrène expansé (PSE)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Laine de roche",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fibre de bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Polyuréthane",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "100mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "120mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "140mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "160mm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "200mm",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Enduit taloché",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Enduit gratté",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bardage bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bardage composite",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Chauffage / Climatisation",
+    "description": "Installation de systèmes de chauffage et climatisation",
+    "sousCategories": [
+      {
+        "nom": "Radiateurs",
+        "description": "Pose de radiateurs",
+        "prestations": [
+          {
+            "nom": "Pose radiateur",
+            "unite": "PIECE",
+            "prixVenteMin": 150,
+            "prixVenteMax": 500,
+            "description": "Pose d'un radiateur",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Électrique à inertie",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Électrique rayonnant",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Eau chaude (acier)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Eau chaude (fonte)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sèche-serviette",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Plancher chauffant",
+        "description": "Installation de plancher chauffant",
+        "prestations": [
+          {
+            "nom": "Pose plancher chauffant",
+            "unite": "M2",
+            "prixVenteMin": 50,
+            "prixVenteMax": 120,
+            "description": "Installation de plancher chauffant",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Hydraulique (eau)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Électrique (câble)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Électrique (trame)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Climatisation",
+        "description": "Installation de climatisation",
+        "prestations": [
+          {
+            "nom": "Installation climatisation",
+            "unite": "PIECE",
+            "prixVenteMin": 800,
+            "prixVenteMax": 3000,
+            "description": "Installation d'un système de climatisation",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Split mural",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Multi-split",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Gainable",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Console",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cassette",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Puissance",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "2.5 kW (< 25 m²)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "3.5 kW (25-35 m²)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "5 kW (35-50 m²)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "7 kW (> 50 m²)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Chaudière / PAC",
+        "description": "Installation de chaudière et pompe à chaleur",
+        "prestations": [
+          {
+            "nom": "Remplacement chaudière",
+            "unite": "FORFAIT",
+            "prixVenteMin": 3000,
+            "prixVenteMax": 12000,
+            "description": "Dépose + pose chaudière ou PAC",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Chaudière gaz condensation",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pompe à chaleur air/eau",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pompe à chaleur air/air",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Chaudière granulés",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Poêle à granulés",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Ventilation",
+    "description": "Installation de systèmes de ventilation",
+    "sousCategories": [
+      {
+        "nom": "VMC",
+        "description": "Installation de VMC",
+        "prestations": [
+          {
+            "nom": "Installation VMC",
+            "unite": "FORFAIT",
+            "prixVenteMin": 500,
+            "prixVenteMax": 3000,
+            "description": "Installation complète d'un système VMC",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de VMC",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Simple flux autoréglable",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Simple flux hygroréglable A",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Simple flux hygroréglable B",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double flux",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Nombre de bouches",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "3 bouches",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "4 bouches",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "5 bouches",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "6 bouches",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Extracteurs",
+        "description": "Pose d'extracteurs",
+        "prestations": [
+          {
+            "nom": "Pose extracteur",
+            "unite": "PIECE",
+            "prixVenteMin": 80,
+            "prixVenteMax": 250,
+            "description": "Pose d'un extracteur d'air",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Extracteur salle de bain",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Extracteur cuisine",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aérateur mural",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Extracteur mécanique en ligne",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Aménagement extérieur",
+    "description": "Terrasse, clôture, portail, allée, pergola",
+    "sousCategories": [
+      {
+        "nom": "Terrasse",
+        "description": "Création de terrasse",
+        "prestations": [
+          {
+            "nom": "Pose terrasse",
+            "unite": "M2",
+            "prixVenteMin": 50,
+            "prixVenteMax": 150,
+            "description": "Création de terrasse extérieure",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bois naturel (pin traité)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois exotique (ipé, teck)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Composite",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Carrelage extérieur",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pierre naturelle",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Dalle béton",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Structure",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Sur lambourdes bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sur plots réglables",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Collée sur dalle",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Clôture",
+        "description": "Pose de clôture",
+        "prestations": [
+          {
+            "nom": "Pose clôture",
+            "unite": "ML",
+            "prixVenteMin": 30,
+            "prixVenteMax": 120,
+            "description": "Pose de clôture avec poteaux",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Grillage souple",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Panneaux rigides",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Palissade bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Panneaux alu",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Gabions",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Mur en parpaing",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Hauteur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "1.00m",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "1.20m",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "1.50m",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "1.80m",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "2.00m",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Portail",
+        "description": "Pose de portail",
+        "prestations": [
+          {
+            "nom": "Pose portail",
+            "unite": "FORFAIT",
+            "prixVenteMin": 500,
+            "prixVenteMax": 3000,
+            "description": "Pose de portail avec poteaux",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Battant 2 vantaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissant",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Portillon",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fer forgé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "PVC",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Motorisation",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Manuel",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé (vérins)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé (bras articulés)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Motorisé (rail au sol)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Allées",
+        "description": "Création d'allées",
+        "prestations": [
+          {
+            "nom": "Création allée",
+            "unite": "M2",
+            "prixVenteMin": 30,
+            "prixVenteMax": 100,
+            "description": "Création d'allée piétonne ou carrossable",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Graviers stabilisés",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Béton désactivé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Béton imprimé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pavés autobloquants",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Dalles pierre naturelle",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Enrobé",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Pergola",
+        "description": "Pose de pergola",
+        "prestations": [
+          {
+            "nom": "Pose pergola",
+            "unite": "FORFAIT",
+            "prixVenteMin": 2000,
+            "prixVenteMax": 8000,
+            "description": "Pose de pergola",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium classique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bioclimatique (lames orientables)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Toile rétractable",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Surface",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "< 10 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "10-15 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "15-20 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "> 20 m²",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Cuisine",
+    "description": "Aménagement et rénovation de cuisine",
+    "sousCategories": [
+      {
+        "nom": "Meubles",
+        "description": "Pose de meubles de cuisine",
+        "prestations": [
+          {
+            "nom": "Pose cuisine équipée",
+            "unite": "ML",
+            "prixVenteMin": 200,
+            "prixVenteMax": 600,
+            "description": "Pose de meubles de cuisine équipée (par mètre linéaire)",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Gamme",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Entrée de gamme (mélaminé)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Milieu de gamme (stratifié)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Haut de gamme (laqué / bois massif)",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Plan de travail",
+        "description": "Pose de plan de travail",
+        "prestations": [
+          {
+            "nom": "Pose plan de travail",
+            "unite": "ML",
+            "prixVenteMin": 60,
+            "prixVenteMax": 300,
+            "description": "Pose de plan de travail cuisine",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Stratifié",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Granit",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Quartz (Silestone)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois massif",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Inox",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Céramique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Dekton / Neolith",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Crédence",
+        "description": "Pose de crédence",
+        "prestations": [
+          {
+            "nom": "Pose crédence cuisine",
+            "unite": "ML",
+            "prixVenteMin": 40,
+            "prixVenteMax": 150,
+            "description": "Pose de crédence de cuisine",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Carrelage / faïence",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verre trempé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Inox brossé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Stratifié",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pierre naturelle",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Électroménager",
+        "description": "Installation d'électroménager",
+        "prestations": [
+          {
+            "nom": "Installation électroménager",
+            "unite": "PIECE",
+            "prixVenteMin": 50,
+            "prixVenteMax": 200,
+            "description": "Installation et raccordement d'un appareil électroménager",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Four encastrable",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Plaque de cuisson",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Hotte aspirante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Lave-vaisselle",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Réfrigérateur encastrable",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Micro-ondes encastrable",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Salle de bain",
+    "description": "Aménagement et rénovation de salle de bain",
+    "sousCategories": [
+      {
+        "nom": "Aménagement complet",
+        "description": "Rénovation complète de salle de bain",
+        "prestations": [
+          {
+            "nom": "Rénovation SDB complète",
+            "unite": "FORFAIT",
+            "prixVenteMin": 4000,
+            "prixVenteMax": 15000,
+            "description": "Rénovation complète de salle de bain (dépose + plomberie + carrelage + équipements)",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Surface",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "< 4 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "4-6 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "6-8 m²",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "> 8 m²",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Gamme",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Économique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Premium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Luxe",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Meuble vasque",
+        "description": "Pose de meuble vasque",
+        "prestations": [
+          {
+            "nom": "Pose meuble vasque",
+            "unite": "PIECE",
+            "prixVenteMin": 200,
+            "prixVenteMax": 800,
+            "description": "Pose d'un meuble vasque avec robinetterie",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Simple vasque (60cm)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Simple vasque (80cm)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double vasque (120cm)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Suspendu",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sur pied",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Paroi de douche",
+        "description": "Pose de paroi de douche",
+        "prestations": [
+          {
+            "nom": "Pose paroi de douche",
+            "unite": "PIECE",
+            "prixVenteMin": 200,
+            "prixVenteMax": 700,
+            "description": "Pose d'une paroi de douche",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Paroi fixe",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Porte battante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Porte coulissante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Porte pliante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Paroi walk-in",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Verre",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Transparent",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Sérigraphié",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Dépoli",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fumé",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Accessoires",
+        "description": "Pose d'accessoires de salle de bain",
+        "prestations": [
+          {
+            "nom": "Pose accessoires SDB",
+            "unite": "FORFAIT",
+            "prixVenteMin": 100,
+            "prixVenteMax": 400,
+            "description": "Pose d'accessoires de salle de bain (porte-serviette, miroir, etc.)",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Pack",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Pack standard (3 accessoires)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pack complet (6 accessoires)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pack PMR / accessibilité",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pack design / premium",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Sols techniques",
+    "description": "Ragréage, chapes spéciales, résine de sol",
+    "sousCategories": [
+      {
+        "nom": "Chape",
+        "description": "Chapes fluides et spéciales",
+        "prestations": [
+          {
+            "nom": "Chape fluide",
+            "unite": "M2",
+            "prixVenteMin": 25,
+            "prixVenteMax": 55,
+            "description": "Réalisation de chape fluide autonivelante",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Anhydrite (sulfate de calcium)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ciment",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Épaisseur",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "3-4 cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "5-6 cm",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "7-8 cm",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Résine",
+        "description": "Sols en résine",
+        "prestations": [
+          {
+            "nom": "Sol résine",
+            "unite": "M2",
+            "prixVenteMin": 50,
+            "prixVenteMax": 120,
+            "description": "Application de sol en résine",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de résine",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Époxy",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Polyuréthane",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Méthacrylate",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Finition",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Lisse brillant",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Lisse mat",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Quartz coloré (antidérapant)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Effet béton",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Traitement / Assainissement",
+    "description": "Traitement humidité, termites, assainissement",
+    "sousCategories": [
+      {
+        "nom": "Humidité",
+        "description": "Traitement des problèmes d'humidité",
+        "prestations": [
+          {
+            "nom": "Traitement humidité",
+            "unite": "ML",
+            "prixVenteMin": 80,
+            "prixVenteMax": 200,
+            "description": "Traitement des remontées capillaires et infiltrations",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Technique",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Injection de résine",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Drainage périphérique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Cuvelage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Membrane d'étanchéité",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Termites",
+        "description": "Traitement anti-termites",
+        "prestations": [
+          {
+            "nom": "Traitement termites",
+            "unite": "FORFAIT",
+            "prixVenteMin": 1500,
+            "prixVenteMax": 5000,
+            "description": "Traitement anti-termites et insectes xylophages",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de traitement",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Barrière chimique",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Pièges (stations appât)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Injection bois",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Assainissement",
+        "description": "Travaux d'assainissement",
+        "prestations": [
+          {
+            "nom": "Assainissement non collectif",
+            "unite": "FORFAIT",
+            "prixVenteMin": 5000,
+            "prixVenteMax": 15000,
+            "description": "Installation ou remplacement d'un système d'assainissement individuel",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Fosse septique toutes eaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Micro-station d'épuration",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Filtre compact",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Filtre à sable",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Serrurerie / Métallerie",
+    "description": "Garde-corps, rampes, grilles de protection",
+    "sousCategories": [
+      {
+        "nom": "Garde-corps",
+        "description": "Pose de garde-corps",
+        "prestations": [
+          {
+            "nom": "Pose garde-corps",
+            "unite": "ML",
+            "prixVenteMin": 100,
+            "prixVenteMax": 350,
+            "description": "Pose de garde-corps",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Inox",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fer forgé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verre + inox",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Câbles + inox",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "À barreaux",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "À lisses horizontales",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitré",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "À câbles",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Rampes",
+        "description": "Pose de rampes d'escalier",
+        "prestations": [
+          {
+            "nom": "Pose rampe escalier",
+            "unite": "ML",
+            "prixVenteMin": 60,
+            "prixVenteMax": 200,
+            "description": "Pose de rampe et main courante d'escalier",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Bois",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Inox",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fer forgé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Corde",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Grilles de protection",
+        "description": "Pose de grilles et protections",
+        "prestations": [
+          {
+            "nom": "Pose grille de défense",
+            "unite": "PIECE",
+            "prixVenteMin": 150,
+            "prixVenteMax": 500,
+            "description": "Pose de grille de défense sur fenêtre",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Fixe (scellée)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Ouvrante",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Amovible",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Fer forgé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Acier peint",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "nom": "Vitrerie",
+    "description": "Vitrages, miroirs, cloisons vitrées et verrières",
+    "sousCategories": [
+      {
+        "nom": "Vitrage",
+        "description": "Remplacement de vitrage",
+        "prestations": [
+          {
+            "nom": "Remplacement vitrage",
+            "unite": "M2",
+            "prixVenteMin": 80,
+            "prixVenteMax": 200,
+            "description": "Remplacement de vitrage sur menuiserie existante",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type de vitrage",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Simple vitrage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double vitrage standard",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Double vitrage ITR argon",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Triple vitrage",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Vitrage feuilleté sécurité",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Miroirs",
+        "description": "Pose de miroirs",
+        "prestations": [
+          {
+            "nom": "Pose miroir",
+            "unite": "M2",
+            "prixVenteMin": 60,
+            "prixVenteMax": 150,
+            "description": "Fourniture et pose de miroir sur mesure",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Fixation",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Collé",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Fixation mécanique (pattes)",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Finition",
+                "obligatoire": false,
+                "choix": [
+                  {
+                    "nom": "Bords polis",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bords biseautés",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Avec cadre",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nom": "Cloisons vitrées",
+        "description": "Pose de cloisons vitrées et verrières",
+        "prestations": [
+          {
+            "nom": "Pose verrière intérieure",
+            "unite": "ML",
+            "prixVenteMin": 300,
+            "prixVenteMax": 800,
+            "description": "Pose de verrière d'intérieur style atelier",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Verrière fixe",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verrière avec porte",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verrière imposte (au-dessus d'une porte)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Verrière cloison complète",
+                    "impactPrix": 0
+                  }
+                ]
+              },
+              {
+                "nom": "Matériau cadre",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Acier noir",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium noir",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Aluminium blanc",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Bois peint",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "nom": "Pose cloison vitrée bureau",
+            "unite": "M2",
+            "prixVenteMin": 150,
+            "prixVenteMax": 400,
+            "description": "Pose de cloison vitrée de bureau ou séparation",
+            "compositions": [],
+            "options": [
+              {
+                "nom": "Type",
+                "obligatoire": true,
+                "choix": [
+                  {
+                    "nom": "Vitrée toute hauteur",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Semi-vitrée (allège)",
+                    "impactPrix": 0
+                  },
+                  {
+                    "nom": "Coulissante",
+                    "impactPrix": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
