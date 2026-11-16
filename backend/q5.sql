@@ -1,1 +1,0 @@
-SELECT id, nom FROM categories_prestations ORDER BY id;

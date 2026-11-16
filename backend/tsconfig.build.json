@@ -1,11 +1,13 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": [
-    "node_modules",
-    "test",
-    "dist",
-    "prisma",
-    "**/*spec.ts",
-    "src/modules/catalogue/**"
-  ]
+  "compilerOptions": {
+    "rootDir": "./src",
+    // Kept INSIDE dist: `nest start` deletes dist (deleteOutDir); a build-info file left at the
+    // root then says "nothing changed", tsc emits nothing and dist/main.js is missing.
+    "tsBuildInfoFile": "./dist/tsconfig.build.tsbuildinfo",
+    // No incremental build at all: a stale build-info can never block the emit again
+    "incremental": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
 }
