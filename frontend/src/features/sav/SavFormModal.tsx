@@ -10,10 +10,11 @@ import { SAV_CATEGORIES, useSavChantiers, useSaveSav, type SavCategorie, type Sa
 
 export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean; onClose: () => void; ticket?: SavTicket; onSaved?: (t: SavTicket) => void }) {
   const save = useSaveSav();
-  const staff = useUserOptions(['ADMIN', 'TECHNICO', 'ASSISTANTE', 'CHEF_CHANTIER'], open);
+  const staff = useUserOptions(['ADMIN', 'TECHNICO', 'ASSISTANTE', 'CHEF_CHANTIER', 'RESPONSABLE_SAV', 'AGENT_SAV'], open);
   const [clientId, setClientId] = useState<number | null>(null);
   const { hasRole } = useAuth();
-  const admin = hasRole('ADMIN');
+  // The RESPONSABLE_SAV, like the ADMIN, may open a ticket outside the SAV rule
+  const admin = hasRole('ADMIN', 'RESPONSABLE_SAV');
   // 29/10: the chef de chantier has no client list — he picks one of HIS job sites, the client follows
   const chef = hasRole('CHEF_CHANTIER');
   // Étape 2 (26/10): a ticket goes on a finished job site, within the SAV period (the ADMIN may override)
@@ -93,7 +94,7 @@ export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean
             <Select
               label="Chantier concerné"
               required={!admin}
-              placeholder={admin ? 'Aucun (exception administrateur)' : chef ? 'Choisir un de vos chantiers terminés…' : 'Choisir un chantier terminé…'}
+              placeholder={admin ? 'Aucun (exception)' : chef ? 'Choisir un de vos chantiers terminés…' : 'Choisir un chantier terminé…'}
               options={proposes.map((c) => ({
                 value: c.id,
                 label: `${c.reference} · ${chef ? `${fullName(c.client)} · ` : ''}${c.adresse} — ${c.savPossible ? (c.savJusquau ? `SAV jusqu’au ${formatDate(c.savJusquau)}` : 'SAV sans limite') : c.statut === 'TERMINE' || c.statut === 'CLOTURE' ? 'délai SAV dépassé' : 'travaux en cours'}`,
@@ -103,12 +104,12 @@ export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean
             />
             {!chantiers.isPending && !admin && proposes.length === 0 && (
               <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                Aucun chantier terminé dans la période de SAV ({chantiers.data?.savDureeMois ? `${chantiers.data.savDureeMois} mois` : 'sans limite'}) {chef ? 'parmi vos chantiers' : 'pour ce client'} : le ticket ne peut pas être ouvert. Un administrateur peut faire une exception.
+                Aucun chantier terminé dans la période de SAV ({chantiers.data?.savDureeMois ? `${chantiers.data.savDureeMois} mois` : 'sans limite'}) {chef ? 'parmi vos chantiers' : 'pour ce client'} : le ticket ne peut pas être ouvert. Un administrateur ou un responsable SAV peut faire une exception.
               </p>
             )}
             {admin && horsRegle && (
               <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                Exception administrateur : {!choisi ? 'aucun chantier terminé n’est choisi' : choisi.statut === 'TERMINE' || choisi.statut === 'CLOTURE' ? 'le délai de SAV de ce chantier est dépassé' : 'ce chantier n’est pas terminé'}. Le ticket sera ouvert quand même et l’exception notée dans le ticket.
+                Exception (administrateur ou responsable SAV) : {!choisi ? 'aucun chantier terminé n’est choisi' : choisi.statut === 'TERMINE' || choisi.statut === 'CLOTURE' ? 'le délai de SAV de ce chantier est dépassé' : 'ce chantier n’est pas terminé'}. Le ticket sera ouvert quand même et l’exception notée dans le ticket.
               </p>
             )}
           </>

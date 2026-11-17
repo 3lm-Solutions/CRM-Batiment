@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, CurrentUser, Roles, SAV_ACCES } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { CreateUserDto, QueryUsersDto, UpdateUserDto, UserOptionsQueryDto } from './dto/users.dto';
 import { UsersService } from './users.service';
@@ -31,7 +31,7 @@ export class UsersController {
   }
 
   /** Declared BEFORE ':id', otherwise "options" would be parsed as an id */
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Get('options')
   @ApiOperation({ summary: 'Liste simplifiée pour les sélecteurs (ex. ?roles=CHEF_CHANTIER)' })
   options(@CurrentUser() user: AuthUser, @Query() query: UserOptionsQueryDto) {

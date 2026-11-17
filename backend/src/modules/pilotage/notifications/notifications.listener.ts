@@ -113,7 +113,7 @@ export class NotificationsListener {
   async savCree(e: SavEvent) {
     await this.notifications.notifyRoles(
       e.companyId,
-      [Role.ADMIN],
+      [Role.ADMIN, Role.RESPONSABLE_SAV],
       {
         type: 'SAV_CREE',
         niveau: e.priorite === 'URGENTE' ? 'ALERTE' : 'INFO',

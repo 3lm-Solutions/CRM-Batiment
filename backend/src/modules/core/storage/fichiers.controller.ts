@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ALL_ROLES, type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import { ALL_ROLES, type AuthUser, CurrentUser, Roles, SAV_ACCES } from '../../../common';
 import { UploadFichierDto } from './fichiers.dto';
 import { FichiersService } from './fichiers.service';
 import type { UploadedBinary } from './upload.config';
@@ -22,7 +22,7 @@ export class FichiersController {
   constructor(private readonly fichiers: FichiersService) {}
 
   /** Office and chef upload here (documents, certificates). Portal accounts upload through their portal routes. */
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')

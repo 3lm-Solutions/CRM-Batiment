@@ -64,6 +64,22 @@ export const USERS: SeedUser[] = [
     nom: 'Durand',
     telephone: '0144556677',
   },
+  {
+    role: Role.RESPONSABLE_SAV,
+    email: 'responsable.sav@batiment-pro.fr',
+    password: 'ResponsableSav@2026!',
+    prenom: 'Nadia',
+    nom: 'Leroy',
+    telephone: '0611223355',
+  },
+  {
+    role: Role.AGENT_SAV,
+    email: 'agent.sav@batiment-pro.fr',
+    password: 'AgentSav@2026!',
+    prenom: 'Karim',
+    nom: 'Moreau',
+    telephone: '0611223366',
+  },
 ];
 
 export const TYPES_PROJET: { nom: string; description: string }[] = [

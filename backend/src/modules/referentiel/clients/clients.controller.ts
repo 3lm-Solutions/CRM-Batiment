@@ -12,7 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles } from '../../../common';
+import { type AuthUser, BUREAU, CurrentUser, Roles, SAV_EQUIPE } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ClientsService } from './clients.service';
 import { CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients.dto';
@@ -24,23 +24,27 @@ import { CreateClientDto, QueryClientsDto, UpdateClientDto } from './dto/clients
 export class ClientsController {
   constructor(private readonly clients: ClientsService) {}
 
+  @Roles(...BUREAU, ...SAV_EQUIPE)
   @Get()
   @ApiOperation({ summary: 'Liste paginée (actifs par défaut, ?archived=true pour les archivés)' })
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryClientsDto) {
     return this.clients.findAll(user, query);
   }
 
+  @Roles(...BUREAU, ...SAV_EQUIPE)
   @Get(':id')
   @ApiOperation({ summary: 'Fiche client + dernières demandes, devis et chantiers' })
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.clients.findOne(user, id);
   }
 
+  @Roles(...BUREAU, ...SAV_EQUIPE)
   @Post()
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateClientDto) {
     return this.clients.create(user, dto);
   }
 
+  @Roles(...BUREAU, ...SAV_EQUIPE)
   @Patch(':id')
   update(
     @CurrentUser() user: AuthUser,

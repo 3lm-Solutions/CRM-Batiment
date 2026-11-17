@@ -15,7 +15,8 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, CurrentUser, Roles, SAV_ACCES, STAFF } from '../../../common';
+import { Role } from '../../../generated/prisma/client';
 import type { UploadedBinary } from '../../core/storage/upload.config';
 import {
   CreateSavTicketDto,
@@ -29,7 +30,7 @@ import { MAX_PHOTOS_PAR_TICKET, SavService } from './sav.service';
 
 @ApiTags('SAV')
 @ApiBearerAuth()
-@Roles(...STAFF)
+@Roles(...SAV_ACCES)
 @Controller('sav')
 export class SavController {
   constructor(private readonly sav: SavService) {}
@@ -126,12 +127,15 @@ export class SavController {
     return this.sav.transition(user, id, 'RESOLU', dto);
   }
 
+  // The AGENT_SAV may resolve; closing / reopening is checked by a responsable (CDC 3)
+  @Roles(...STAFF, Role.RESPONSABLE_SAV)
   @Post(':id/rouvrir')
   @HttpCode(HttpStatus.OK)
   rouvrir(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.sav.transition(user, id, 'EN_COURS');
   }
 
+  @Roles(...STAFF, Role.RESPONSABLE_SAV)
   @Post(':id/cloturer')
   @HttpCode(HttpStatus.OK)
   cloturer(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {

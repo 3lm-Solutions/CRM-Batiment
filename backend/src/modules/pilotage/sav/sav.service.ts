@@ -119,7 +119,7 @@ export class SavService {
     const exception = await this.assertSavPossible(
       user.companyId,
       dto.chantierId,
-      user.role === Role.ADMIN,
+      user.role === Role.ADMIN || user.role === Role.RESPONSABLE_SAV,
     );
 
     const ticket = await this.prisma.$transaction(async (tx) => {
@@ -546,7 +546,16 @@ export class SavService {
         id: userId,
         companyId,
         actif: true,
-        role: { in: [Role.ADMIN, Role.TECHNICO, Role.ASSISTANTE, Role.CHEF_CHANTIER] },
+        role: {
+          in: [
+            Role.ADMIN,
+            Role.TECHNICO,
+            Role.ASSISTANTE,
+            Role.CHEF_CHANTIER,
+            Role.RESPONSABLE_SAV,
+            Role.AGENT_SAV,
+          ],
+        },
       },
     });
     if (!ok)

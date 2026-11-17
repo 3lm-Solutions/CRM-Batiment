@@ -5,6 +5,7 @@ import {
   paginate,
   ReferencePrefix,
   ReferenceService,
+  seesCosts,
   toSkipTake,
 } from '../../../common';
 import { ChantierStatut, Prisma, Role } from '../../../generated/prisma/client';
@@ -116,7 +117,7 @@ export class ChantiersService {
             id: true,
             reference: true,
             statut: true,
-            ...(user.role !== Role.CHEF_CHANTIER && internal && { totalHT: true, totalTTC: true }),
+            ...(seesCosts(user) && internal && { totalHT: true, totalTTC: true }),
           },
         },
         taches: {

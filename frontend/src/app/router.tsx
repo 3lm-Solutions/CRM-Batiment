@@ -51,6 +51,7 @@ import { NotFoundPage } from './placeholders';
 
 const BUREAU: Role[] = ['ADMIN', 'TECHNICO', 'ASSISTANTE'];
 const STAFF: Role[] = [...BUREAU, 'CHEF_CHANTIER'];
+const SAV_EQUIPE: Role[] = ['RESPONSABLE_SAV', 'AGENT_SAV'];
 const ST_READERS: Role[] = ['ADMIN', 'ASSISTANTE', 'CHEF_CHANTIER'];
 const PORTAL: Role[] = ['SOUS_TRAITANT', 'FOURNISSEUR'];
 
@@ -121,12 +122,12 @@ export const router = createBrowserRouter([
           page('devis', STAFF, <DevisListPage />, 'Devis'),
           page('devis/:id', STAFF, <DevisEditorPage />, 'Devis'),
           page('prospects', BUREAU, <ClientsPage mode="prospects" />, 'Prospects'),
-          page('clients', BUREAU, <ClientsPage mode="clients" />, 'Clients'),
-          page('clients/:id', BUREAU, <ClientDetailPage />, 'Fiche client'),
+          page('clients', [...BUREAU, ...SAV_EQUIPE], <ClientsPage mode="clients" />, 'Clients'),
+          page('clients/:id', [...BUREAU, ...SAV_EQUIPE], <ClientDetailPage />, 'Fiche client'),
 
           // ── opérations ──
-          page('chantiers', STAFF, <ChantiersPage />, 'Chantiers'),
-          page('chantiers/:id', STAFF, <ChantierDetailPage />, 'Chantier'),
+          page('chantiers', [...STAFF, ...SAV_EQUIPE], <ChantiersPage />, 'Chantiers'),
+          page('chantiers/:id', [...STAFF, ...SAV_EQUIPE], <ChantierDetailPage />, 'Chantier'),
           page('planning', STAFF, <PlanningPage />, 'Planning'),
           page('pointages', STAFF, <PointagesPage />, 'Pointages'),
           page('factures', BUREAU, <FacturesPage />, 'Factures'),
@@ -136,8 +137,8 @@ export const router = createBrowserRouter([
           page('stock', STAFF, <StockPage />, 'Stock'),
           page('sous-traitants', ST_READERS, <SousTraitantsPage />, 'Sous-traitants'),
           page('sous-traitants/:id', ST_READERS, <SousTraitantDetailPage />, 'Sous-traitant'),
-          page('sav', STAFF, <SavPage />, 'SAV'),
-          page('sav/:id', STAFF, <SavDetailPage />, 'Ticket SAV'),
+          page('sav', [...STAFF, ...SAV_EQUIPE], <SavPage />, 'SAV'),
+          page('sav/:id', [...STAFF, ...SAV_EQUIPE], <SavDetailPage />, 'Ticket SAV'),
 
           // ── référentiel ──
           page('catalogue', STAFF, <CataloguePage />, 'Catalogue'),

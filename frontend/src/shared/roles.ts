@@ -11,6 +11,8 @@ export const Role = {
   CHEF_CHANTIER: 'CHEF_CHANTIER',
   SOUS_TRAITANT: 'SOUS_TRAITANT',
   FOURNISSEUR: 'FOURNISSEUR',
+  RESPONSABLE_SAV: 'RESPONSABLE_SAV',
+  AGENT_SAV: 'AGENT_SAV',
 } as const;
 
 export type Role = (typeof Role)[keyof typeof Role];
@@ -22,4 +24,6 @@ export const ROLE_LABELS: Record<Role, string> = {
   CHEF_CHANTIER: 'Chef de chantier',
   SOUS_TRAITANT: 'Sous-traitant',
   FOURNISSEUR: 'Fournisseur',
+  RESPONSABLE_SAV: 'Responsable SAV',
+  AGENT_SAV: 'Agent SAV',
 };

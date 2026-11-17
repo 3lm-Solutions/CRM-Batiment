@@ -21,6 +21,8 @@ const ESPACE: Record<Role, { sidebar: string; header: string }> = {
   CHEF_CHANTIER: { sidebar: 'Espace chef de chantier', header: 'Chef de chantier' },
   SOUS_TRAITANT: { sidebar: 'Espace sous-traitant', header: 'Sous-traitant' },
   FOURNISSEUR: { sidebar: 'Espace fournisseur', header: 'Fournisseur' },
+  RESPONSABLE_SAV: { sidebar: 'Espace SAV', header: 'Responsable SAV' },
+  AGENT_SAV: { sidebar: 'Espace SAV', header: 'Agent SAV' },
 };
 
 /** Shell of every signed-in page, in the old BÂTIFLOW design: blue gradient sidebar + white top bar. */

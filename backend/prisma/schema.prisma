@@ -1673,6 +1673,8 @@ enum Role {
   CHEF_CHANTIER
   SOUS_TRAITANT
   FOURNISSEUR
+  RESPONSABLE_SAV
+  AGENT_SAV
 }
 
 /// Étape 5 (26/10): a remark, or a problem to look at quickly

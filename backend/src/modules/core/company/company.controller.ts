@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, CurrentUser, Roles, SAV_ACCES } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { CompanyService } from './company.service';
 import { UpdateCompanyDto, UpdateCompanySettingsDto } from './dto/company.dto';
@@ -12,7 +12,7 @@ import { UpdateCompanyDto, UpdateCompanySettingsDto } from './dto/company.dto';
 export class CompanyController {
   constructor(private readonly company: CompanyService) {}
 
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Get()
   @ApiOperation({ summary: 'Coordonnées de l’entreprise (en-têtes de devis et factures)' })
   getProfile(@CurrentUser() user: AuthUser) {
@@ -24,7 +24,7 @@ export class CompanyController {
     return this.company.updateProfile(user, dto);
   }
 
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Get('settings')
   @ApiOperation({
     summary: 'Réglages de chiffrage : TVA, acompte, marge cible, seuil d’alerte, arrondi',

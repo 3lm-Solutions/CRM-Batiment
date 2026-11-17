@@ -21,7 +21,11 @@ const ACTIONS: Record<SavStatut, { action: SavAction; label: string; variant?: '
 export function SavDetailPage() {
   const id = Number(useParams().id);
   // 29/10: the client page and the invoices are office-only
-  const isBureau = useAuth().hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  const { hasRole } = useAuth();
+  const isBureau = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  const voitClient = isBureau || hasRole('RESPONSABLE_SAV', 'AGENT_SAV');
+  // CDC 3: closing / reopening is validated by a responsable, not by the AGENT_SAV
+  const agent = hasRole('AGENT_SAV');
   const ticket = useSavTicket(id);
   const action = useSavAction(id);
   const addNote = useAddSavNote(id);
@@ -55,7 +59,7 @@ export function SavDetailPage() {
         }
         actions={
           <>
-            {ACTIONS[t.statut].map((a) => (
+            {ACTIONS[t.statut].filter((a) => !agent || (a.action !== 'cloturer' && a.action !== 'rouvrir')).map((a) => (
               <Button key={a.action} variant={a.variant ?? 'primary'} loading={action.isPending && action.variables?.action === a.action} onClick={() => (a.action === 'resoudre' ? setResolving(true) : run(a.action))}>
                 {a.label}
               </Button>
@@ -125,7 +129,7 @@ export function SavDetailPage() {
         <Card>
           <CardHeader title="Informations" />
           <dl className="space-y-3 p-5 text-sm">
-            <div><dt className="text-xs text-slate-500">Client</dt><dd>{isBureau ? <Link to={`/clients/${t.client.id}`} className="font-medium hover:underline">{fullName(t.client)}</Link> : <span className="font-medium">{fullName(t.client)}</span>}{t.client.telephone && ` · ${t.client.telephone}`}</dd></div>
+            <div><dt className="text-xs text-slate-500">Client</dt><dd>{voitClient ? <Link to={`/clients/${t.client.id}`} className="font-medium hover:underline">{fullName(t.client)}</Link> : <span className="font-medium">{fullName(t.client)}</span>}{t.client.telephone && ` · ${t.client.telephone}`}</dd></div>
             <div><dt className="text-xs text-slate-500">Assigné à</dt><dd>{t.assignedTo ? fullName(t.assignedTo) : '—'}</dd></div>
             <div><dt className="text-xs text-slate-500">Échéance</dt><dd>{formatDate(t.dateEcheance)}</dd></div>
             {t.chantier && <div><dt className="text-xs text-slate-500">Chantier</dt><dd><Link to={`/chantiers/${t.chantier.id}`} className="text-brand-700 hover:underline dark:text-blue-300">{t.chantier.reference}</Link></dd></div>}

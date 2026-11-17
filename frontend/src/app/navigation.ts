@@ -42,7 +42,9 @@ export interface NavItem {
 const BUREAU: Role[] = ['ADMIN', 'TECHNICO', 'ASSISTANTE'];
 const STAFF: Role[] = [...BUREAU, 'CHEF_CHANTIER'];
 
-const ALL: Role[] = [...STAFF, 'SOUS_TRAITANT', 'FOURNISSEUR'];
+/** Cahier des charges SAV: Responsable SAV and Agent SAV */
+const SAV_EQUIPE: Role[] = ['RESPONSABLE_SAV', 'AGENT_SAV'];
+const ALL: Role[] = [...STAFF, ...SAV_EQUIPE, 'SOUS_TRAITANT', 'FOURNISSEUR'];
 
 /** Sidebar, per role — grouped like the old app (Pilotage, Commercial, Référentiel…). Same entries as router.tsx. */
 export const NAVIGATION: { section: string; items: NavItem[] }[] = [
@@ -50,18 +52,18 @@ export const NAVIGATION: { section: string; items: NavItem[] }[] = [
     section: 'Pilotage',
     items: [
       { to: '/tableau-de-bord', label: 'Tableau de bord', description: 'Vue générale', icon: LayoutDashboard, roles: ['ADMIN'] },
-      { to: '/chantiers', label: 'Chantiers', description: 'Suivi des chantiers', icon: HardHat, roles: STAFF },
+      { to: '/chantiers', label: 'Chantiers', description: 'Suivi des chantiers', icon: HardHat, roles: [...STAFF, ...SAV_EQUIPE] },
       { to: '/planning', label: 'Planning', description: 'Calendrier des équipes', icon: CalendarRange, roles: STAFF },
       { to: '/pointages', label: 'Pointages', description: 'Heures des sous-traitants', icon: Clock, roles: STAFF },
       { to: '/commandes', label: 'Commandes fournisseur', description: 'Commandes et réceptions', icon: Truck, roles: STAFF },
-      { to: '/sav', label: 'SAV', description: 'Tickets et interventions', icon: Wrench, roles: STAFF },
+      { to: '/sav', label: 'SAV', description: 'Tickets et interventions', icon: Wrench, roles: [...STAFF, ...SAV_EQUIPE] },
     ],
   },
   {
     section: 'Commercial',
     items: [
       { to: '/prospects', label: 'Prospects', description: 'Qualifiés, sans devis signé', icon: UserSearch, roles: BUREAU },
-      { to: '/clients', label: 'Clients', description: 'Ont signé un devis', icon: Users, roles: BUREAU },
+      { to: '/clients', label: 'Clients', description: 'Ont signé un devis', icon: Users, roles: [...BUREAU, ...SAV_EQUIPE] },
       { to: '/demandes', label: 'Demandes', description: 'Demandes de devis', icon: ClipboardList, roles: BUREAU },
       { to: '/assistant', label: 'Assistant IA', description: 'Prospects chatbot et emails', icon: Bot, roles: BUREAU },
       { to: '/devis', label: 'Devis', description: 'Création et suivi', icon: FileText, roles: STAFF },
@@ -117,4 +119,6 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   CHEF_CHANTIER: '/chantiers',
   SOUS_TRAITANT: '/portail',
   FOURNISSEUR: '/portail',
+  RESPONSABLE_SAV: '/sav',
+  AGENT_SAV: '/sav',
 };

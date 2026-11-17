@@ -13,7 +13,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
+import { type AuthUser, BUREAU, CurrentUser, Roles, SAV_ACCES, STAFF } from '../../../common';
 import { Role } from '../../../generated/prisma/client';
 import { ChantiersService } from './chantiers.service';
 import {
@@ -36,14 +36,14 @@ export class ChantiersController {
 
   // Staff only. A sous-traitant uses /portail/sous-traitant/chantiers, which never returns the client's
   // phone, internal notes or other people's comments (this route used to accept him too: data leak).
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Get()
   @ApiOperation({ summary: 'Liste (chef de chantier : ses chantiers uniquement)' })
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryChantiersDto) {
     return this.chantiers.findAll(user, query);
   }
 
-  @Roles(...STAFF)
+  @Roles(...SAV_ACCES)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.chantiers.findOne(user, id);

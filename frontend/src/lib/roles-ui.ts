@@ -8,4 +8,6 @@ export const ROLE_TONES: Record<Role, { avatar: string; badge: string }> = {
   CHEF_CHANTIER: { avatar: 'bg-orange-100 text-orange-600', badge: 'bg-orange-100 text-orange-700' },
   SOUS_TRAITANT: { avatar: 'bg-purple-100 text-purple-600', badge: 'bg-purple-100 text-purple-700' },
   FOURNISSEUR: { avatar: 'bg-gray-200 text-gray-700', badge: 'bg-gray-200 text-gray-700' },
+  RESPONSABLE_SAV: { avatar: 'bg-teal-100 text-teal-600', badge: 'bg-teal-100 text-teal-700' },
+  AGENT_SAV: { avatar: 'bg-cyan-100 text-cyan-600', badge: 'bg-cyan-100 text-cyan-700' },
 };

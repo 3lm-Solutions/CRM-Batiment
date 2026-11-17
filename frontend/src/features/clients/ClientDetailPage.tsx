@@ -15,7 +15,7 @@ export function ClientDetailPage() {
   const id = Number(useParams().id);
   const navigate = useNavigate();
   const { hasRole } = useAuth();
-  const canWrite = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE');
+  const canWrite = hasRole('ADMIN', 'TECHNICO', 'ASSISTANTE', 'RESPONSABLE_SAV', 'AGENT_SAV');
   const isChef = hasRole('CHEF_CHANTIER');
   const client = useClient(id);
   const action = useClientAction();
