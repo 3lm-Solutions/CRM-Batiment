@@ -102,6 +102,9 @@ const STATUS: Record<string, Record<string, [string, Tone]>> = {
   },
   sav: {
     OUVERT: ['Ouvert', 'blue'],
+    A_QUALIFIER: ['À qualifier', 'amber'],
+    PLANIFIE: ['Planifié', 'violet'],
+    REJETE: ['Rejeté', 'red'],
     EN_COURS: ['En cours', 'amber'],
     EN_ATTENTE_CLIENT: ['Attente client', 'violet'],
     RESOLU: ['Résolu', 'green'],

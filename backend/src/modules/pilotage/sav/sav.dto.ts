@@ -165,6 +165,16 @@ export class SavNoteDto {
   visibleClient?: boolean;
 }
 
+/** Rejecting a ticket needs a reason, sent to the client (CDC 4.4: human decision, justified). */
+export class RejeterSavDto {
+  @ApiProperty({ description: 'Motif du rejet (envoyé au client)' })
+  @TrimOrNull()
+  @IsString()
+  @IsNotEmpty({ message: 'Le motif du rejet est obligatoire.' })
+  @MaxLength(5000)
+  motif: string;
+}
+
 export class ResoudreSavDto {
   @ApiPropertyOptional({ description: 'Note de résolution (ajoutée au fil)' })
   @IsOptional()

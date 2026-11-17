@@ -97,10 +97,10 @@ export class DashboardService {
         where: { companyId, statutLivraison: { in: [...PENDING_ORDERS] } },
       }),
       this.prisma.savTicket.count({
-        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] } },
+        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE', 'REJETE'] } },
       }),
       this.prisma.savTicket.count({
-        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE'] }, priorite: 'URGENTE' },
+        where: { companyId, statut: { notIn: ['RESOLU', 'CLOTURE', 'REJETE'] }, priorite: 'URGENTE' },
       }),
       this.prisma.materiau.count({
         where: {

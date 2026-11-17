@@ -32,6 +32,9 @@ export function espaceClientMail(p: {
 
 const SAV_STATUT_CLIENT: Record<string, string> = {
   OUVERT: 'enregistrée',
+  A_QUALIFIER: 'enregistrée, en cours d’examen',
+  PLANIFIE: 'planifiée : une intervention est prévue',
+  REJETE: 'non retenue',
   EN_COURS: 'en cours de traitement',
   EN_ATTENTE_CLIENT: 'en attente de votre réponse',
   RESOLU: 'résolue',

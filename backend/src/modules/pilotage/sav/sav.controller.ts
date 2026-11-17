@@ -21,6 +21,7 @@ import type { UploadedBinary } from '../../core/storage/upload.config';
 import {
   CreateSavTicketDto,
   QuerySavDto,
+  RejeterSavDto,
   ResoudreSavDto,
   SavChantiersQueryDto,
   SavNoteDto,
@@ -103,6 +104,37 @@ export class SavController {
     @Param('fichierId', ParseIntPipe) fichierId: number,
   ) {
     return this.sav.supprimerPhoto(user, id, fichierId);
+  }
+
+  @Post(':id/qualifier')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Ticket du client vérifié : À qualifier → Ouvert' })
+  qualifier(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
+    return this.sav.transition(user, id, 'OUVERT');
+  }
+
+  @Post(':id/planifier')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Intervention prévue : → Planifié (note facultative)' })
+  planifier(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ResoudreSavDto,
+  ) {
+    return this.sav.transition(user, id, 'PLANIFIE', dto);
+  }
+
+  // A rejection is a decision of a responsable, not of the AGENT_SAV (CDC 3 and 4.4)
+  @Roles(...STAFF, Role.RESPONSABLE_SAV)
+  @Post(':id/rejeter')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Rejeter le ticket, avec un motif envoyé au client' })
+  rejeter(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RejeterSavDto,
+  ) {
+    return this.sav.transition(user, id, 'REJETE', { note: dto.motif, visibleClient: true });
   }
 
   @Post(':id/prendre-en-charge')

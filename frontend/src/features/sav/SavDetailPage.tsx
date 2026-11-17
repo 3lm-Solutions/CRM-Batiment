@@ -10,13 +10,23 @@ import { SAV_CATEGORIES, useAddSavNote, useSavAction, useSavTicket, type SavActi
 import { SavFormModal } from './SavFormModal';
 import { SavPhotosCard } from './SavPhotosCard';
 
-const ACTIONS: Record<SavStatut, { action: SavAction; label: string; variant?: 'primary' | 'outline' | 'success' }[]> = {
-  OUVERT: [{ action: 'prendre-en-charge', label: 'Prendre en charge' }, { action: 'resoudre', label: 'Résoudre', variant: 'success' }, { action: 'cloturer', label: 'Clôturer', variant: 'outline' }],
-  EN_COURS: [{ action: 'resoudre', label: 'Résoudre', variant: 'success' }, { action: 'attente-client', label: 'En attente du client', variant: 'outline' }, { action: 'cloturer', label: 'Clôturer', variant: 'outline' }],
-  EN_ATTENTE_CLIENT: [{ action: 'prendre-en-charge', label: 'Reprendre' }, { action: 'resoudre', label: 'Résoudre', variant: 'success' }, { action: 'cloturer', label: 'Clôturer', variant: 'outline' }],
+type Act = { action: SavAction; label: string; variant?: 'primary' | 'outline' | 'success' | 'danger' };
+const PLANIFIER: Act = { action: 'planifier', label: 'Planifier', variant: 'outline' };
+const RESOUDRE: Act = { action: 'resoudre', label: 'Résoudre', variant: 'success' };
+const CLOTURER: Act = { action: 'cloturer', label: 'Clôturer', variant: 'outline' };
+const REJETER: Act = { action: 'rejeter', label: 'Rejeter', variant: 'outline' };
+const ACTIONS: Record<SavStatut, Act[]> = {
+  A_QUALIFIER: [{ action: 'qualifier', label: 'Qualifier' }, PLANIFIER, { action: 'attente-client', label: 'Demander des infos', variant: 'outline' }, REJETER],
+  OUVERT: [{ action: 'prendre-en-charge', label: 'Prendre en charge' }, PLANIFIER, RESOUDRE, CLOTURER, REJETER],
+  PLANIFIE: [{ action: 'prendre-en-charge', label: 'Démarrer l’intervention' }, RESOUDRE, { action: 'attente-client', label: 'En attente du client', variant: 'outline' }, CLOTURER, REJETER],
+  EN_COURS: [RESOUDRE, PLANIFIER, { action: 'attente-client', label: 'En attente du client', variant: 'outline' }, CLOTURER, REJETER],
+  EN_ATTENTE_CLIENT: [{ action: 'prendre-en-charge', label: 'Reprendre' }, PLANIFIER, RESOUDRE, CLOTURER, REJETER],
   RESOLU: [{ action: 'cloturer', label: 'Clôturer' }, { action: 'rouvrir', label: 'Rouvrir', variant: 'outline' }],
+  REJETE: [{ action: 'rouvrir', label: 'Rouvrir', variant: 'outline' }],
   CLOTURE: [],
 };
+/** CDC 3: closing, reopening and rejecting are a responsable's decision, not the AGENT_SAV's */
+const RESERVE_RESPONSABLE: SavAction[] = ['cloturer', 'rouvrir', 'rejeter'];
 
 export function SavDetailPage() {
   const id = Number(useParams().id);
@@ -35,13 +45,15 @@ export function SavDetailPage() {
   const [editing, setEditing] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [resolution, setResolution] = useState('');
+  const [rejecting, setRejecting] = useState(false);
+  const [motif, setMotif] = useState('');
 
   if (ticket.isPending) return <Loading />;
   if (ticket.isError) return <ErrorState error={ticket.error} onRetry={() => void ticket.refetch()} />;
   const t = ticket.data;
   const onError = (e: unknown) => toast.error(errorMessage(e));
   const run = (a: SavAction, n?: string) =>
-    action.mutate({ action: a, note: n, visibleClient: a === 'resoudre' && resolutionPourClient }, { onSuccess: () => { toast.success('Ticket mis à jour'); setResolving(false); setResolution(''); }, onError });
+    action.mutate({ action: a, note: n, visibleClient: a === 'resoudre' && resolutionPourClient }, { onSuccess: () => { toast.success('Ticket mis à jour'); setResolving(false); setResolution(''); setRejecting(false); setMotif(''); }, onError });
 
   return (
     <>
@@ -59,8 +71,8 @@ export function SavDetailPage() {
         }
         actions={
           <>
-            {ACTIONS[t.statut].filter((a) => !agent || (a.action !== 'cloturer' && a.action !== 'rouvrir')).map((a) => (
-              <Button key={a.action} variant={a.variant ?? 'primary'} loading={action.isPending && action.variables?.action === a.action} onClick={() => (a.action === 'resoudre' ? setResolving(true) : run(a.action))}>
+            {ACTIONS[t.statut].filter((a) => !agent || !RESERVE_RESPONSABLE.includes(a.action)).map((a) => (
+              <Button key={a.action} variant={a.variant ?? 'primary'} loading={action.isPending && action.variables?.action === a.action} onClick={() => (a.action === 'resoudre' ? setResolving(true) : a.action === 'rejeter' ? setRejecting(true) : run(a.action))}>
                 {a.label}
               </Button>
             ))}
@@ -160,6 +172,9 @@ export function SavDetailPage() {
           <input type="checkbox" className="size-4 accent-brand-700" checked={resolutionPourClient} onChange={(e) => setResolutionPourClient(e.target.checked)} />
           Envoyer cette solution au client (espace client + email)
         </label>
+      </ConfirmDialog>
+      <ConfirmDialog open={rejecting} onClose={() => setRejecting(false)} title="Rejeter le ticket" message="Le motif est obligatoire : il est ajouté au suivi et envoyé au client." confirmLabel="Rejeter" loading={action.isPending} onConfirm={() => motif.trim() && run('rejeter', motif.trim())}>
+        <Textarea label="Motif du rejet" required rows={3} value={motif} onChange={(e) => setMotif(e.target.value)} />
       </ConfirmDialog>
     </>
   );

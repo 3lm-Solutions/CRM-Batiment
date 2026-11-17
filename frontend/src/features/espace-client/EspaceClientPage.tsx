@@ -167,11 +167,14 @@ export function FactureClientDocument({ f, showLien = true }: { f: EspaceFacture
 }
 
 const SAV_STEPS: { statut: SavStatut; label: string }[] = [
+  { statut: 'A_QUALIFIER', label: 'Demande reçue, en cours d’examen' },
   { statut: 'OUVERT', label: 'Demande enregistrée' },
+  { statut: 'PLANIFIE', label: 'Intervention planifiée' },
   { statut: 'EN_COURS', label: 'Prise en charge' },
   { statut: 'EN_ATTENTE_CLIENT', label: 'En attente de votre réponse' },
   { statut: 'RESOLU', label: 'Résolue' },
   { statut: 'CLOTURE', label: 'Clôturée' },
+  { statut: 'REJETE', label: 'Non retenue' },
 ];
 const stepLabel = (statut: SavStatut) => SAV_STEPS.find((x) => x.statut === statut)?.label ?? statut;
 

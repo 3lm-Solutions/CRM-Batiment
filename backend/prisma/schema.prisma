@@ -1893,6 +1893,9 @@ enum PaiementStatut {
 
 enum SavTicketStatut {
   OUVERT
+  A_QUALIFIER
+  PLANIFIE
+  REJETE
   EN_COURS
   EN_ATTENTE_CLIENT
   RESOLU

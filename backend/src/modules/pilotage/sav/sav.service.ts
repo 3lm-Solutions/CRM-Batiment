@@ -173,6 +173,8 @@ export class SavService {
           statut: to,
           ...(to === 'RESOLU' && { dateResolution: new Date() }),
           ...(to === 'EN_COURS' && ticket.statut === 'RESOLU' && { dateResolution: null }),
+          ...(to === 'REJETE' && { dateResolution: new Date() }),
+          ...(to === 'EN_COURS' && ticket.statut === 'REJETE' && { dateResolution: null }),
           // Taking a ticket assigns it to you if nobody had it
           ...(to === 'EN_COURS' && !ticket.assignedTo && { assignedToId: user.id }),
         },
@@ -254,12 +256,14 @@ export class SavService {
           description: input.description,
           categorie: input.categorie ?? 'AUTRE',
           origine: 'ESPACE_CLIENT',
+          // Sent by the client: the team checks it first (CDC 4.1)
+          statut: 'A_QUALIFIER',
           createurId: null,
           reference: await this.references.next(ReferencePrefix.SAV, companyId, tx),
         },
       });
       await tx.savTicketHistorique.create({
-        data: { ticketId: created.id, statut: 'OUVERT', userId: null },
+        data: { ticketId: created.id, statut: 'A_QUALIFIER', userId: null },
       });
       return created;
     });

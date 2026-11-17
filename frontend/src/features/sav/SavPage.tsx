@@ -7,9 +7,10 @@ import { SAV_CATEGORIES, useSavTickets, type SavCategorie, type SavPriorite, typ
 import { SavFormModal } from './SavFormModal';
 
 const TABS: { value: string; label: string; statuts?: SavStatut[] }[] = [
-  { value: 'open', label: 'À traiter', statuts: ['OUVERT', 'EN_COURS', 'EN_ATTENTE_CLIENT'] },
+  { value: 'open', label: 'À traiter', statuts: ['A_QUALIFIER', 'OUVERT', 'PLANIFIE', 'EN_COURS', 'EN_ATTENTE_CLIENT'] },
   { value: 'resolved', label: 'Résolus', statuts: ['RESOLU'] },
   { value: 'closed', label: 'Clôturés', statuts: ['CLOTURE'] },
+  { value: 'rejected', label: 'Rejetés', statuts: ['REJETE'] },
   { value: 'all', label: 'Tous' },
 ];
 
@@ -78,7 +79,7 @@ export function SavPage() {
                 key: 'echeance',
                 header: 'Échéance',
                 cell: (t) => {
-                  const late = t.dateEcheance && new Date(t.dateEcheance) < new Date() && !['RESOLU', 'CLOTURE'].includes(t.statut);
+                  const late = t.dateEcheance && new Date(t.dateEcheance) < new Date() && !['RESOLU', 'CLOTURE', 'REJETE'].includes(t.statut);
                   return <span className={late ? 'font-semibold text-red-600' : undefined}>{formatDate(t.dateEcheance)}</span>;
                 },
               },

@@ -3,7 +3,7 @@ import type { PaginatedResponse } from '@/shared';
 import { api } from '@/lib/api';
 import type { ChantierStatut } from '../chantiers/api';
 
-export type SavStatut = 'OUVERT' | 'EN_COURS' | 'EN_ATTENTE_CLIENT' | 'RESOLU' | 'CLOTURE';
+export type SavStatut = 'A_QUALIFIER' | 'OUVERT' | 'PLANIFIE' | 'EN_COURS' | 'EN_ATTENTE_CLIENT' | 'RESOLU' | 'CLOTURE' | 'REJETE';
 export type SavPriorite = 'BASSE' | 'NORMALE' | 'HAUTE' | 'URGENTE';
 export type SavCategorie = 'DEFAUT_TRAVAUX' | 'RETARD' | 'FACTURATION' | 'QUALITE' | 'SAV_TECHNIQUE' | 'AUTRE';
 
@@ -158,8 +158,8 @@ export const useAddSavNote = (id: number) =>
     (await api.post<SavTicket>(`/sav/${id}/notes`, { contenu, visibleClient: !!visibleClient })).data,
   );
 
-export type SavAction = 'prendre-en-charge' | 'attente-client' | 'resoudre' | 'rouvrir' | 'cloturer';
+export type SavAction = 'qualifier' | 'planifier' | 'prendre-en-charge' | 'attente-client' | 'resoudre' | 'rejeter' | 'rouvrir' | 'cloturer';
 export const useSavAction = (id: number) =>
   useSavWrite(async ({ action, note, visibleClient }: { action: SavAction; note?: string; visibleClient?: boolean }) =>
-    (await api.post<SavTicket>(`/sav/${id}/${action}`, action === 'resoudre' ? { note: note || null, visibleClient: !!visibleClient } : {})).data,
+    (await api.post<SavTicket>(`/sav/${id}/${action}`, action === 'resoudre' ? { note: note || null, visibleClient: !!visibleClient } : action === 'rejeter' ? { motif: note ?? '' } : {})).data,
   );
