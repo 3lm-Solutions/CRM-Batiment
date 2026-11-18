@@ -104,7 +104,8 @@ export function ClientFormModal({
       },
       {
         onSuccess: (saved) => {
-          toast.success(client ? 'Client modifié' : 'Client créé');
+          // A new client with an email gets his online space automatically (link emailed to him)
+          toast.success(client ? 'Client modifié' : v.email?.trim() ? `Client créé — espace client envoyé à ${v.email.trim()}` : 'Client créé (sans email : pas d’espace client)');
           onSaved?.(saved);
           onClose();
         },

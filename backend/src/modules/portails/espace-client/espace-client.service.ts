@@ -1,4 +1,5 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { type AuthUser, BusinessException } from '../../../common';
@@ -18,6 +19,10 @@ import { eligibiliteSav } from '../../pilotage/sav/sav-rules';
 import { CHANTIERS_RETOURS } from '../../pilotage/retours-client/retours-rules';
 import { completerQrFacture, FACTURE_CLIENT_SELECT } from '../../finance/factures/facture.views';
 import { CreateSavClientDto } from './espace-client.dto';
+import {
+  type ClientCreeEvent,
+  ClientEvents,
+} from '../../referentiel/clients/clients.events';
 
 const VALIDITY_DAYS = 90;
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -47,7 +52,27 @@ export class EspaceClientService {
   // ── office side ─────────────────────────────────────────────────────────
 
   /** New link emailed to the client; previous links stop working. */
-  async envoyerLien(user: AuthUser, clientId: number) {
+  private readonly logger = new Logger(EspaceClientService.name);
+
+  /**
+   * A new client gets his online space automatically: the link is created and emailed to him.
+   * Without an email nothing is done (the office can still open it later from the client page).
+   */
+  @OnEvent(ClientEvents.CREE, { async: true })
+  async ouvrirEspaceNouveauClient(e: ClientCreeEvent) {
+    try {
+      const client = await this.prisma.client.findFirst({
+        where: { id: e.clientId, companyId: e.companyId },
+        select: { email: true, archivedAt: true },
+      });
+      if (!client?.email || client.archivedAt) return;
+      await this.envoyerLien({ id: e.userId, companyId: e.companyId }, e.clientId);
+    } catch (error) {
+      this.logger.warn(`Espace client du client #${e.clientId} non ouvert : ${String(error)}`);
+    }
+  }
+
+  async envoyerLien(user: Pick<AuthUser, 'id' | 'companyId'>, clientId: number) {
     const client = await this.prisma.client.findFirst({
       where: { id: clientId, companyId: user.companyId },
       select: {

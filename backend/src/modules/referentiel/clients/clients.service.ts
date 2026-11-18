@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type AuthUser, BusinessException, paginate, parseSort, toSkipTake } from '../../../common';
 import { Prisma, Role, type TypeClient } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { type ClientCreeEvent, ClientEvents } from './clients.events';
 import {
   CLIENT_SORT_FIELDS,
   CreateClientDto,
@@ -43,7 +45,10 @@ export function appliquerCategorie<
 
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: EventEmitter2,
+  ) {}
 
   async findAll(user: AuthUser, query: QueryClientsDto) {
     const where: Prisma.ClientWhereInput = {
@@ -147,6 +152,12 @@ export class ClientsService {
       },
       include: CLIENT_INCLUDE,
     });
+    // His online space is opened (and emailed) right away when he has an email
+    this.events.emit(ClientEvents.CREE, {
+      companyId: user.companyId,
+      clientId: client.id,
+      userId: user.id,
+    } satisfies ClientCreeEvent);
     return toResponse(client);
   }
 
