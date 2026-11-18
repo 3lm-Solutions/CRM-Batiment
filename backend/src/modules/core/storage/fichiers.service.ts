@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { type AuthUser, BusinessException, BUREAU } from '../../../common';
-import { Prisma, Role } from '../../../generated/prisma/client';
+import { type InstallationEtape, Prisma, Role } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { DbClient } from '../../../prisma/prisma.types';
 import { AUDIO_ACCEPTE, detectAudio } from '../../ia/devis-ia/audio-type';
@@ -30,6 +30,15 @@ export interface FichierLinks {
   rapportId?: number;
   /** Photo of an after-sales ticket (C42 of 21/10) */
   savTicketId?: number;
+  /** Mobile (lot A): delivery note / photos of a checked delivery */
+  receptionId?: number;
+  /** Mobile (lot A): photo of a supplier invoice */
+  depenseId?: number;
+  /** Mobile (lot B): photo of a step of a delegated installation, with its step */
+  installationId?: number;
+  installationEtape?: InstallationEtape;
+  /** Mobile (lot B): photo of an installer's report */
+  signalementId?: number;
 }
 
 /**
@@ -115,6 +124,11 @@ export class FichiersService {
           chantierId: links.chantierId,
           rapportId: links.rapportId,
           savTicketId: links.savTicketId,
+          receptionId: links.receptionId,
+          depenseId: links.depenseId,
+          installationId: links.installationId,
+          installationEtape: links.installationEtape,
+          signalementId: links.signalementId,
           uploadedById,
         },
         select: FICHIER_SELECT,
@@ -185,6 +199,12 @@ export class FichiersService {
         // 16/11: quote scans and prospect voice notes / photos are office documents
         devisSignaturePapier: { select: { id: true } },
         demandeDevisFichier: { select: { id: true } },
+        // lot B: step photos, report photos and signed PV of a delegated installation
+        installation: { select: { sousTraitant: { select: { userId: true } } } },
+        signalement: {
+          select: { installation: { select: { sousTraitant: { select: { userId: true } } } } },
+        },
+        pvInstallation: { select: { sousTraitant: { select: { userId: true } } } },
       },
     });
     // 404 rather than 403: never confirm that someone else's file exists
@@ -195,6 +215,9 @@ export class FichiersService {
       savTicket: _s,
       devisSignaturePapier: _d,
       demandeDevisFichier: _f,
+      installation: _i,
+      signalement: _sg,
+      pvInstallation: _pv,
       ...rest
     } = fichier;
     return rest;
@@ -205,6 +228,13 @@ export class FichiersService {
     f: {
       chantierId: number | null;
       uploadedById: number | null;
+      receptionId?: number | null;
+      depenseId?: number | null;
+      installation?: { sousTraitant: { userId: number | null } | null } | null;
+      signalement?: {
+        installation: { sousTraitant: { userId: number | null } | null };
+      } | null;
+      pvInstallation?: { sousTraitant: { userId: number | null } | null } | null;
       rapport: { chantierId: number } | null;
       savTicket?: {
         assignedToId: number | null;
@@ -217,8 +247,13 @@ export class FichiersService {
     if (BUREAU.includes(user.role)) return true;
     if (f.uploadedById === user.id) return true;
     if (user.role === Role.FOURNISSEUR) return false;
-    // Signed quote scan, prospect photo / voice note (16/11): office (and uploader) only
-    if (f.devisSignaturePapier || f.demandeDevisFichier) return false;
+    // lot B: files of a delegated installation — office and the installer of the mission only
+    const installation = f.installation ?? f.signalement?.installation ?? f.pvInstallation;
+    if (installation) return installation.sousTraitant?.userId === user.id;
+    // Signed quote scan, prospect photo / voice note (16/11), delivery note and supplier invoice
+    // (lot A, 18/11): office (and uploader) only
+    if (f.devisSignaturePapier || f.demandeDevisFichier || f.receptionId || f.depenseId)
+      return false;
 
     // After-sales photo (C42): same scope as the ticket itself (a chef: assigned to it, or chef of its job site)
     if (f.savTicket) {

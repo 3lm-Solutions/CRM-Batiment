@@ -1,7 +1,6 @@
 BÂTIFLOW — TOUT CE QUE L'APPLICATION PEUT FAIRE
 ==============================================
 
-
 Pour chaque action :
 - la première ligne est l'adresse utilisée par les développeurs ;
 - la phrase dessous dit ce que fait l'action ;
@@ -14,6 +13,7 @@ Les personnes :
 - Assistante : clients, devis, factures et chantiers
 - Chef de chantier : ses chantiers et ses tâches, sans les prix
 - Sous-traitant : ses chantiers, ses tâches, ses heures
+- Installateur : un sous-traitant à qui on confie la pose d'un chantier (ses missions, sans les prix)
 - Fournisseur : ses commandes
 - Client : son devis et son espace en ligne, sans compte
 
@@ -210,7 +210,7 @@ POST /public/espace-client/:token/sav/:id/messages
 ----------
 
 GET /clients
-   Voir la liste des clients.
+   Voir la liste des clients (recherche par nom, téléphone, email ou ville).
    Qui : Admin, Commercial, Assistante   |   Où : Web et mobile
 
 GET /clients/doublons
@@ -682,16 +682,16 @@ DELETE /catalogue/services-mo/:id
 ------------------------------------
 
 GET /commandes-fournisseur
-   Voir les commandes aux fournisseurs. Le chef de chantier voit celles de ses chantiers, sans les prix.
-   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web et mobile
+   Voir les commandes aux fournisseurs. Le chef de chantier et l'installateur voient celles de leurs chantiers, sans les prix.
+   Qui : Admin, Commercial, Assistante, Chef de chantier, Installateur   |   Où : Web et mobile
 
 POST /commandes-fournisseur
    Créer une commande pour un fournisseur.
    Qui : Admin, Commercial, Assistante   |   Où : Web
 
 GET /commandes-fournisseur/:id
-   Voir une commande.
-   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+   Voir une commande (sans les prix pour le chef et l'installateur).
+   Qui : Admin, Commercial, Assistante, Chef de chantier, Installateur   |   Où : Web
 
 PATCH /commandes-fournisseur/:id
    Modifier une commande.
@@ -710,8 +710,8 @@ POST /commandes-fournisseur/:id/expediee
    Qui : Admin, Commercial, Assistante   |   Où : Web
 
 POST /commandes-fournisseur/:id/receptions
-   Noter la livraison reçue (le stock est mis à jour).
-   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
+   Noter la livraison reçue (le stock est mis à jour) et les écarts avec le bon de livraison (manquant, en trop, inconnu, abîmé). L'installateur le fait pour ses missions.
+   Qui : Admin, Commercial, Assistante, Chef de chantier, Installateur   |   Où : Web et mobile
 
 POST /commandes-fournisseur/:id/cloturer
    Fermer la commande.
@@ -762,7 +762,187 @@ DELETE /fournisseurs/:id
    Qui : Admin   |   Où : Web
 
 
-11. FACTURES
+11. LIVRAISONS VÉRIFIÉES ET FACTURES FOURNISSEUR
+------------------------------------------------
+
+GET /receptions
+   Voir les livraisons reçues, dont celles avec des écarts à vérifier.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /receptions/:id
+   Voir une livraison : quantités reçues, écarts et photos du bon de livraison.
+   Qui : Admin, Commercial, Assistante, Chef de chantier, Installateur   |   Où : Mobile
+
+POST /receptions/:id/fichiers
+   Ajouter la photo du bon de livraison ou d'un article manquant ou abîmé.
+   Qui : Admin, Commercial, Assistante, Chef de chantier, Installateur   |   Où : Mobile
+
+POST /receptions/:id/valider
+   Accepter une livraison avec écarts (celui qui l'a notée est prévenu).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /receptions/:id/refuser
+   Refuser une livraison avec écarts, en expliquant pourquoi.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /depenses
+   Envoyer la photo d'une facture fournisseur avec les montants lus : elle attend la validation du bureau.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /depenses
+   Voir les factures fournisseur envoyées (le chef voit les siennes, sans les montants).
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+GET /depenses/:id
+   Voir une facture fournisseur envoyée, avec ses photos.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+PATCH /depenses/:id
+   Corriger une facture fournisseur pas encore validée.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+DELETE /depenses/:id
+   Supprimer une facture fournisseur pas encore validée.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /depenses/:id/fichiers
+   Ajouter une page à une facture fournisseur pas encore validée.
+   Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Mobile
+
+POST /depenses/:id/valider
+   Valider une facture fournisseur (celui qui l'a envoyée est prévenu).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /depenses/:id/refuser
+   Refuser une facture fournisseur, en expliquant pourquoi.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /validations/compteurs
+   Nombre de choses à vérifier : signatures papier, livraisons avec écarts, factures fournisseur.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+
+12. INSTALLATIONS CONFIÉES À UN INSTALLATEUR
+--------------------------------------------
+
+GET /installations
+   Voir les installations confiées à des installateurs, par étape (les retards en premier).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /installations/compteurs
+   Nombre d'installations par étape, en retard, avec une livraison en retard, PV à vérifier.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /installations/installateurs
+   Voir les installateurs à qui confier une pose (note moyenne, missions en cours).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /installations/:id
+   Voir une installation : historique, livraisons, photos des étapes, réserves et incidents signalés, PV.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations
+   Confier la pose d'un chantier à un installateur (chantier en mode « Les deux »).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+PATCH /installations/:id
+   Changer la date souhaitée ou la note de la mission (l'installateur est prévenu).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+DELETE /installations/:id
+   Annuler la délégation, tant que l'installateur n'a pas accepté.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/attribuer
+   Proposer la mission à un installateur, avec une note et une date souhaitée.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/relancer
+   Relancer l'installateur (une fois par heure au plus).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/dates/accepter
+   Accepter la date proposée par l'installateur.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/pv/valider
+   Accepter un PV envoyé sans QR code lisible : l'installation est terminée.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/pv/rejeter
+   Refuser un PV envoyé sans QR code lisible, en expliquant pourquoi.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+GET /installations/:id/pv
+   Télécharger le PV de fin de travaux à faire signer (PDF avec QR code).
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/signalements/:signalementId/traiter
+   Marquer une réserve ou un incident signalé comme traité.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/signalements/:signalementId/sav
+   Transformer une réserve ou un incident signalé en ticket SAV.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+POST /installations/:id/cloturer
+   Clôturer une installation terminée.
+   Qui : Admin, Assistante   |   Où : Mobile
+
+
+13. APPLICATION DE L'INSTALLATEUR
+---------------------------------
+
+GET /installateur/missions
+   Installateur : voir mes missions (proposées, en cours, terminées).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+GET /installateur/pv/verifier
+   Installateur : vérifier le QR code d'un PV imprimé.
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+GET /installateur/missions/:id
+   Installateur : voir une mission (client, adresse, articles sans prix, dates, livraisons).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/accepter
+   Installateur : accepter la mission.
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/refuser
+   Installateur : refuser la mission en expliquant pourquoi (le bureau est prévenu).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/dates/confirmer
+   Installateur : confirmer la date souhaitée par le bureau.
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/dates/proposer
+   Installateur : proposer une autre date (le bureau l'accepte).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/etapes/:etape/photos
+   Installateur : envoyer les photos de l'étape en cours (livraison, pose, finitions).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/avancer
+   Installateur : passer à l'étape suivante (pose, puis finitions).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/signalements
+   Installateur : signaler une réserve, un retard ou un incident, avec photos.
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+GET /installateur/missions/:id/pv
+   Installateur : télécharger le PV de fin de travaux à faire signer.
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+POST /installateur/missions/:id/pv
+   Installateur : envoyer le PV signé scanné (QR bon : installation terminée).
+   Qui : Installateur (sous-traitant)   |   Où : Mobile
+
+
+14. FACTURES
 ------------
 
 GET /factures
@@ -826,7 +1006,7 @@ GET /public/factures/:token
    Qui : Tout le monde, sans compte   |   Où : Web
 
 
-12. RAPPELS AUX CLIENTS
+15. RAPPELS AUX CLIENTS
 -----------------------
 
 GET /relances
@@ -854,7 +1034,7 @@ POST /relances/executer
    Qui : Admin   |   Où : Web
 
 
-13. CHANTIERS ET TÂCHES
+16. CHANTIERS ET TÂCHES
 -----------------------
 
 GET /chantiers
@@ -1018,7 +1198,7 @@ POST /rapports/:id/rejeter
    Qui : Admin, Assistante, Chef de chantier   |   Où : Web
 
 
-14. SOUS-TRAITANTS
+17. SOUS-TRAITANTS
 ------------------
 
 GET /pointages
@@ -1130,7 +1310,7 @@ DELETE /sous-traitants/:id/notations/:nid
    Qui : Admin   |   Où : Web
 
 
-15. APPLICATION DU SOUS-TRAITANT
+18. APPLICATION DU SOUS-TRAITANT
 --------------------------------
 
 GET /portail/sous-traitant/photos
@@ -1210,7 +1390,7 @@ POST /portail/sous-traitant/rapports
    Qui : Sous-traitant   |   Où : Web
 
 
-16. APPLICATION DU FOURNISSEUR
+19. APPLICATION DU FOURNISSEUR
 ------------------------------
 
 GET /portail/fournisseur/profil
@@ -1238,7 +1418,7 @@ POST /portail/fournisseur/commandes/:id/expediee
    Qui : Fournisseur   |   Où : Web
 
 
-17. SAV (APRÈS-VENTE)
+20. SAV (APRÈS-VENTE)
 ---------------------
 
 GET /sav
@@ -1294,7 +1474,7 @@ POST /sav/:id/cloturer
    Qui : Admin, Commercial, Assistante, Chef de chantier   |   Où : Web
 
 
-18. TABLEAUX DE BORD
+21. TABLEAUX DE BORD
 --------------------
 
 GET /dashboard
@@ -1310,7 +1490,7 @@ GET /dashboard/commercial
    Qui : Admin, Commercial, Assistante   |   Où : Mobile
 
 
-19. NOTIFICATIONS
+22. NOTIFICATIONS
 -----------------
 
 GET /notifications
@@ -1330,7 +1510,7 @@ POST /notifications/:id/lue
    Qui : Tout le monde (connecté)   |   Où : Web
 
 
-20. HISTORIQUE
+23. HISTORIQUE
 --------------
 
 GET /audit
@@ -1342,7 +1522,7 @@ GET /audit/:entite/:entiteId
    Qui : Admin   |   Où : Prêt, pas encore dans un écran
 
 
-21. ASSISTANT DU SITE ET PERSONNES INTÉRESSÉES
+24. ASSISTANT DU SITE ET PERSONNES INTÉRESSÉES
 ----------------------------------------------
 
 POST /public/assistant/sessions
@@ -1430,7 +1610,7 @@ DELETE /assistant/connaissances/:id
    Qui : Admin   |   Où : Web
 
 
-22. DÉMONSTRATION
+25. DÉMONSTRATION
 -----------------
 
 POST /public/demo-requests
@@ -1474,7 +1654,7 @@ POST /public/demo/connexion
    Qui : Tout le monde, sans compte   |   Où : Web
 
 
-23. FICHIERS
+26. FICHIERS
 ------------
 
 POST /fichiers
@@ -1490,7 +1670,7 @@ GET /fichiers/:id/contenu
    Qui : Tout le monde (connecté)   |   Où : Web
 
 
-24. SERVEUR
+27. SERVEUR
 -----------
 
 GET /health

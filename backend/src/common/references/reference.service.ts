@@ -11,6 +11,10 @@ export const ReferencePrefix = {
   COMMANDE_FOURNISSEUR: 'CMD',
   SAV: 'SAV',
   CONTRAT_SOUS_TRAITANT: 'CST',
+  /** Mobile (lot A): supplier invoice scanned in the field */
+  DEPENSE: 'DEP',
+  /** Mobile (lot B): delegated installation */
+  INSTALLATION: 'INS',
 } as const;
 export type ReferencePrefix = (typeof ReferencePrefix)[keyof typeof ReferencePrefix];
 

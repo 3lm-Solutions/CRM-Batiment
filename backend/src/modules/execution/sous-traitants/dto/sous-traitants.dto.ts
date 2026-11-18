@@ -15,7 +15,14 @@ import {
   IsBoolean,
   IsUrl,
 } from 'class-validator';
-import { NormalizeEmail, PaginationQueryDto, Trim, TrimOrNull, IsPhone } from '../../../../common';
+import {
+  IsPhone,
+  NormalizeEmail,
+  PaginationQueryDto,
+  ToBoolean,
+  Trim,
+  TrimOrNull,
+} from '../../../../common';
 import {
   ModePaiement,
   PaiementStatut,
@@ -73,6 +80,13 @@ export class CreateSousTraitantDto {
   specialite?: string | null;
 
   @ApiPropertyOptional({
+    description: 'Mobile (lot B) : peut recevoir des installations déléguées (missions)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  installateur?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Compte SOUS_TRAITANT existant à rattacher dès la création (portail)',
   })
   @IsOptional()
@@ -96,6 +110,12 @@ export class QuerySousTraitantsDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(SousTraitantStatut)
   statut?: SousTraitantStatut;
+
+  @ApiPropertyOptional({ description: 'Mobile (lot B) : seulement les installateurs' })
+  @IsOptional()
+  @ToBoolean()
+  @IsBoolean()
+  installateur?: boolean;
 }
 
 export class LierCompteDto {

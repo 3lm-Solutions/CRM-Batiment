@@ -64,6 +64,9 @@ export class ClientsService {
           { telephone: { contains: query.search } },
           { siret: { contains: query.search.replace(/\s+/g, '') } },
           { contactNom: { contains: query.search, mode: 'insensitive' } },
+          // 18/11 (mobile lot A): the city is written in the address — « Lyon » finds the clients of Lyon
+          { adresseClient: { contains: query.search, mode: 'insensitive' } },
+          { adresseChantier: { contains: query.search, mode: 'insensitive' } },
         ],
       }),
     };

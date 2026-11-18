@@ -25,6 +25,15 @@ import {
   type TacheCommenteeEvent,
   TacheEvents,
 } from '../../execution/chantiers/taches.events';
+import {
+  type ReceptionEvent,
+  ReceptionEvents,
+} from '../../finance/commandes-fournisseur/receptions.events';
+import { type DepenseEvent, DepenseEvents } from '../../finance/depenses/depenses.events';
+import {
+  INSTALLATION_EVENEMENT,
+  type InstallationEvent,
+} from '../../execution/installations/installations.events';
 import { NotificationsService } from './notifications.service';
 
 const ASYNC = { async: true } as const;
@@ -364,5 +373,91 @@ export class NotificationsListener {
       (await this.prisma.devis.findUnique({ where: { id: devisId }, select: { createurId: true } }))
         ?.createurId ?? null
     );
+  }
+
+  // ── livraisons vérifiées avec le bon de livraison (lot A, 18/11) ────────
+
+  @OnEvent(ReceptionEvents.ECARTS, ASYNC)
+  async receptionEcarts(e: ReceptionEvent) {
+    await this.notifications.notifyRoles(e.companyId, [Role.ADMIN, Role.ASSISTANTE], {
+      type: 'LIVRAISON_ECARTS',
+      niveau: 'ALERTE',
+      titre: `Livraison avec écarts : ${e.reference}`,
+      message: `${e.nbEcarts ?? 1} écart(s) noté(s) avec le bon de livraison. À vérifier.`,
+      // the web page of the order shows its deliveries
+      lien: `/commandes/${e.commandeId}`,
+    });
+  }
+
+  @OnEvent(ReceptionEvents.CONTROLEE, ASYNC)
+  async receptionControlee(e: ReceptionEvent) {
+    if (!e.auteurId || e.auteurId === e.userId) return;
+    await this.notifications.notifyUsers(e.companyId, [e.auteurId], {
+      type: 'LIVRAISON_CONTROLEE',
+      niveau: e.decision === 'REFUSEE' ? 'ALERTE' : 'INFO',
+      titre: `Livraison ${e.reference} ${e.decision === 'REFUSEE' ? 'refusée' : 'acceptée'} par le bureau`,
+      message: e.decision === 'REFUSEE' ? `Motif : ${e.motif}` : 'Les écarts sont pris en compte.',
+      lien: `/commandes/${e.commandeId}`,
+    });
+  }
+
+  // ── factures fournisseur envoyées du terrain (lot A, 18/11) ─────────────
+
+  @OnEvent(DepenseEvents.CREEE, ASYNC)
+  async depenseCreee(e: DepenseEvent) {
+    await this.notifications.notifyRoles(e.companyId, [Role.ADMIN, Role.ASSISTANTE], {
+      type: 'DEPENSE_A_VALIDER',
+      titre: `Facture fournisseur à valider : ${e.fournisseurNom}`,
+      message: `Facture n° ${e.numeroFacture} (${e.reference}) envoyée depuis le terrain.`,
+      // no web page for the dépenses yet: no link
+    });
+  }
+
+  @OnEvent(DepenseEvents.DECIDEE, ASYNC)
+  async depenseDecidee(e: DepenseEvent) {
+    if (!e.createurId || e.createurId === e.userId) return;
+    await this.notifications.notifyUsers(e.companyId, [e.createurId], {
+      type: 'DEPENSE_DECIDEE',
+      niveau: e.decision === 'REFUSEE' ? 'ALERTE' : 'INFO',
+      titre: `Facture ${e.fournisseurNom} n° ${e.numeroFacture} ${e.decision === 'REFUSEE' ? 'refusée' : 'validée'}`,
+      message: e.decision === 'REFUSEE' ? `Motif : ${e.motif}` : 'Le bureau a validé la dépense.',
+    });
+  }
+
+  // ── installations déléguées (lot B, 18/11) ──────────────────────────────
+
+  /** One rule for every action: the office (ADMIN, ASSISTANTE) and / or the installer. */
+  @OnEvent(INSTALLATION_EVENEMENT, ASYNC)
+  async installation(e: InstallationEvent) {
+    const notif = {
+      type: `INSTALLATION_${e.type}`,
+      niveau: e.alerte ? ('ALERTE' as const) : ('INFO' as const),
+      titre: `Installation ${e.reference}`,
+      message: e.message,
+      // no web page for the installations: the mobile opens them from the type
+    };
+    if (e.pour === 'BUREAU' || e.pour === 'LES_DEUX') {
+      const bureau = await this.prisma.user.findMany({
+        where: {
+          companyId: e.companyId,
+          actif: true,
+          role: { in: [Role.ADMIN, Role.ASSISTANTE] },
+          ...(e.userId && { id: { not: e.userId } }),
+        },
+        select: { id: true },
+      });
+      await this.notifications.notifyUsers(
+        e.companyId,
+        bureau.map((u) => u.id),
+        notif,
+      );
+    }
+    if (
+      (e.pour === 'INSTALLATEUR' || e.pour === 'LES_DEUX') &&
+      e.installateurUserId &&
+      e.installateurUserId !== e.userId
+    ) {
+      await this.notifications.notifyUsers(e.companyId, [e.installateurUserId], notif);
+    }
   }
 }

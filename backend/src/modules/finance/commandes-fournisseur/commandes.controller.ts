@@ -13,6 +13,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { amountsFor, type AuthUser, BUREAU, CurrentUser, Roles, STAFF } from '../../../common';
+import { Role } from '../../../generated/prisma/client';
+
+/** 18/11 (lot B): the installer (SOUS_TRAITANT) reads and receives the orders of HIS missions, without price. */
+const AVEC_INSTALLATEUR = [...STAFF, Role.SOUS_TRAITANT];
 import {
   CreateCommandeDto,
   QueryCommandesDto,
@@ -29,7 +33,7 @@ import { CommandesService } from './commandes.service';
 export class CommandesController {
   constructor(private readonly commandes: CommandesService) {}
 
-  @Roles(...STAFF)
+  @Roles(...AVEC_INSTALLATEUR)
   @Get()
   findAll(@CurrentUser() user: AuthUser, @Query() query: QueryCommandesDto) {
     return amountsFor(user, this.commandes.findAll(user, query));
@@ -43,7 +47,7 @@ export class CommandesController {
     return this.commandes.create(user, dto);
   }
 
-  @Roles(...STAFF)
+  @Roles(...AVEC_INSTALLATEUR)
   @Get(':id')
   findOne(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return amountsFor(user, this.commandes.findOne(user, id));
@@ -81,7 +85,7 @@ export class CommandesController {
     return this.commandes.changerStatut(user, id, 'EXPEDIEE');
   }
 
-  @Roles(...STAFF)
+  @Roles(...AVEC_INSTALLATEUR)
   @Post(':id/receptions')
   @ApiOperation({
     summary: 'Réceptionner une livraison (partielle ou totale) — met le stock à jour',

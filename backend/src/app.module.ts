@@ -17,6 +17,8 @@ import { SousTraitantsModule } from './modules/execution/sous-traitants/sous-tra
 import { PointagesModule } from './modules/execution/pointages/pointages.module';
 import { PhotosAvancementModule } from './modules/execution/photos-avancement/photos-avancement.module';
 import { CommandesModule } from './modules/finance/commandes-fournisseur/commandes.module';
+import { DepensesModule } from './modules/finance/depenses/depenses.module';
+import { InstallationsModule } from './modules/execution/installations/installations.module';
 import { FacturesModule } from './modules/finance/factures/factures.module';
 import { StockModule } from './modules/finance/stock/stock.module';
 import { CatalogueModule } from './modules/referentiel/catalogue/catalogue.module';
@@ -83,6 +85,8 @@ import { PrismaModule } from './prisma/prisma.module';
     PhotosAvancementModule,
     StockModule,
     CommandesModule,
+    DepensesModule, // 18/11, lot A
+    InstallationsModule, // 18/11, lot B
     FacturesModule,
 
     // ── workflow: devis accepté / signé → commandes, chantier, acompte ──

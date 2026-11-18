@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   type AuthUser,
   BusinessException,
@@ -24,6 +25,7 @@ import {
   UpdateLignesCommandeDto,
 } from './commandes.dto';
 import { type CatalogueForNeeds, computeMaterialNeeds } from './material-needs';
+import { type ReceptionEvent, ReceptionEvents } from './receptions.events';
 
 const INCLUDE = {
   fournisseur: { select: { id: true, nom: true, email: true, telephone: true } },
@@ -35,7 +37,12 @@ const INCLUDE = {
   },
   receptions: {
     orderBy: { dateReception: 'desc' },
-    include: { lignes: true, user: { select: { id: true, nom: true, prenom: true } } },
+    include: {
+      lignes: true,
+      user: { select: { id: true, nom: true, prenom: true } },
+      // 18/11 (lot A): gaps noted against the delivery note
+      ecarts: { orderBy: { id: 'asc' } },
+    },
   },
 } satisfies Prisma.CommandeFournisseurInclude;
 
@@ -48,6 +55,7 @@ export class CommandesService {
     private readonly references: ReferenceService,
     private readonly stock: StockService,
     private readonly mail: MailService,
+    private readonly events: EventEmitter2,
   ) {}
 
   // ── P0.4 : generation from an accepted quote ────────────────────────────
@@ -332,7 +340,15 @@ export class CommandesService {
    * v2: the old reception only stored totals and never touched the stock.
    */
   async receptionner(user: AuthUser, id: number, dto: ReceptionDto) {
-    await this.prisma.$transaction(async (tx) => {
+    const ecarts = dto.ecarts ?? [];
+    // 18/11 (lot A): a delivery made only of gaps is allowed (wrong items, nothing usable)
+    if (!dto.lignes.length && !ecarts.length) {
+      throw new BusinessException(
+        'RECEPTION_VIDE',
+        'Indiquez au moins une quantité reçue ou un écart.',
+      );
+    }
+    const event = await this.prisma.$transaction(async (tx) => {
       const commande = await tx.commandeFournisseur.findFirst({
         where: { id, ...this.scope(user) },
         include: { lignes: true, devis: { select: { chantierId: true } } },
@@ -345,9 +361,35 @@ export class CommandesService {
         );
       }
 
+      for (const ecart of ecarts) {
+        if (ecart.ligneId && !commande.lignes.some((l) => l.id === ecart.ligneId)) {
+          throw new BusinessException(
+            'LIGNE_INTROUVABLE',
+            `Ligne #${ecart.ligneId} absente de cette commande.`,
+          );
+        }
+      }
+
       const reception = await tx.reception.create({
-        data: { commandeFournisseurId: id, userId: user.id, notes: dto.notes },
+        data: {
+          commandeFournisseurId: id,
+          userId: user.id,
+          notes: dto.notes,
+          statutControle: ecarts.length ? 'A_VERIFIER' : 'SANS_ECART',
+        },
       });
+      if (ecarts.length) {
+        await tx.receptionEcart.createMany({
+          data: ecarts.map((e) => ({
+            receptionId: reception.id,
+            type: e.type,
+            ligneCommandeId: e.ligneId ?? null,
+            libelle: e.libelle,
+            quantite: e.quantite ?? null,
+            commentaire: e.commentaire ?? null,
+          })),
+        });
+      }
 
       for (const item of dto.lignes) {
         const ligne = commande.lignes.find((l) => l.id === item.ligneId);
@@ -389,9 +431,28 @@ export class CommandesService {
       });
       const complete = lignes.every((l) => l.quantiteRecue.gte(l.quantite));
       const to: CommandeFournisseurStatut = complete ? 'RECUE' : 'PARTIELLE';
-      if (to !== commande.statutLivraison) await this.transition(tx, commande, to);
+      // nothing received (gaps only): the order keeps its status
+      if (dto.lignes.length && to !== commande.statutLivraison)
+        await this.transition(tx, commande, to);
+
+      return {
+        receptionId: reception.id,
+        payload: ecarts.length
+          ? ({
+              companyId: user.companyId,
+              receptionId: reception.id,
+              commandeId: id,
+              reference: commande.reference,
+              auteurId: user.id,
+              userId: user.id,
+              nbEcarts: ecarts.length,
+            } satisfies ReceptionEvent)
+          : null,
+      };
     });
-    return this.findOne(user, id);
+    if (event.payload) this.events.emit(ReceptionEvents.ECARTS, event.payload);
+    // receptionId: the phone then sends the delivery note photo to /receptions/:id/fichiers
+    return { ...(await this.findOne(user, id)), receptionId: event.receptionId };
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────
@@ -416,6 +477,14 @@ export class CommandesService {
 
   /** Chef de chantier: orders for his job sites (to receive deliveries) — from a quote or manual. */
   private scope(user: AuthUser): Prisma.CommandeFournisseurWhereInput {
+    // 18/11 (lot B): an installer sees the orders of the job sites of his missions only
+    if (user.role === Role.SOUS_TRAITANT) {
+      const mienne = { installation: { sousTraitant: { userId: user.id } } };
+      return {
+        companyId: user.companyId,
+        OR: [{ chantier: mienne }, { devis: { chantier: mienne } }],
+      };
+    }
     return user.role === Role.CHEF_CHANTIER
       ? {
           companyId: user.companyId,

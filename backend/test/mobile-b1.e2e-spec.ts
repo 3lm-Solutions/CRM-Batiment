@@ -13,7 +13,7 @@ const OGG = Buffer.concat([Buffer.from('OggS'), Buffer.alloc(64, 2)]);
 /** Buffers a binary response (PDF). */
 const binaire = (res: unknown, cb: (err: Error | null, body: unknown) => void) => {
   // at runtime the response is the Node stream (superagent's typing does not say so)
-  const flux = res as unknown as NodeJS.ReadableStream;
+  const flux = res as NodeJS.ReadableStream;
   const chunks: Buffer[] = [];
   flux.on('data', (c: Buffer) => chunks.push(c));
   flux.on('end', () => cb(null, Buffer.concat(chunks)));

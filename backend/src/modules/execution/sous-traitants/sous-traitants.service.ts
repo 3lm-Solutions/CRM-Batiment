@@ -18,6 +18,7 @@ export class SousTraitantsService {
     const where: Prisma.SousTraitantWhereInput = {
       companyId: user.companyId,
       statut: query.statut,
+      installateur: query.installateur,
       ...(query.search && {
         OR: [
           { nom: { contains: query.search, mode: 'insensitive' } },

@@ -11,6 +11,15 @@ import {
   type CataloguePriceChangedEvent,
 } from '../../referentiel/catalogue/catalogue.events';
 import { RELANCE_ENVOYEE, type RelanceEnvoyeeEvent } from '../relances/relances.events';
+import {
+  type ReceptionEvent,
+  ReceptionEvents,
+} from '../../finance/commandes-fournisseur/receptions.events';
+import { type DepenseEvent, DepenseEvents } from '../../finance/depenses/depenses.events';
+import {
+  INSTALLATION_EVENEMENT,
+  type InstallationEvent,
+} from '../../execution/installations/installations.events';
 import { AuditService } from './audit.service';
 
 const ASYNC = { async: true } as const;
@@ -139,6 +148,61 @@ export class AuditListener {
       entite: 'Facture',
       entiteId: e.factureId,
       nouvelleValeur: { reference: e.reference, type: e.type, montantTTC: e.montantTTC },
+    });
+  }
+
+  // ── lot A (18/11): checked deliveries ───────────────────────────────────
+
+  @OnEvent(ReceptionEvents.CONTROLEE, ASYNC)
+  onReceptionControlee(e: ReceptionEvent) {
+    return this.audit.record({
+      companyId: e.companyId,
+      userId: e.userId,
+      action: e.decision === 'REFUSEE' ? 'LIVRAISON_REFUSEE' : 'LIVRAISON_ACCEPTEE',
+      entite: 'Reception',
+      entiteId: e.receptionId,
+      nouvelleValeur: { commande: e.reference, motif: e.motif ?? null },
+    });
+  }
+
+  @OnEvent(DepenseEvents.DECIDEE, ASYNC)
+  onDepenseDecidee(e: DepenseEvent) {
+    return this.audit.record({
+      companyId: e.companyId,
+      userId: e.userId,
+      action: e.decision === 'REFUSEE' ? 'DEPENSE_REFUSEE' : 'DEPENSE_VALIDEE',
+      entite: 'Depense',
+      entiteId: e.depenseId,
+      nouvelleValeur: {
+        reference: e.reference,
+        fournisseur: e.fournisseurNom,
+        numero: e.numeroFacture,
+        motif: e.motif ?? null,
+      },
+    });
+  }
+
+  // ── lot B (18/11): decisions on a delegated installation ────────────────
+
+  @OnEvent(INSTALLATION_EVENEMENT, ASYNC)
+  onInstallation(e: InstallationEvent) {
+    const gardees = [
+      'PROPOSEE',
+      'ACCEPTEE',
+      'REFUSEE',
+      'PV_SIGNE',
+      'PV_REJETE',
+      'CLOTUREE',
+      'SAV_CREE',
+    ];
+    if (!gardees.includes(e.type)) return;
+    return this.audit.record({
+      companyId: e.companyId,
+      userId: e.userId,
+      action: `INSTALLATION_${e.type}`,
+      entite: 'Installation',
+      entiteId: e.installationId,
+      nouvelleValeur: { reference: e.reference, message: e.message },
     });
   }
 }

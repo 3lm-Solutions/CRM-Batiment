@@ -57,7 +57,9 @@ export function stripAmounts<T>(data: T): T {
   return strip(data, AMOUNT_KEYS);
 }
 
-export const seesCosts = (user: Pick<AuthUser, 'role'>) => user.role !== Role.CHEF_CHANTIER;
+/** 18/11 (lot B): an installer (SOUS_TRAITANT) reading the orders of his missions sees no price either. */
+export const seesCosts = (user: Pick<AuthUser, 'role'>) =>
+  user.role !== Role.CHEF_CHANTIER && user.role !== Role.SOUS_TRAITANT;
 
 /** Returns the data untouched for the office, without any catalogue / stock price for a chef de chantier. */
 export async function costsFor<T>(user: Pick<AuthUser, 'role'>, data: T | Promise<T>): Promise<T> {

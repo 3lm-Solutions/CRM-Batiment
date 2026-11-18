@@ -103,6 +103,10 @@ model Company {
   prixReferences             PrixReference[]
 
   visites              Visite[]
+  /// Mobile (lot A, 18/11): supplier invoices scanned in the field
+  depenses             Depense[]
+  /// Mobile (lot B, 18/11): delegated installations
+  installations        Installation[]
 
   @@map("companies")
 }
@@ -176,6 +180,13 @@ model User {
   /// Mobile (lot 1)
   visitesCommercial     Visite[]               @relation("VisiteCommercial")
   clesIdempotence       CleIdempotence[]
+  /// Mobile (lot A)
+  receptionsControlees  Reception[]            @relation("ReceptionControlePar")
+  depensesCreees        Depense[]              @relation("DepenseCreateur")
+  depensesValidees      Depense[]              @relation("DepenseValidePar")
+  /// Mobile (lot B)
+  evenementsInstallation InstallationEvenement[]
+  signalements          Signalement[]
   @@index([companyId])
   @@index([role])
   @@map("users")
@@ -542,6 +553,7 @@ model Fournisseur {
   utilisateur          User?                 @relation("CompteFournisseur", fields: [userId], references: [id], onDelete: SetNull)
   materiaux            Materiau[]
   commandesFournisseur CommandeFournisseur[]
+  depenses             Depense[]
 
   @@index([companyId])
   @@map("fournisseurs")
@@ -640,6 +652,7 @@ model Devis {
   commandesFournisseur CommandeFournisseur[]
   savTickets           SavTicket[]
   relances             Relance[]
+  installations        Installation[]
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -857,6 +870,7 @@ model CommandeFournisseur {
   chantier    Chantier?                  @relation(fields: [chantierId], references: [id], onDelete: SetNull)
   lignes      LigneCommandeFournisseur[]
   receptions  Reception[]
+  depenses    Depense[]
 
   /// P0.4: one order per supplier per quote — a double click can't create two
   /// (manual orders have no quote: PostgreSQL never compares NULLs, so they are not limited)
@@ -884,6 +898,7 @@ model LigneCommandeFournisseur {
   commandeFournisseur CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id], onDelete: Cascade)
   materiau            Materiau?           @relation(fields: [materiauId], references: [id], onDelete: SetNull)
   receptions          ReceptionLigne[]
+  ecarts              ReceptionEcart[]
 
   @@index([commandeFournisseurId])
   @@map("lignes_commande_fournisseur")
@@ -897,13 +912,167 @@ model Reception {
   dateReception         DateTime @default(now())
   notes                 String?
   createdAt             DateTime @default(now())
+  /// Mobile (lot A, 18/11): delivery checked against the delivery note (BL)
+  statutControle        ReceptionControle @default(SANS_ECART)
+  motifRefus            String?
+  controleParId         Int?
+  controleLe            DateTime?
 
   commandeFournisseur CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id])
   user                User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  controlePar         User?               @relation("ReceptionControlePar", fields: [controleParId], references: [id], onDelete: SetNull)
   lignes              ReceptionLigne[]
+  ecarts              ReceptionEcart[]
+  /// Photo of the delivery note, photos of missing / damaged items
+  fichiers            Fichier[]
 
   @@index([commandeFournisseurId])
+  @@index([statutControle])
   @@map("receptions")
+}
+
+/// Mobile (lot A): one gap noted while checking a delivery against its delivery note.
+/// EN_TROP and INCONNU never enter the stock; the office accepts or refuses the reception.
+model ReceptionEcart {
+  id              Int       @id @default(autoincrement())
+  receptionId     Int
+  type            EcartType
+  /// Line of the order concerned (null for an unknown item)
+  ligneCommandeId Int?
+  libelle         String
+  quantite        Decimal?  @db.Decimal(12, 3)
+  commentaire     String?
+
+  reception     Reception                 @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  ligneCommande LigneCommandeFournisseur? @relation(fields: [ligneCommandeId], references: [id], onDelete: SetNull)
+
+  @@index([receptionId])
+  @@map("receptions_ecarts")
+}
+
+/// Mobile (lot B, 18/11): pose of a job site delegated to an installer (a sous-traitant).
+/// Created at the signature for a REGIE job site, by hand for LES_DEUX.
+model Installation {
+  id              Int               @id @default(autoincrement())
+  companyId       Int
+  reference       String            @unique
+  chantierId      Int               @unique
+  devisId         Int?
+  etape           InstallationEtape @default(DEVIS_SIGNE)
+  sousTraitantId  Int?
+  /// Note of the office to the installer when proposing the mission
+  noteAttribution String?
+  dateSouhaitee   DateTime?
+  /// Date proposed by the installer, waiting for the office
+  dateProposee    DateTime?
+  dateConfirmee   DateTime?
+  /// Printed on the PV as a QR code (BATIFLOW:PV:<id>:<code>)
+  codePv          String
+  pvFichierId     Int?              @unique
+  pvSigneLe       DateTime?
+  /// PV sent without a readable QR code: the office checks it
+  pvAVerifier     Boolean           @default(false)
+  relanceLe       DateTime?
+  clotureLe       DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  company      Company                 @relation(fields: [companyId], references: [id])
+  chantier     Chantier                @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  devis        Devis?                  @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  sousTraitant SousTraitant?           @relation(fields: [sousTraitantId], references: [id], onDelete: SetNull)
+  pvFichier    Fichier?                @relation("InstallationPv", fields: [pvFichierId], references: [id], onDelete: SetNull)
+  evenements   InstallationEvenement[]
+  signalements Signalement[]
+  photos       Fichier[]               @relation("InstallationPhotos")
+
+  @@index([companyId, etape])
+  @@index([sousTraitantId])
+  @@map("installations")
+}
+
+/// Chronology of an installation (one line per action)
+model InstallationEvenement {
+  id             Int      @id @default(autoincrement())
+  installationId Int
+  type           String
+  message        String
+  userId         Int?
+  createdAt      DateTime @default(now())
+
+  installation Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([installationId, createdAt])
+  @@map("installations_evenements")
+}
+
+/// Reserve, delay or incident reported by the installer
+model Signalement {
+  id             Int               @id @default(autoincrement())
+  installationId Int
+  type           SignalementType
+  description    String
+  statut         SignalementStatut @default(OUVERT)
+  /// The installer asks for an after-sales ticket
+  savDemande     Boolean           @default(false)
+  savTicketId    Int?              @unique
+  auteurId       Int?
+  traiteLe       DateTime?
+  createdAt      DateTime          @default(now())
+
+  installation Installation @relation(fields: [installationId], references: [id], onDelete: Cascade)
+  savTicket    SavTicket?   @relation(fields: [savTicketId], references: [id], onDelete: SetNull)
+  auteur       User?        @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+  photos       Fichier[]
+
+  @@index([installationId])
+  @@map("signalements")
+}
+
+/// Mobile (lot A, 18/11): supplier invoice photographed in the field (OCR read on the phone),
+/// sent as a draft and validated or refused by the office (ADMIN / ASSISTANTE).
+model Depense {
+  id                    Int           @id @default(autoincrement())
+  companyId             Int
+  reference             String        @unique
+  fournisseurId         Int?
+  /// Name read on the invoice (or the supplier's name when chosen from the list)
+  fournisseurNom        String
+  /// Duplicate key: "f:<fournisseurId>" or "n:<normalised name>"
+  fournisseurCle        String
+  numeroFacture         String
+  /// Uppercase, without spaces / - . / : « fa 12 » and « FA-12 » are the same invoice
+  numeroNormalise       String
+  dateFacture           DateTime
+  montantHT             Decimal       @db.Decimal(12, 2)
+  montantTVA            Decimal       @db.Decimal(12, 2)
+  montantTTC            Decimal       @db.Decimal(12, 2)
+  chantierId            Int?
+  commandeFournisseurId Int?
+  /// Fields the OCR was unsure about (e.g. ["numeroFacture","montantTVA"]), shown highlighted to the office
+  champsDouteux         String[]      @default([])
+  notes                 String?
+  statut                DepenseStatut @default(BROUILLON)
+  motifRefus            String?
+  createurId            Int?
+  valideParId           Int?
+  valideLe              DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  company             Company              @relation(fields: [companyId], references: [id])
+  fournisseur         Fournisseur?         @relation(fields: [fournisseurId], references: [id], onDelete: SetNull)
+  chantier            Chantier?            @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  commandeFournisseur CommandeFournisseur? @relation(fields: [commandeFournisseurId], references: [id], onDelete: SetNull)
+  createur            User?                @relation("DepenseCreateur", fields: [createurId], references: [id], onDelete: SetNull)
+  validePar           User?                @relation("DepenseValidePar", fields: [valideParId], references: [id], onDelete: SetNull)
+  fichiers            Fichier[]
+
+  @@unique([companyId, fournisseurCle, numeroNormalise])
+  @@index([companyId, statut])
+  @@index([createurId])
+  @@map("depenses")
 }
 
 model ReceptionLigne {
@@ -984,6 +1153,9 @@ model Chantier {
   pointages             Pointage[]
   photosAvancement      PhotoAvancement[]
   retoursClient         RetourClient[]
+  depenses              Depense[]
+  /// Mobile (lot B): the delegated installation of this job site (at most one)
+  installation          Installation?
 
   @@index([companyId, statut])
   @@index([clientId])
@@ -1208,6 +1380,8 @@ model SousTraitant {
   specialite String?
   /// v2: replaces both `statut String` and the redundant `actif Boolean`
   statut     SousTraitantStatut @default(ACTIF)
+  /// Mobile (lot B): can receive delegated installations (missions)
+  installateur Boolean          @default(false)
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
 
@@ -1219,6 +1393,7 @@ model SousTraitant {
   disponibilites DisponibiliteSousTraitant[]
   notations      NotationSousTraitant[]
   pointages      Pointage[]
+  installations  Installation[]
 
   @@unique([companyId, siret])
   @@index([companyId, statut])
@@ -1375,6 +1550,8 @@ model SavTicket {
   notes      SavTicketNote[]
   historique SavTicketHistorique[]
   photos     Fichier[]
+  /// Mobile (lot B): opened from an installer's report
+  signalement Signalement?
 
   @@index([companyId, statut, priorite])
   @@index([companyId, createdAt])
@@ -1627,6 +1804,13 @@ model Fichier {
   rapportId    Int?
   /// Photo of an after-sales ticket (C42 of 21/10): sent by the client from his space or added by the team
   savTicketId  Int?
+  /// Mobile (lot A): delivery note / photo of a checked delivery, photo of a supplier invoice
+  receptionId  Int?
+  depenseId    Int?
+  /// Mobile (lot B): photo of a step of a delegated installation (with its step), photo of a report
+  installationId    Int?
+  installationEtape InstallationEtape?
+  signalementId     Int?
   uploadedById Int?
   createdAt    DateTime @default(now())
 
@@ -1634,6 +1818,12 @@ model Fichier {
   chantier   Chantier?               @relation(fields: [chantierId], references: [id], onDelete: SetNull)
   rapport    RapportChantier?        @relation(fields: [rapportId], references: [id], onDelete: Cascade)
   savTicket  SavTicket?              @relation(fields: [savTicketId], references: [id], onDelete: Cascade)
+  reception  Reception?              @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  depense    Depense?                @relation(fields: [depenseId], references: [id], onDelete: Cascade)
+  installation Installation?         @relation("InstallationPhotos", fields: [installationId], references: [id], onDelete: Cascade)
+  signalement  Signalement?          @relation(fields: [signalementId], references: [id], onDelete: Cascade)
+  /// Mobile (lot B): signed PV scan
+  pvInstallation Installation?       @relation("InstallationPv")
   uploadedBy User?                   @relation("FichierAuteur", fields: [uploadedById], references: [id], onDelete: SetNull)
   document   DocumentChantier?
   assurances AssuranceSousTraitant[]
@@ -1648,6 +1838,10 @@ model Fichier {
   @@index([chantierId])
   @@index([rapportId])
   @@index([savTicketId])
+  @@index([receptionId])
+  @@index([depenseId])
+  @@index([installationId])
+  @@index([signalementId])
   @@map("fichiers")
 }
 
@@ -1865,6 +2059,50 @@ enum TypeMouvementStock {
 
 /// v2: execution phases only. The old enum mixed in commercial phases (VISITE_TECHNIQUE,
 /// DEVIS_ENVOYE…) and supply phases that duplicated the quote and order statuses.
+/// Mobile (lot A): result of checking a delivery against its delivery note
+enum ReceptionControle {
+  SANS_ECART
+  A_VERIFIER
+  ACCEPTEE
+  REFUSEE
+}
+
+enum EcartType {
+  MANQUANT
+  EN_TROP
+  INCONNU
+  ABIME
+}
+
+/// Mobile (lot B): the 8 steps of a delegated installation
+enum InstallationEtape {
+  DEVIS_SIGNE
+  INSTALLATEUR_PROPOSE
+  MISSION_ACCEPTEE
+  LIVRAISON
+  POSE
+  FINITIONS
+  TERMINEE
+  CLOTUREE
+}
+
+enum SignalementType {
+  RESERVE
+  RETARD
+  INCIDENT
+}
+
+enum SignalementStatut {
+  OUVERT
+  TRAITE
+}
+
+enum DepenseStatut {
+  BROUILLON
+  VALIDEE
+  REFUSEE
+}
+
 enum ChantierStatut {
   PLANIFIE
   EN_COURS
