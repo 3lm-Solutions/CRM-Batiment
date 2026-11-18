@@ -163,3 +163,13 @@ export const useSavAction = (id: number) =>
   useSavWrite(async ({ action, note, visibleClient }: { action: SavAction; note?: string; visibleClient?: boolean }) =>
     (await api.post<SavTicket>(`/sav/${id}/${action}`, action === 'resoudre' ? { note: note || null, visibleClient: !!visibleClient } : action === 'rejeter' ? { motif: note ?? '' } : {})).data,
   );
+
+export interface SavDoublon { id: number; reference: string; titre: string; statut: SavStatut; createdAt: string; chantier: { reference: string } | null }
+
+/** Open tickets of the same client / job site, shown before creating a new one. */
+export const useSavDoublons = (clientId: number | null, chantierId: number | null, enabled: boolean) =>
+  useQuery({
+    queryKey: ['sav', 'doublons', clientId, chantierId],
+    enabled: enabled && (!!clientId || !!chantierId),
+    queryFn: async () => (await api.get<SavDoublon[]>('/sav/doublons', { params: { clientId: clientId ?? undefined, chantierId: chantierId ?? undefined } })).data,
+  });

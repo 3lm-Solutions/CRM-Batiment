@@ -24,6 +24,7 @@ import {
   RejeterSavDto,
   ResoudreSavDto,
   SavChantiersQueryDto,
+  SavDoublonsQueryDto,
   SavNoteDto,
   UpdateSavTicketDto,
 } from './sav.dto';
@@ -48,6 +49,13 @@ export class SavController {
   })
   chantiers(@CurrentUser() user: AuthUser, @Query() query: SavChantiersQueryDto) {
     return this.sav.chantiersEligibles(user, query.clientId);
+  }
+
+  /** Before ':id'. Open tickets of the same client / job site (duplicate warning). */
+  @Get('doublons')
+  @ApiOperation({ summary: 'Tickets encore ouverts pour ce client / chantier (détection des doublons)' })
+  doublons(@CurrentUser() user: AuthUser, @Query() query: SavDoublonsQueryDto) {
+    return this.sav.doublons(user, query.clientId, query.chantierId);
   }
 
   @Get(':id')

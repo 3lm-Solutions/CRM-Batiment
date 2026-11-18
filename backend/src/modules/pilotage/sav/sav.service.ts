@@ -101,6 +101,25 @@ export class SavService {
     return paginate(rows, total, query);
   }
 
+  /**
+   * Duplicate detection: tickets still open for the same client (and same job site when given),
+   * shown before creating a new one so the team adds to the existing ticket instead.
+   */
+  async doublons(user: AuthUser, clientId: number | undefined, chantierId: number | undefined) {
+    if (!clientId && !chantierId) return [];
+    return this.prisma.savTicket.findMany({
+      where: {
+        ...this.scope(user),
+        ...(clientId && { clientId }),
+        ...(chantierId && { chantierId }),
+        statut: { notIn: [SavTicketStatut.RESOLU, SavTicketStatut.CLOTURE, SavTicketStatut.REJETE] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: { id: true, reference: true, titre: true, statut: true, createdAt: true, chantier: { select: { reference: true } } },
+    });
+  }
+
   async findOne(user: AuthUser, id: number) {
     const ticket = await this.prisma.savTicket.findFirst({
       where: { id, ...this.scope(user) },

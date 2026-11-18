@@ -201,3 +201,17 @@ export class SavChantiersQueryDto {
   @Min(1)
   clientId?: number;
 }
+
+export class SavDoublonsQueryDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  clientId?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  chantierId?: number;
+}

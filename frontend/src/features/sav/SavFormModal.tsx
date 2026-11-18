@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button, Input, Modal, Select, statusOptions, Textarea } from '@/components/ui';
 import { errorMessage } from '@/lib/api';
@@ -6,7 +7,7 @@ import { formatDate, fromDateInput, fullName, toDateInput } from '@/lib/format';
 import { useAuth } from '../auth/auth-context';
 import { ClientPicker } from '../devis/ClientPicker';
 import { useUserOptions } from '../users/api';
-import { SAV_CATEGORIES, useSavChantiers, useSaveSav, type SavCategorie, type SavPriorite, type SavTicket } from './api';
+import { SAV_CATEGORIES, useSavChantiers, useSavDoublons, useSaveSav, type SavCategorie, type SavPriorite, type SavTicket } from './api';
 
 export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean; onClose: () => void; ticket?: SavTicket; onSaved?: (t: SavTicket) => void }) {
   const save = useSaveSav();
@@ -43,6 +44,7 @@ export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean
   const liste = chantiers.data?.chantiers ?? [];
   const choisi = liste.find((c) => String(c.id) === chantierId);
   const clientChoisi = chef ? (choisi?.client.id ?? null) : clientId;
+  const doublons = useSavDoublons(clientChoisi, chantierId ? Number(chantierId) : null, open && !ticket);
   const proposes = admin ? liste : liste.filter((c) => c.savPossible);
   // Without the rule: no job site, or one not finished / out of period — the ADMIN only
   const horsRegle = !ticket && !!clientChoisi && (!choisi || !choisi.savPossible);
@@ -113,6 +115,19 @@ export function SavFormModal({ open, onClose, ticket, onSaved }: { open: boolean
               </p>
             )}
           </>
+        )}
+        {!ticket && !!doublons.data?.length && (
+          <div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            <p className="font-semibold">Doublon possible : {doublons.data.length} ticket(s) encore ouvert(s) pour {chantierId ? 'ce chantier' : 'ce client'}</p>
+            <ul className="mt-1 list-disc pl-5">
+              {doublons.data.map((d) => (
+                <li key={d.id}>
+                  <Link to={`/sav/${d.id}`} className="underline" onClick={onClose}>{d.reference}</Link> — {d.titre}{d.chantier ? ` (${d.chantier.reference})` : ''}, ouvert le {formatDate(d.createdAt)}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1">Si c’est le même problème, ajoutez plutôt une note au ticket existant.</p>
+          </div>
         )}
         <Input label="Titre" required value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. : Joint de douche qui fuit" />
         <Textarea label="Description" required rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
