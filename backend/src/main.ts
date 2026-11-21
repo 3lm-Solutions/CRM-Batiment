@@ -15,7 +15,8 @@ async function bootstrap(): Promise<void> {
   configureApp(app);
 
   const config = app.get<ConfigService, ConfigService<Env, true>>(ConfigService);
-  const port = config.get('APP_PORT', { infer: true });
+  // Cloud hosts (Koyeb, Render, Railway…) inject PORT; fall back to APP_PORT locally
+  const port = Number(process.env.PORT) || config.get('APP_PORT', { infer: true });
   const isProd = config.get('NODE_ENV', { infer: true }) === 'production';
 
   // Swagger only outside production (no public map of the API)
